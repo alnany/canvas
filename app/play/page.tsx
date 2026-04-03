@@ -2,11 +2,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 
-const GRID = 80;
-const PX   = 8;
-const COOLDOWN_SEC = 10; // 10s demo, 5 min real
+const GRID = 100;
+const PX   = 10;
+const COOLDOWN_SEC = 10;
 const BASE_EARN = 5;
-const HOLD_REWARD_RATE = 0.5 / 3600; // 0.5 $CANVAS per pixel per hour → per second
+const HOLD_REWARD_RATE = 0.5 / 3600;
 
 const PALETTE = [
   "#ef4444","#f97316","#f59e0b","#84cc16",
@@ -36,6 +36,319 @@ const BOTS = ["0x7a3…b9f","0xaf1…c32","0x99d…441","0xb82…71a","0x55e…f
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
 const WALLET = "YOU (Demo_7f4…a9c)";
 
+// ─── Pixel Art Seeding ────────────────────────────────────────────────────────
+
+function px(g: (PxData|null)[], x: number, y: number, color: string, owner = "art") {
+  if (x >= 0 && x < GRID && y >= 0 && y < GRID)
+    g[y * GRID + x] = { color, owner };
+}
+
+function fillRect(g: (PxData|null)[], x: number, y: number, w: number, h: number, color: string) {
+  for (let dy = 0; dy < h; dy++)
+    for (let dx = 0; dx < w; dx++)
+      px(g, x + dx, y + dy, color);
+}
+
+function drawPattern(
+  g: (PxData|null)[],
+  ox: number, oy: number,
+  rows: string[],
+  palette: Record<string, string>
+) {
+  rows.forEach((row, dy) =>
+    [...row].forEach((ch, dx) => {
+      const c = palette[ch];
+      if (c) px(g, ox + dx, oy + dy, c);
+    })
+  );
+}
+
+function seedCanvas(g: (PxData|null)[]) {
+  // ── Faction territory backgrounds ─────────────────────────────────────────
+  fillRect(g,  0,  0, 37, 46, "#1e3a5f"); // navy – top-left
+  fillRect(g, 37,  0, 26, 46, "#180b35"); // dark purple – top-center
+  fillRect(g, 63,  0, 37, 46, "#7f1d1d"); // crimson – top-right
+  fillRect(g,  0, 48, 37, 32, "#14532d"); // forest green – mid-left
+  fillRect(g, 37, 48, 26, 32, "#042f2e"); // deep teal – mid-center
+  fillRect(g, 63, 48, 37, 32, "#0c4a6e"); // ocean blue – mid-right
+  fillRect(g,  0, 82, 37, 18, "#f0f0f0"); // white – bottom-left (flag)
+  fillRect(g, 37, 82, 26, 18, "#92400e"); // amber – bottom-center (text bg)
+  fillRect(g, 63, 82, 37, 18, "#3b0764"); // deep purple – bottom-right
+
+  // ── Rainbow separator band y:46–47 ────────────────────────────────────────
+  const rainbows = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#3b82f6","#8b5cf6"];
+  for (let x = 0; x < GRID; x++) {
+    const ci = Math.min(Math.floor(x / (GRID / rainbows.length)), rainbows.length - 1);
+    px(g, x, 46, rainbows[ci]);
+    px(g, x, 47, rainbows[ci]);
+  }
+
+  // ── Large heart – center top (x:38, y:8) ──────────────────────────────────
+  drawPattern(g, 38, 8, [
+    ".RRR.RRR.",
+    "RRRRRRRRR",
+    "RRRRRRRRR",
+    "RRRRRRRRR",
+    ".RRRRRRR.",
+    "..RRRRR..",
+    "...RRR...",
+    "....R....",
+  ], { R: "#ef4444" });
+  // Highlight
+  drawPattern(g, 38, 8, [
+    ".PPP.PPP.",
+    "PPPPP.PPP",
+    "PP.......",
+  ], { P: "#fca5a5" });
+
+  // ── Smiley face – navy zone (x:3, y:5) ────────────────────────────────────
+  drawPattern(g, 3, 5, [
+    "...YYYYY...",
+    "..YYYYYYY..",
+    ".YYYYYYYYY.",
+    "YYYYYYYYYYY",
+    "YYYYYYYYYYY",
+    "YYYYYYYYYYY",
+    "YYYYYYYYYYY",
+    "YYYYYYYYYYY",
+    "YYYYYYYYYYY",
+    ".YYYYYYYYY.",
+    "..YYYYYYY..",
+    "...YYYYY...",
+  ], { Y: "#f59e0b" });
+  // Eyes
+  drawPattern(g, 3, 5, [
+    "...........",
+    "...........",
+    "...........",
+    "..BB..BB...",
+    "..BB..BB...",
+    "...........",
+    "...........",
+    ".B.......B.",
+    ".BB.....BB.",
+    "...........",
+    "...........",
+    "...........",
+  ], { B: "#1e293b" });
+
+  // ── "PLACE" text – navy zone (x:2, y:21) ──────────────────────────────────
+  const letterP = ["WW.","W.W","WW.","W..","W.."];
+  const letterL = ["W..","W..","W..","W..","WWW"];
+  const letterA = [".W.","W.W","WWW","W.W","W.W"];
+  const letterC = [".WW","W..","W..","W..","..W",".WW"]; // unused but kept
+  const letterE = ["WWW","W..","WW.","W..","WWW"];
+  [letterP, letterL, letterA, letterC, letterE].forEach((ltr, i) => {
+    drawPattern(g, 2 + i * 4, 21, ltr.slice(0,5), { W: "#ffffff" });
+  });
+
+  // ── Sun with rays – navy zone (x:27, y:5) ─────────────────────────────────
+  // Rays
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4;
+    for (let r = 4; r <= 6; r++) {
+      const rx = Math.round(Math.cos(angle) * r);
+      const ry = Math.round(Math.sin(angle) * r);
+      px(g, 31 + rx, 9 + ry, "#fbbf24");
+    }
+  }
+  // Sun disk
+  for (let dy = -3; dy <= 3; dy++)
+    for (let dx = -3; dx <= 3; dx++)
+      if (dx * dx + dy * dy <= 10) px(g, 31 + dx, 9 + dy, "#fef08a");
+
+  // ── Among Us crewmate – crimson zone (x:67, y:3) ──────────────────────────
+  drawPattern(g, 67, 3, [
+    ".RRRRRR.",
+    "RRRRRRRRR",
+    "RBBBBBBBR",
+    "RBWBBBBBR",
+    "RBBBBBBBR",
+    "RRRRRRRRR",
+    "RRRRRRRRR",
+    ".RR..RRR.",
+    ".RR..RRR.",
+    ".RRRRRR..",
+  ], { R: "#ef4444", B: "#93c5fd", W: "#dbeafe" });
+  // Backpack
+  fillRect(g, 76, 6, 3, 4, "#dc2626");
+
+  // ── Troll face – crimson zone (x:65, y:16) ────────────────────────────────
+  drawPattern(g, 66, 17, [
+    "..WWWWWWWWW..",
+    ".WWWWWWWWWWW.",
+    "WWWWWWWWWWWWW",
+    "WW.WW.WW.WWWW",
+    "WWWWWWWWWWWWW",
+    "WWWWWWWWWWWWW",
+    "W.WWWWWWWWW.W",
+    "WW.........WW",
+    "WWWWWWWWWWWWW",
+    ".WWWWWWWWWWW.",
+    "..WWWWWWWWW..",
+  ], { W: "#fde68a" });
+  // Eyes (dots)
+  px(g, 69, 20, "#1e293b"); px(g, 70, 20, "#1e293b");
+  px(g, 74, 20, "#1e293b"); px(g, 75, 20, "#1e293b");
+  // Smile
+  px(g, 68, 25, "#1e293b"); px(g, 77, 25, "#1e293b");
+  for (let x = 69; x <= 76; x++) px(g, x, 26, "#1e293b");
+
+  // ── Pixel trees – forest zone (x:2, y:52) ─────────────────────────────────
+  // Tree 1
+  drawPattern(g, 2, 52, [
+    "....G....",
+    "...GGG...",
+    "..GGGGG..",
+    ".GGGGGGG.",
+    "GGGGGGGGG",
+    "..GGGGG..",
+    "....T....",
+    "....T....",
+    "....T....",
+  ], { G: "#22c55e", T: "#a16207" });
+  // Tree 2
+  drawPattern(g, 15, 54, [
+    "...G...",
+    "..GGG..",
+    ".GGGGG.",
+    "GGGGGGG",
+    "...T...",
+    "...T...",
+    "...T...",
+  ], { G: "#16a34a", T: "#78350f" });
+  // Tree 3 (darker)
+  drawPattern(g, 25, 56, [
+    "..D..",
+    ".DDD.",
+    "DDDDD",
+    "..T..",
+    "..T..",
+  ], { D: "#15803d", T: "#7c2d12" });
+  // Mushroom
+  drawPattern(g, 8, 64, [
+    ".RRR.",
+    "RRRRR",
+    "R.R.R",
+    "WWWWW",
+    ".WWW.",
+  ], { R: "#ef4444", W: "#f8fafc" });
+  // Star
+  drawPattern(g, 28, 63, [
+    "..S..",
+    ".SSS.",
+    "SSSSS",
+    ".SSS.",
+    "..S..",
+  ], { S: "#fef08a" });
+
+  // ── Rocket – teal zone (x:42, y:52) ───────────────────────────────────────
+  drawPattern(g, 43, 52, [
+    "..W..",
+    ".WBW.",
+    "WWWWW",
+    "RWWWR",
+    "RWWWR",
+    "RRRRR",
+    ".RRR.",
+    "Y.R.Y",
+  ], { W: "#e2e8f0", R: "#3b82f6", Y: "#f97316", B: "#dbeafe" });
+
+  // ── r/CANVAS text – amber zone (x:38, y:84) ───────────────────────────────
+  // r
+  drawPattern(g, 38, 84, [".W.","WW.","W..","W..","W.."], { W: "#fff7ed" });
+  // /
+  drawPattern(g, 42, 84, ["..W",".W.",".W.","W..","W.."], { W: "#fde68a" });
+  // C
+  drawPattern(g, 46, 84, [".WW","W..","W..","W..",".WW"], { W: "#f59e0b" });
+  // A
+  drawPattern(g, 50, 84, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
+  // N
+  drawPattern(g, 54, 84, ["W.W","WWW","WWW","W.W","W.W"], { W: "#f59e0b" });
+  // V
+  drawPattern(g, 58, 84, ["W.W","W.W","W.W",".W.",".W."], { W: "#f59e0b" });
+  // A
+  drawPattern(g, 62, 84, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
+  // S
+  drawPattern(g, 66, 84, ["WW.","W..",".W.","..W",".WW"], { W: "#f59e0b" });
+
+  // ── Japan flag – white zone (x:1, y:84) ───────────────────────────────────
+  const jcx = 18, jcy = 91;
+  for (let dy = -5; dy <= 5; dy++)
+    for (let dx = -5; dx <= 5; dx++)
+      if (dx * dx + dy * dy <= 26) px(g, jcx + dx, jcy + dy, "#ef4444");
+
+  // ── Ocean waves + fish – ocean zone ────────────────────────────────────────
+  // Wave line
+  for (let x = 63; x < 100; x++) {
+    const wy = 50 + Math.round(Math.sin((x - 63) * 0.55) * 2);
+    px(g, x, wy, "#7dd3fc");
+    px(g, x, wy + 1, "#38bdf8");
+  }
+  // Fish 1
+  drawPattern(g, 67, 55, [
+    "..FF.",
+    "FFFFT",
+    "FFFFF",
+    "FFFFT",
+    "..FF.",
+  ], { F: "#f97316", T: "#fdba74" });
+  // Fish 2
+  drawPattern(g, 83, 62, [
+    ".FF..",
+    "TFFFF",
+    "FFFFF",
+    "TFFFF",
+    ".FF..",
+  ], { F: "#06b6d4", T: "#67e8f9" });
+  // Fish 3 small
+  drawPattern(g, 74, 69, [
+    ".F.",
+    "FFF",
+    ".F.",
+  ], { F: "#22c55e" });
+  // Bubbles
+  px(g, 72, 53, "#bfdbfe"); px(g, 73, 52, "#bfdbfe");
+  px(g, 88, 60, "#bfdbfe"); px(g, 89, 59, "#bfdbfe");
+  px(g, 78, 67, "#bfdbfe");
+
+  // ── Checkered pattern – purple zone (x:63, y:82) ──────────────────────────
+  for (let dy = 0; dy < 18; dy++)
+    for (let dx = 0; dx < 37; dx++)
+      px(g, 63 + dx, 82 + dy, (dx + dy) % 2 === 0 ? "#a855f7" : "#6d28d9");
+
+  // ── "VOID" logo – purple zone (x:70, y:85) ────────────────────────────────
+  // V
+  drawPattern(g, 70, 85, ["W.W","W.W","W.W",".W.",".W."], { W: "#f8fafc" });
+  // O
+  drawPattern(g, 74, 85, [".W.","W.W","W.W","W.W",".W."], { W: "#f8fafc" });
+  // I
+  drawPattern(g, 78, 85, ["W","W","W","W","W"], { W: "#f8fafc" });
+  // D
+  drawPattern(g, 80, 85, ["WW.","W.W","W.W","W.W","WW."], { W: "#f8fafc" });
+
+  // ── Scattered filler pixels (organic texture) ─────────────────────────────
+  // Tiny pixel clusters to add r/place organic feel
+  const scatterColors = [
+    { cx: 5,  cy: 37, color: "#3b82f6" },
+    { cx: 12, cy: 40, color: "#22c55e" },
+    { cx: 20, cy: 38, color: "#f59e0b" },
+    { cx: 30, cy: 42, color: "#ec4899" },
+    { cx: 55, cy: 28, color: "#8b5cf6" },
+    { cx: 55, cy: 35, color: "#06b6d4" },
+    { cx: 55, cy: 42, color: "#84cc16" },
+    { cx: 80, cy: 30, color: "#fbbf24" },
+    { cx: 90, cy: 35, color: "#a3e635" },
+  ];
+  scatterColors.forEach(({ cx, cy, color }) => {
+    for (let i = 0; i < 6; i++) {
+      const ox = Math.round(Math.cos(i) * 2);
+      const oy = Math.round(Math.sin(i) * 2);
+      px(g, cx + ox, cy + oy, color, "scatter_art");
+    }
+  });
+}
+
 export default function Play() {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const gridRef     = useRef<(PxData|null)[]>(Array(GRID*GRID).fill(null));
@@ -59,16 +372,15 @@ export default function Play() {
     const ctx = c.getContext("2d")!;
     for (let i=0; i<GRID*GRID; i++) {
       const x=(i%GRID)*PX, y=Math.floor(i/GRID)*PX;
-      const px = gridRef.current[i];
-      ctx.fillStyle = px ? px.color : "#0f0f1e";
+      const p = gridRef.current[i];
+      ctx.fillStyle = p ? p.color : "#0f0f1e";
       ctx.fillRect(x,y,PX,PX);
-      if (!px) {
+      if (!p) {
         ctx.strokeStyle="#1a1a30";
         ctx.lineWidth=0.5;
         ctx.strokeRect(x+.5,y+.5,PX-1,PX-1);
       }
-      // Highlight owned pixels
-      if (px?.owner === WALLET) {
+      if (p?.owner === WALLET) {
         ctx.strokeStyle="rgba(168,85,247,0.6)";
         ctx.lineWidth=1;
         ctx.strokeRect(x+.5,y+.5,PX-1,PX-1);
@@ -76,13 +388,10 @@ export default function Play() {
     }
   },[]);
 
-  // Seed canvas with pre-existing bot pixels
+  // Seed canvas with preset artwork
   useEffect(() => {
     const g = gridRef.current;
-    for (let i=0; i<GRID*GRID; i++) {
-      if (Math.random()<0.35)
-        g[i]={ color:PALETTE[Math.floor(Math.random()*PALETTE.length)], owner:rndOwner() };
-    }
+    seedCanvas(g);
     draw();
   },[draw]);
 
@@ -94,7 +403,6 @@ export default function Play() {
         if (s <= 1) { setShield(false); return 0; }
         return s-1;
       });
-      // Hold rewards: 0.5/hr per pixel owned
       setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
     }, 1000);
     return () => clearInterval(t);
@@ -106,7 +414,7 @@ export default function Play() {
       const g = gridRef.current;
       const idx = Math.floor(Math.random()*GRID*GRID);
       const cell = g[idx];
-      if (cell?.owner === WALLET) return; // don't overwrite player's pixels (unless unshielded in real game)
+      if (cell?.owner === WALLET) return;
       const newOwner = rndOwner();
       const newColor = PALETTE[Math.floor(Math.random()*PALETTE.length)];
       g[idx] = { color:newColor, owner:newOwner };
@@ -120,9 +428,9 @@ export default function Play() {
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (cooldown > 0) return;
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
-    const gx = Math.floor((e.clientX-rect.left)/PX);
-    const gy = Math.floor((e.clientY-rect.top)/PX);
+    const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
+    const gx = Math.floor((e.clientX-rect2.left)/PX);
+    const gy = Math.floor((e.clientY-rect2.top)/PX);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) return;
     const idx = gy*GRID+gx;
     const g = gridRef.current;
@@ -158,9 +466,9 @@ export default function Play() {
   },[cooldown, color]);
 
   const handleMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
-    const gx = Math.floor((e.clientX-rect.left)/PX);
-    const gy = Math.floor((e.clientY-rect.top)/PX);
+    const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
+    const gx = Math.floor((e.clientX-rect2.left)/PX);
+    const gy = Math.floor((e.clientY-rect2.top)/PX);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) { setHovered(null); return; }
     setHovered({x:gx, y:gy, d:gridRef.current[gy*GRID+gx]});
   },[]);
@@ -195,7 +503,7 @@ export default function Play() {
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{fontSize:10,color:"#334155",background:"#0f0f1a",padding:"4px 12px",borderRadius:4,border:"1px solid #1e1e3f"}}>
-            80×80 demo · 10s cooldown (real: 5 min) · no wallet needed
+            100×100 demo · 10s cooldown (real: 5 min) · no wallet needed
           </div>
           {walletConnected ? (
             <div style={{fontSize:10,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
@@ -255,7 +563,6 @@ export default function Play() {
                 <span style={{color:"#22d3ee"}}>{v}</span>
               </div>
             ))}
-            {/* Holdr progress */}
             <div style={{marginTop:8}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
                 <span style={{fontSize:9,color:"#475569"}}>Holdr status</span>
@@ -308,7 +615,7 @@ export default function Play() {
         </div>
 
         {/* CANVAS CENTER */}
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
           {/* Strike popup */}
           {strike && (() => {
@@ -345,7 +652,6 @@ export default function Play() {
           })()}
 
           <div style={{position:"relative"}}>
-            {/* Shield glow */}
             {shield && (
               <div style={{
                 position:"absolute",inset:-12,borderRadius:8,
@@ -371,7 +677,6 @@ export default function Play() {
               }}
             />
 
-            {/* Pixel tooltip */}
             {hovered && (
               <div style={{
                 position:"absolute",
@@ -435,48 +740,39 @@ export default function Play() {
             </div>
           </div>
 
+          {/* Activity log */}
+          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
+            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
+            <div style={{fontSize:8,lineHeight:2,overflow:"hidden"}}>
+              {log.slice(0,8).map((l,i) => (
+                <div key={i} style={{color:i===0?"#a855f7":"#334155",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l}</div>
+              ))}
+            </div>
+          </div>
+
           {/* Leaderboard */}
-          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1}}>
+          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
             <div style={{fontSize:9,color:"#64748b",marginBottom:10,letterSpacing:1}}>TOP PLAYERS</div>
             {[
-              {addr:"0xaf1…c32", px:842, earn:18204, isYou:false},
-              {addr:"0x7a3…b9f", px:634, earn:12849, isYou:false},
+              {addr:"0xaf1…c32", px:1284, earn:24680, isYou:false},
+              {addr:"0x7a3…b9f", px:963,  earn:18420, isYou:false},
               {addr:WALLET,      px:owned, earn:Math.floor(balance), isYou:true},
-              {addr:"0x99d…441", px:201, earn:4180,  isYou:false},
-              {addr:"0xb82…71a", px:98,  earn:1862,  isYou:false},
+              {addr:"0x99d…441", px:312,  earn:6180,  isYou:false},
+              {addr:"0xb82…71a", px:148,  earn:2860,  isYou:false},
             ]
             .sort((a,b)=>b.px-a.px)
             .slice(0,5)
             .map((p,i) => (
-              <div key={p.addr} style={{display:"flex",alignItems:"flex-start",gap:6,marginBottom:9,fontSize:9}}>
-                <span style={{
-                  color:i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#b45309":"#1e293b",
-                  width:10,flexShrink:0,fontWeight:"bold",fontSize:8,marginTop:1,
-                }}>{i+1}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{
-                    color:p.isYou?"#a855f7":"#475569",
-                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
-                    fontWeight:p.isYou?"bold":"normal",
-                  }}>
-                    {p.isYou ? "▶ YOU" : p.addr}
-                  </div>
-                  <div style={{color:"#1e293b",fontSize:8,marginTop:1}}>
-                    {p.px} px · {p.earn.toLocaleString()} $C
-                  </div>
-                </div>
+              <div key={p.addr} style={{
+                display:"flex",justifyContent:"space-between",
+                marginBottom:6,fontSize:9,
+                color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
+              }}>
+                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
+                  {i+1}. {p.addr}
+                </span>
+                <span style={{flexShrink:0,marginLeft:4}}>{p.px}px</span>
               </div>
-            ))}
-          </div>
-
-          {/* Activity log */}
-          <div style={{background:"#060612",border:"1px solid #1a1a30",borderRadius:8,padding:10}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>ACTIVITY</div>
-            {log.slice(0,8).map((l,i) => (
-              <div key={i} style={{
-                fontSize:8,marginBottom:3,lineHeight:1.5,
-                color:l.includes("STRIKE")?"#f59e0b":l.includes("SHIELD")?"#22d3ee":l.includes("WALLET")?"#22c55e":"#1e3052",
-              }}>{l}</div>
             ))}
           </div>
         </div>
