@@ -566,8 +566,6 @@ export default function Play() {
             <div style={{
               fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",
-              animation:"bucketNum 0.4s ease-out",
-              key: Math.floor(bucket),
             }}>{Math.floor(bucket).toLocaleString()}</div>
             <div style={{fontSize:8,color:"#78350f",marginTop:4}}>$CANVAS jackpot</div>
             <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
