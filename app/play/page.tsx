@@ -337,10 +337,11 @@ export default function Play() {
     let newOwned = 0;
     let bestTier: StrikeTier = "none";
     let bestEarn = 0;
-    let totalSolReturn = 0;
-    let bestPrize: { mult: number; label: string } | null = null;
     let bucketFeed = 0;
-    const pixelBetShare = bet.sol / bet.pixels;
+
+    // Single SOL prize roll for the entire bet
+    const betPrize = rollSolPrize();
+    const totalSolReturn = betPrize.mult * bet.sol;
 
     // Place bet.pixels pixels in a circle around (gx, gy)
     const circleR = bet.pixels === 1 ? 0 : Math.ceil(Math.sqrt(bet.pixels / Math.PI)) + 1;
@@ -376,11 +377,6 @@ export default function Play() {
         bestTier = tier; bestEarn = earn;
       }
 
-      const prize = rollSolPrize();
-      const solReturn = prize.mult * pixelBetShare;
-      totalSolReturn += solReturn;
-      if (!bestPrize || prize.mult > bestPrize.mult) bestPrize = prize;
-
       if (placed2 === 0) spawnAnim(px, py, color, tier);
       placed2++;
     }
@@ -392,9 +388,9 @@ export default function Play() {
 
     if (totalSolReturn > 0) {
       setSol(s => s + totalSolReturn);
-      if (bestPrize && bestPrize.mult >= 2) {
-        setSolWin({ mult: bestPrize.mult, label: bestPrize.label, amount: totalSolReturn });
-        setTimeout(() => setSolWin(null), bestPrize.mult >= 5 ? 4000 : 2500);
+      if (betPrize.mult >= 2) {
+        setSolWin({ mult: betPrize.mult, label: betPrize.label, amount: totalSolReturn });
+        setTimeout(() => setSolWin(null), betPrize.mult >= 5 ? 4000 : 2500);
       }
     }
 
