@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 
-const GRID = 100;
-const PX   = 10;
+const GRID = 1000;
+const PX   = 1;
 const COOLDOWN_SEC = 10;
 const BASE_EARN = 5;
 const HOLD_REWARD_RATE = 0.5 / 3600;
@@ -65,26 +65,26 @@ function drawPattern(
 
 function seedCanvas(g: (PxData|null)[]) {
   // ── Faction territory backgrounds ─────────────────────────────────────────
-  fillRect(g,  0,  0, 37, 46, "#1e3a5f"); // navy – top-left
-  fillRect(g, 37,  0, 26, 46, "#180b35"); // dark purple – top-center
-  fillRect(g, 63,  0, 37, 46, "#7f1d1d"); // crimson – top-right
-  fillRect(g,  0, 48, 37, 32, "#14532d"); // forest green – mid-left
-  fillRect(g, 37, 48, 26, 32, "#042f2e"); // deep teal – mid-center
-  fillRect(g, 63, 48, 37, 32, "#0c4a6e"); // ocean blue – mid-right
-  fillRect(g,  0, 82, 37, 18, "#f0f0f0"); // white – bottom-left (flag)
-  fillRect(g, 37, 82, 26, 18, "#92400e"); // amber – bottom-center (text bg)
-  fillRect(g, 63, 82, 37, 18, "#3b0764"); // deep purple – bottom-right
+  fillRect(g, 0, 0, 370, 460, "#1e3a5f"); // navy – top-left
+  fillRect(g, 370, 0, 260, 460, "#180b35"); // dark purple – top-center
+  fillRect(g, 630, 0, 370, 460, "#7f1d1d"); // crimson – top-right
+  fillRect(g, 0, 480, 370, 320, "#14532d"); // forest green – mid-left
+  fillRect(g, 370, 480, 260, 320, "#042f2e"); // deep teal – mid-center
+  fillRect(g, 630, 480, 370, 320, "#0c4a6e"); // ocean blue – mid-right
+  fillRect(g, 0, 820, 370, 180, "#f0f0f0"); // white – bottom-left (flag)
+  fillRect(g, 370, 820, 260, 180, "#92400e"); // amber – bottom-center (text bg)
+  fillRect(g, 630, 820, 370, 180, "#3b0764"); // deep purple – bottom-right
 
   // ── Rainbow separator band y:46–47 ────────────────────────────────────────
   const rainbows = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#3b82f6","#8b5cf6"];
   for (let x = 0; x < GRID; x++) {
     const ci = Math.min(Math.floor(x / (GRID / rainbows.length)), rainbows.length - 1);
-    px(g, x, 46, rainbows[ci]);
-    px(g, x, 47, rainbows[ci]);
+    px(g, x, 460, rainbows[ci]);
+    px(g, x, 470, rainbows[ci]);
   }
 
   // ── Large heart – center top (x:38, y:8) ──────────────────────────────────
-  drawPattern(g, 38, 8, [
+  drawPattern(g, 380, 80, [
     ".RRR.RRR.",
     "RRRRRRRRR",
     "RRRRRRRRR",
@@ -95,14 +95,14 @@ function seedCanvas(g: (PxData|null)[]) {
     "....R....",
   ], { R: "#ef4444" });
   // Highlight
-  drawPattern(g, 38, 8, [
+  drawPattern(g, 380, 80, [
     ".PPP.PPP.",
     "PPPPP.PPP",
     "PP.......",
   ], { P: "#fca5a5" });
 
   // ── Smiley face – navy zone (x:3, y:5) ────────────────────────────────────
-  drawPattern(g, 3, 5, [
+  drawPattern(g, 30, 50, [
     "...YYYYY...",
     "..YYYYYYY..",
     ".YYYYYYYYY.",
@@ -117,7 +117,7 @@ function seedCanvas(g: (PxData|null)[]) {
     "...YYYYY...",
   ], { Y: "#f59e0b" });
   // Eyes
-  drawPattern(g, 3, 5, [
+  drawPattern(g, 30, 50, [
     "...........",
     "...........",
     "...........",
@@ -139,26 +139,26 @@ function seedCanvas(g: (PxData|null)[]) {
   const letterC = [".WW","W..","W..","W..","..W",".WW"]; // unused but kept
   const letterE = ["WWW","W..","WW.","W..","WWW"];
   [letterP, letterL, letterA, letterC, letterE].forEach((ltr, i) => {
-    drawPattern(g, 2 + i * 4, 21, ltr.slice(0,5), { W: "#ffffff" });
+    drawPattern(g, 20 + i * 40, 210, ltr.slice(0,5), { W: "#ffffff" });
   });
 
   // ── Sun with rays – navy zone (x:27, y:5) ─────────────────────────────────
   // Rays
   for (let i = 0; i < 8; i++) {
     const angle = (i * Math.PI) / 4;
-    for (let r = 4; r <= 6; r++) {
+    for (let r = 40; r <= 60; r++) {
       const rx = Math.round(Math.cos(angle) * r);
       const ry = Math.round(Math.sin(angle) * r);
-      px(g, 31 + rx, 9 + ry, "#fbbf24");
+      px(g, 310 + rx, 90 + ry, "#fbbf24");
     }
   }
   // Sun disk
   for (let dy = -3; dy <= 3; dy++)
     for (let dx = -3; dx <= 3; dx++)
-      if (dx * dx + dy * dy <= 10) px(g, 31 + dx, 9 + dy, "#fef08a");
+      if (dx * dx + dy * dy <= 1000) px(g, 310 + dx, 90 + dy, "#fef08a");
 
   // ── Among Us crewmate – crimson zone (x:67, y:3) ──────────────────────────
-  drawPattern(g, 67, 3, [
+  drawPattern(g, 670, 30, [
     ".RRRRRR.",
     "RRRRRRRRR",
     "RBBBBBBBR",
@@ -171,10 +171,10 @@ function seedCanvas(g: (PxData|null)[]) {
     ".RRRRRR..",
   ], { R: "#ef4444", B: "#93c5fd", W: "#dbeafe" });
   // Backpack
-  fillRect(g, 76, 6, 3, 4, "#dc2626");
+  fillRect(g, 760, 60, 30, 40, "#dc2626");
 
   // ── Troll face – crimson zone (x:65, y:16) ────────────────────────────────
-  drawPattern(g, 66, 17, [
+  drawPattern(g, 660, 170, [
     "..WWWWWWWWW..",
     ".WWWWWWWWWWW.",
     "WWWWWWWWWWWWW",
@@ -188,15 +188,15 @@ function seedCanvas(g: (PxData|null)[]) {
     "..WWWWWWWWW..",
   ], { W: "#fde68a" });
   // Eyes (dots)
-  px(g, 69, 20, "#1e293b"); px(g, 70, 20, "#1e293b");
-  px(g, 74, 20, "#1e293b"); px(g, 75, 20, "#1e293b");
+  px(g, 690, 200, "#1e293b"); px(g, 70, 20, "#1e293b");
+  px(g, 740, 200, "#1e293b"); px(g, 75, 20, "#1e293b");
   // Smile
-  px(g, 68, 25, "#1e293b"); px(g, 77, 25, "#1e293b");
-  for (let x = 69; x <= 76; x++) px(g, x, 26, "#1e293b");
+  px(g, 680, 250, "#1e293b"); px(g, 77, 25, "#1e293b");
+  for (let x = 690; x <= 760; x++) px(g, x, 260, "#1e293b");
 
   // ── Pixel trees – forest zone (x:2, y:52) ─────────────────────────────────
   // Tree 1
-  drawPattern(g, 2, 52, [
+  drawPattern(g, 20, 520, [
     "....G....",
     "...GGG...",
     "..GGGGG..",
@@ -208,7 +208,7 @@ function seedCanvas(g: (PxData|null)[]) {
     "....T....",
   ], { G: "#22c55e", T: "#a16207" });
   // Tree 2
-  drawPattern(g, 15, 54, [
+  drawPattern(g, 150, 540, [
     "...G...",
     "..GGG..",
     ".GGGGG.",
@@ -218,7 +218,7 @@ function seedCanvas(g: (PxData|null)[]) {
     "...T...",
   ], { G: "#16a34a", T: "#78350f" });
   // Tree 3 (darker)
-  drawPattern(g, 25, 56, [
+  drawPattern(g, 250, 560, [
     "..D..",
     ".DDD.",
     "DDDDD",
@@ -226,7 +226,7 @@ function seedCanvas(g: (PxData|null)[]) {
     "..T..",
   ], { D: "#15803d", T: "#7c2d12" });
   // Mushroom
-  drawPattern(g, 8, 64, [
+  drawPattern(g, 80, 640, [
     ".RRR.",
     "RRRRR",
     "R.R.R",
@@ -234,7 +234,7 @@ function seedCanvas(g: (PxData|null)[]) {
     ".WWW.",
   ], { R: "#ef4444", W: "#f8fafc" });
   // Star
-  drawPattern(g, 28, 63, [
+  drawPattern(g, 280, 630, [
     "..S..",
     ".SSS.",
     "SSSSS",
@@ -243,7 +243,7 @@ function seedCanvas(g: (PxData|null)[]) {
   ], { S: "#fef08a" });
 
   // ── Rocket – teal zone (x:42, y:52) ───────────────────────────────────────
-  drawPattern(g, 43, 52, [
+  drawPattern(g, 430, 520, [
     "..W..",
     ".WBW.",
     "WWWWW",
@@ -256,24 +256,24 @@ function seedCanvas(g: (PxData|null)[]) {
 
   // ── r/CANVAS text – amber zone (x:38, y:84) ───────────────────────────────
   // r
-  drawPattern(g, 38, 84, [".W.","WW.","W..","W..","W.."], { W: "#fff7ed" });
+  drawPattern(g, 380, 840, [".W.","WW.","W..","W..","W.."], { W: "#fff7ed" });
   // /
-  drawPattern(g, 42, 84, ["..W",".W.",".W.","W..","W.."], { W: "#fde68a" });
+  drawPattern(g, 420, 840, ["..W",".W.",".W.","W..","W.."], { W: "#fde68a" });
   // C
-  drawPattern(g, 46, 84, [".WW","W..","W..","W..",".WW"], { W: "#f59e0b" });
+  drawPattern(g, 460, 840, [".WW","W..","W..","W..",".WW"], { W: "#f59e0b" });
   // A
-  drawPattern(g, 50, 84, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
+  drawPattern(g, 500, 840, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
   // N
-  drawPattern(g, 54, 84, ["W.W","WWW","WWW","W.W","W.W"], { W: "#f59e0b" });
+  drawPattern(g, 540, 840, ["W.W","WWW","WWW","W.W","W.W"], { W: "#f59e0b" });
   // V
-  drawPattern(g, 58, 84, ["W.W","W.W","W.W",".W.",".W."], { W: "#f59e0b" });
+  drawPattern(g, 580, 840, ["W.W","W.W","W.W",".W.",".W."], { W: "#f59e0b" });
   // A
-  drawPattern(g, 62, 84, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
+  drawPattern(g, 620, 840, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
   // S
-  drawPattern(g, 66, 84, ["WW.","W..",".W.","..W",".WW"], { W: "#f59e0b" });
+  drawPattern(g, 660, 840, ["WW.","W..",".W.","..W",".WW"], { W: "#f59e0b" });
 
   // ── Japan flag – white zone (x:1, y:84) ───────────────────────────────────
-  const jcx = 18, jcy = 91;
+  const jcx = 180, jcy = 910;
   for (let dy = -5; dy <= 5; dy++)
     for (let dx = -5; dx <= 5; dx++)
       if (dx * dx + dy * dy <= 26) px(g, jcx + dx, jcy + dy, "#ef4444");
@@ -286,7 +286,7 @@ function seedCanvas(g: (PxData|null)[]) {
     px(g, x, wy + 1, "#38bdf8");
   }
   // Fish 1
-  drawPattern(g, 67, 55, [
+  drawPattern(g, 670, 550, [
     "..FF.",
     "FFFFT",
     "FFFFF",
@@ -294,7 +294,7 @@ function seedCanvas(g: (PxData|null)[]) {
     "..FF.",
   ], { F: "#f97316", T: "#fdba74" });
   // Fish 2
-  drawPattern(g, 83, 62, [
+  drawPattern(g, 830, 620, [
     ".FF..",
     "TFFFF",
     "FFFFF",
@@ -302,30 +302,30 @@ function seedCanvas(g: (PxData|null)[]) {
     ".FF..",
   ], { F: "#06b6d4", T: "#67e8f9" });
   // Fish 3 small
-  drawPattern(g, 74, 69, [
+  drawPattern(g, 740, 690, [
     ".F.",
     "FFF",
     ".F.",
   ], { F: "#22c55e" });
   // Bubbles
-  px(g, 72, 53, "#bfdbfe"); px(g, 73, 52, "#bfdbfe");
-  px(g, 88, 60, "#bfdbfe"); px(g, 89, 59, "#bfdbfe");
-  px(g, 78, 67, "#bfdbfe");
+  px(g, 720, 530, "#bfdbfe"); px(g, 73, 52, "#bfdbfe");
+  px(g, 880, 600, "#bfdbfe"); px(g, 89, 59, "#bfdbfe");
+  px(g, 780, 670, "#bfdbfe");
 
   // ── Checkered pattern – purple zone (x:63, y:82) ──────────────────────────
-  for (let dy = 0; dy < 18; dy++)
-    for (let dx = 0; dx < 37; dx++)
-      px(g, 63 + dx, 82 + dy, (dx + dy) % 2 === 0 ? "#a855f7" : "#6d28d9");
+  for (let dy = 0; dy < 180; dy++)
+    for (let dx = 0; dx < 370; dx++)
+      px(g, 630 + dx, 820 + dy, (dx + dy) % 2 === 0 ? "#a855f7" : "#6d28d9");
 
   // ── "VOID" logo – purple zone (x:70, y:85) ────────────────────────────────
   // V
-  drawPattern(g, 70, 85, ["W.W","W.W","W.W",".W.",".W."], { W: "#f8fafc" });
+  drawPattern(g, 700, 850, ["W.W","W.W","W.W",".W.",".W."], { W: "#f8fafc" });
   // O
-  drawPattern(g, 74, 85, [".W.","W.W","W.W","W.W",".W."], { W: "#f8fafc" });
+  drawPattern(g, 740, 850, [".W.","W.W","W.W","W.W",".W."], { W: "#f8fafc" });
   // I
-  drawPattern(g, 78, 85, ["W","W","W","W","W"], { W: "#f8fafc" });
+  drawPattern(g, 780, 850, ["W","W","W","W","W"], { W: "#f8fafc" });
   // D
-  drawPattern(g, 80, 85, ["WW.","W.W","W.W","W.W","WW."], { W: "#f8fafc" });
+  drawPattern(g, 800, 850, ["WW.","W.W","W.W","W.W","WW."], { W: "#f8fafc" });
 
   // ── Scattered filler pixels (organic texture) ─────────────────────────────
   // Tiny pixel clusters to add r/place organic feel
@@ -370,22 +370,22 @@ export default function Play() {
   const draw = useCallback(() => {
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
-    for (let i=0; i<GRID*GRID; i++) {
-      const x=(i%GRID)*PX, y=Math.floor(i/GRID)*PX;
+    const img = ctx.createImageData(GRID, GRID);
+    const buf = img.data;
+    for (let i = 0; i < GRID*GRID; i++) {
       const p = gridRef.current[i];
-      ctx.fillStyle = p ? p.color : "#0f0f1e";
-      ctx.fillRect(x,y,PX,PX);
-      if (!p) {
-        ctx.strokeStyle="#1a1a30";
-        ctx.lineWidth=0.5;
-        ctx.strokeRect(x+.5,y+.5,PX-1,PX-1);
-      }
-      if (p?.owner === WALLET) {
-        ctx.strokeStyle="rgba(168,85,247,0.6)";
-        ctx.lineWidth=1;
-        ctx.strokeRect(x+.5,y+.5,PX-1,PX-1);
+      const off = i * 4;
+      if (p) {
+        const hex = p.color.replace("#","");
+        buf[off]   = parseInt(hex.slice(0,2),16);
+        buf[off+1] = parseInt(hex.slice(2,4),16);
+        buf[off+2] = parseInt(hex.slice(4,6),16);
+        buf[off+3] = 255;
+      } else {
+        buf[off]=15; buf[off+1]=15; buf[off+2]=30; buf[off+3]=255;
       }
     }
+    ctx.putImageData(img, 0, 0);
   },[]);
 
   // Seed canvas with preset artwork
@@ -420,8 +420,11 @@ export default function Play() {
       g[idx] = { color:newColor, owner:newOwner };
       const c = canvasRef.current; if(!c) return;
       const ctx = c.getContext("2d")!;
-      ctx.fillStyle = newColor;
-      ctx.fillRect((idx%GRID)*PX, Math.floor(idx/GRID)*PX, PX, PX);
+      const img3 = ctx.createImageData(1, 1);
+      const hex3 = newColor.replace("#","");
+      img3.data[0]=parseInt(hex3.slice(0,2),16); img3.data[1]=parseInt(hex3.slice(2,4),16);
+      img3.data[2]=parseInt(hex3.slice(4,6),16); img3.data[3]=255;
+      ctx.putImageData(img3, idx%GRID, Math.floor(idx/GRID));
     }, 300);
     return () => clearInterval(t);
   },[]);
@@ -440,11 +443,11 @@ export default function Play() {
 
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
-    ctx.fillStyle = color;
-    ctx.fillRect(gx*PX, gy*PX, PX, PX);
-    ctx.strokeStyle="rgba(168,85,247,0.6)";
-    ctx.lineWidth=1;
-    ctx.strokeRect(gx*PX+.5, gy*PX+.5, PX-1, PX-1);
+    const img4 = ctx.createImageData(1, 1);
+    const hex4 = color.replace("#","");
+    img4.data[0]=parseInt(hex4.slice(0,2),16); img4.data[1]=parseInt(hex4.slice(2,4),16);
+    img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
+    ctx.putImageData(img4, gx, gy);
 
     if (!wasOwn) {
       setOwned(o => { ownedRef.current = o+1; return o+1; });
@@ -671,6 +674,7 @@ export default function Play() {
               style={{
                 cursor: cooldown>0 ? "not-allowed" : "crosshair",
                 display:"block",
+                imageRendering:"pixelated",
                 border:"1px solid #1e1e3f",
                 borderRadius:4,
                 boxShadow:"0 0 60px rgba(88,28,235,0.15)",
