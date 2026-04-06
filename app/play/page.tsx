@@ -362,6 +362,10 @@ export default function Play() {
     }
     circleCandidates.sort((a, b) => a.dist - b.dist);
     const toPlace = circleCandidates.slice(0, bet.pixels);
+    // Single $CANVAS roll for the entire bet
+    const betTier = rollStrike();
+    bestTier = betTier;
+
     let placed2 = 0;
     for (const { px, py } of toPlace) {
       const pidx = py * GRID + px;
@@ -375,17 +379,14 @@ export default function Play() {
       img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
       ctx.putImageData(img4, px, py);
 
-      const tier = rollStrike();
-      const earn = BASE_EARN * strikeBonus(tier);
-      totalEarn += earn;
-      bucketFeed += earn * BUCKET_FEED_PCT;
-      if (tier !== "none" && strikeBonus(tier) > strikeBonus(bestTier)) {
-        bestTier = tier; bestEarn = earn;
-      }
-
-      if (placed2 === 0) spawnAnim(px, py, color, tier);
+      if (placed2 === 0) spawnAnim(px, py, color, betTier);
       placed2++;
     }
+
+    // Total $CANVAS earn = one roll result × all pixels placed
+    totalEarn = BASE_EARN * strikeBonus(betTier) * placed2;
+    bestEarn = totalEarn;
+    bucketFeed = totalEarn * BUCKET_FEED_PCT;
 
     // Batch state updates
     if (newOwned > 0) setOwned(o => { ownedRef.current = o + newOwned; return o + newOwned; });
