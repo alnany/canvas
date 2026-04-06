@@ -87,8 +87,7 @@ export default function Home() {
             Claim territory. Earn tokens. Survive the chaos.
           </p>
           <p style={{ fontSize:13, color:"#475569", marginBottom:32, maxWidth:420, lineHeight:1.7 }}>
-            1,000 x 1,000 grid. Real-time PVP. Fair launch - 0% team, 0% VC.
-            Inspired by r/place. Built for crypto.
+            1,000 x 1,000 grid. Real-time PVP. Fair launch.
           </p>
           <div style={{ display:"flex", gap:12 }}>
             <Link href="/play" style={{
