@@ -77,7 +77,7 @@ export default function Home() {
       <section style={{ display:"flex", alignItems:"center", justifyContent:"space-between", maxWidth:1100, margin:"0 auto", padding:"80px 32px", gap:48 }}>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:11, color:"#22d3ee", marginBottom:12, letterSpacing:3, textTransform:"uppercase" }}>
-            Fair Launch \u00b7 Solana \u00b7 10B $CANVAS
+            Fair Launch  /  Solana  /  10B $CANVAS
           </div>
           <h1 style={{ fontFamily:"'Press Start 2P',monospace", fontSize:"clamp(32px,5vw,60px)", color:"#a855f7", margin:"0 0 16px", lineHeight:1.3 }}>
             CANVAS
@@ -173,7 +173,7 @@ export default function Home() {
           {TOKENOMICS.map(t => <div key={t.label} style={{ width:`${t.pct}%`, background:t.color, height:"100%" }} />)}
         </div>
         <div style={{ marginTop:12, fontSize:11, color:"#475569", textAlign:"center" }}>
-          Fair launch \u00b7 0% team \u00b7 0% VC \u00b7 LP tokens burned \u00b7 Raydium DEX
+          Fair launch  /  0% team  /  0% VC  /  LP tokens burned  /  Raydium DEX
         </div>
       </section>
 
@@ -219,7 +219,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer style={{ borderTop:"1px solid #1e1e3f", padding:"24px 32px", textAlign:"center", fontSize:11, color:"#475569" }}>
         <span style={{ fontFamily:"'Press Start 2P',monospace", fontSize:10 }}>CANVAS</span>
-        {" "}\u00b7 Built on Solana \u00b7 Fair launch \u00b7 Demo only \u2014 not financial advice
+        {" "} Built on Solana  /  Fair launch  /  Demo only \u2014 not financial advice
       </footer>
     </div>
   );
