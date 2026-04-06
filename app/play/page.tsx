@@ -344,45 +344,44 @@ export default function Play() {
 
     // Place bet.pixels pixels in a circle around (gx, gy)
     const circleR = bet.pixels === 1 ? 0 : Math.ceil(Math.sqrt(bet.pixels / Math.PI)) + 1;
-    const circleCandidates: [number, number, number][] = [];
-    for (let dy = -circleR; dy <= circleR; dy++) {
-      for (let dx = -circleR; dx <= circleR; dx++) {
-        if (dx*dx + dy*dy > circleR*circleR) continue;
-        const px = gx + dx, py = gy + dy;
-        if (px < 0 || py < 0 || px >= GRID || py >= GRID) continue;
-        circleCandidates.push([dx*dx + dy*dy, px, py]);
+    const circleCandidates: { dist: number; px: number; py: number }[] = [];
+    for (let cdy = -circleR; cdy <= circleR; cdy++) {
+      for (let cdx = -circleR; cdx <= circleR; cdx++) {
+        if (cdx*cdx + cdy*cdy > circleR*circleR) continue;
+        const cpx = gx + cdx, cpy = gy + cdy;
+        if (cpx < 0 || cpy < 0 || cpx >= GRID || cpy >= GRID) continue;
+        circleCandidates.push({ dist: cdx*cdx + cdy*cdy, px: cpx, py: cpy });
       }
     }
-    circleCandidates.sort((a, b) => a[0] - b[0]);
+    circleCandidates.sort((a, b) => a.dist - b.dist);
     const toPlace = circleCandidates.slice(0, bet.pixels);
     let placed2 = 0;
-    for (const [, px, py] of toPlace) {
-      if (px < 0 || py < 0 || px >= GRID || py >= GRID) continue;
-        const pidx = py * GRID + px;
-        const prev = g[pidx];
-        if (!prev || prev.owner !== WALLET) newOwned++;
-        g[pidx] = { color, owner: WALLET };
+    for (const { px, py } of toPlace) {
+      const pidx = py * GRID + px;
+      const prev = g[pidx];
+      if (!prev || prev.owner !== WALLET) newOwned++;
+      g[pidx] = { color, owner: WALLET };
 
-        const img4 = ctx.createImageData(1, 1);
-        const hex4 = color.replace("#","");
-        img4.data[0]=parseInt(hex4.slice(0,2),16); img4.data[1]=parseInt(hex4.slice(2,4),16);
-        img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
-        ctx.putImageData(img4, px, py);
+      const img4 = ctx.createImageData(1, 1);
+      const hex4 = color.replace("#","");
+      img4.data[0]=parseInt(hex4.slice(0,2),16); img4.data[1]=parseInt(hex4.slice(2,4),16);
+      img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
+      ctx.putImageData(img4, px, py);
 
-        const tier = rollStrike();
-        const earn = BASE_EARN * strikeBonus(tier);
-        totalEarn += earn;
-        bucketFeed += earn * BUCKET_FEED_PCT;
-        if (tier !== "none" && strikeBonus(tier) > strikeBonus(bestTier)) {
-          bestTier = tier; bestEarn = earn;
-        }
+      const tier = rollStrike();
+      const earn = BASE_EARN * strikeBonus(tier);
+      totalEarn += earn;
+      bucketFeed += earn * BUCKET_FEED_PCT;
+      if (tier !== "none" && strikeBonus(tier) > strikeBonus(bestTier)) {
+        bestTier = tier; bestEarn = earn;
+      }
 
-        const prize = rollSolPrize();
-        const solReturn = prize.mult * pixelBetShare;
-        totalSolReturn += solReturn;
-        if (!bestPrize || prize.mult > bestPrize.mult) bestPrize = prize;
+      const prize = rollSolPrize();
+      const solReturn = prize.mult * pixelBetShare;
+      totalSolReturn += solReturn;
+      if (!bestPrize || prize.mult > bestPrize.mult) bestPrize = prize;
 
-        if (dx === 0 && dy === 0) spawnAnim(px, py, color, tier);
+      if (placed2 === 0) spawnAnim(px, py, color, tier);
       placed2++;
     }
 
