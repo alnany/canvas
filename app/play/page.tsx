@@ -64,696 +64,301 @@ function drawPattern(
 }
 
 function seedCanvas(g: (PxData|null)[]) {
-  // ── ZONE BACKGROUNDS ──────────────────────────────────────────────────────
-  fillRect(g, 0,   0,   500, 320, "#0a0500");   // BTC zone — dark amber
-  fillRect(g, 500, 0,   500, 320, "#04001a");   // ETH zone — deep navy
-  fillRect(g, 0,   320, 270, 220, "#0a0800");   // DOGE zone — warm dark
-  fillRect(g, 270, 320, 230, 220, "#120000");   // TRUMP/MAGA zone
-  fillRect(g, 500, 320, 260, 220, "#04001a");   // SOL zone — indigo
-  fillRect(g, 760, 320, 240, 220, "#010108");   // SPACE/ELON zone — near black
-  fillRect(g, 0,   540, 270, 210, "#100000");   // CHINA zone — dark red
-  fillRect(g, 270, 540, 230, 210, "#0d0900");   // CZ/BNB zone — dark gold
-  fillRect(g, 500, 540, 260, 210, "#030010");   // KOREA zone
-  fillRect(g, 760, 540, 240, 210, "#001200");   // PEPE zone — dark green
-  fillRect(g, 0,   750, 1000,250, "#020202");   // MOON/HODL bottom
 
-  // ── RAINBOW SEPARATORS ───────────────────────────────────────────────────
-  const rc = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#8b5cf6","#ec4899"];
-  for (let x = 0; x < 1000; x++) {
-    const ci = Math.floor(x / 125) % 8;
-    px(g, x, 318, rc[ci]); px(g, x, 319, rc[ci]); px(g, x, 320, rc[ci]);
-    px(g, x, 538, rc[ci]); px(g, x, 539, rc[ci]); px(g, x, 540, rc[ci]);
-    px(g, x, 748, rc[ci]); px(g, x, 749, rc[ci]); px(g, x, 750, rc[ci]);
-  }
+  // ── LAYER 1: ZONE BASE FILLS ───────────────────────────────────────────────
+  fillRect(g, 0,   0,   500, 500, "#150800");
+  fillRect(g, 500, 0,   500, 500, "#08001f");
+  fillRect(g, 0,   500, 500, 500, "#001208");
+  fillRect(g, 500, 500, 500, 500, "#120a00");
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // BTC ZONE (0,0 → 500,320)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Large Bitcoin coin — circle with ₿
+  // ── LAYER 2: DENSE SYMBOL TILING (every 10px across full canvas) ──────────
+  for (let ty = 0; ty < 500; ty += 10)
+    for (let tx = 0; tx < 500; tx += 10)
+      drawPattern(g, tx+3, ty+2, [".B.","BBB","B.B","BBB",".B."],
+        { B: (tx+ty)%20<10 ? "#5c2d00" : "#7a3d00" });
+  for (let ty = 0; ty < 500; ty += 10)
+    for (let tx = 500; tx < 1000; tx += 10)
+      drawPattern(g, tx+3, ty+2, [".E.","EEE","EEE",".E.","..."],
+        { E: (tx+ty)%20<10 ? "#2d1060" : "#3d2080" });
+  for (let ty = 500; ty < 1000; ty += 10)
+    for (let tx = 0; tx < 500; tx += 10)
+      drawPattern(g, tx+2, ty+2, ["DD.","D.D","D.D","D.D","DD."],
+        { D: (tx+ty)%20<10 ? "#5c3500" : "#7a4500" });
+  for (let ty = 500; ty < 1000; ty += 10)
+    for (let tx = 500; tx < 1000; tx += 10)
+      drawPattern(g, tx+3, ty+2, [".Y.","YYY",".Y.","YYY",".Y."],
+        { Y: (tx+ty)%20<10 ? "#3d2800" : "#553800" });
+
+  // ── LAYER 3: PORTRAIT GRID — Trump/Musk/CZ every 35px (~800 portraits) ────
+  const tP = [
+    "..HHHHHH..",".HHHHHHHH.","HHHHHHHHHH",
+    "HSSSSSSSSH","SSSSSSSSSS","SE..SS..ES",
+    "SSSSSSSSSS",".S.RRRR.S.","SSSSSSSSSS",
+    ".WWWWWWWWW",".WRTTTTTRW","..TTTTTTT.",
+    "...TTTTT..","....TTT...",
+  ];
+  const tC = { H:"#f97316",S:"#fddcb0",E:"#111",R:"#cc0000",W:"#f0f0f0",T:"#cc0000" };
+
+  const mP = [
+    "..DDDDDD..",".DDDDDDDD.","DDDDDDDDDD",
+    "DDSSSSSSDD","SSSSSSSSSS","SE..SS..ES",
+    "SSSSSSSSSS",".SS.SSSS.S","SSSSSSSSSS",
+    ".BBBBBBBB.","BBBBBBBBBB","BBBBBBBBBB",
+    "...RRRR...","....RR....",
+  ];
+  const mC = { D:"#2d2020",S:"#ffdfbf",E:"#111",B:"#0a0a30",R:"#cc2200" };
+
+  const cP = [
+    "..KKKKKK..",".KKKKKKKK.","KKKKKKKKKK",
+    "KKSSSSSSKK","SSSSSSSSSS","SE..SS..ES",
+    "SSSSSSSSSS",".SS.YY.SS.","SSSSSSSSSS",
+    ".GGGGGGGG.","GGGGGGGGGG","GGGGGGGGG.",
+    "...GGGGG..","....GGG...",
+  ];
+  const cC = { K:"#111",S:"#ffe0c8",E:"#111",Y:"#f7c948",G:"#f3ba2f" };
+
+  for (let row = 0; row < 1000; row += 35)
+    for (let col = 0; col < 1000; col += 35) {
+      const idx = (Math.floor(row/35) * 29 + Math.floor(col/35)) % 3;
+      if (idx === 0) drawPattern(g, col, row, tP, tC);
+      else if (idx === 1) drawPattern(g, col, row, mP, mC);
+      else drawPattern(g, col, row, cP, cC);
+    }
+
+  // ── LAYER 4: LARGE BITCOIN COIN (top-left) ────────────────────────────────
   for (let dy = -60; dy <= 60; dy++)
     for (let dx = -60; dx <= 60; dx++) {
       const r2 = dx*dx + dy*dy;
-      if (r2 <= 3600 && r2 > 3025) px(g, 130+dx, 150+dy, "#c46a00");
-      else if (r2 <= 3025) px(g, 130+dx, 150+dy, "#f7931a");
+      if (r2 <= 3600 && r2 > 3025) px(g, 180+dx, 200+dy, "#c46a00");
+      else if (r2 <= 3025) px(g, 180+dx, 200+dy, "#f7931a");
     }
-  // ₿ symbol
-  drawPattern(g, 98, 108, [
-    "..BBBBBBBBB...",
-    ".B.........BB.",
-    "B...........BB",
-    "B...........B.",
-    "B...........B.",
-    "B...BBBBBBB...",
-    "B...BBBBBBBB..",
-    "B...........BB",
-    "B...........BB",
-    "B...........B.",
-    ".B.........BB.",
-    "..BBBBBBBBB...",
-  ], { B: "#7a3d00" });
-  // vertical bar
-  for (let y = 103; y <= 197; y++) { px(g, 109, y, "#7a3d00"); px(g, 110, y, "#7a3d00"); }
+  drawPattern(g, 152, 178, [
+    "..BBBBBBBBB..","..B.......BB.","..B.......BB.",
+    "..BBBBBBBBB..","..B.......BB.","..B.......BB.",
+    "..BBBBBBBBB..",
+  ], { B: "#7a3800" });
+  for (let y = 170; y <= 220; y++) { px(g, 150, y, "#7a3800"); px(g, 151, y, "#7a3800"); }
 
-  // "BTC" label
-  drawPattern(g, 60, 240, [
-    "BBB.TTT.CCC.",
-    "B.B.T...C...",
-    "BBB.T...C...",
-    "B...T...C...",
-    "B...T...CCC.",
-  ], { B: "#f7931a", T: "#f7931a", C: "#f7931a" });
+  // ── LAYER 5: LARGE ETH DIAMOND (top-right) ────────────────────────────────
+  drawPattern(g, 660, 50, [
+    "............EEEEEEEEEEEEEE............",
+    "...........EEEEEEEEEEEEEEEE...........",
+    "..........EEEEEEEEEEEEEEEEEE..........",
+    ".........EEEEEEEEEEEEEEEEEEEE.........",
+    "........EEEEEEEEEEEEEEEEEEEEEE........",
+    ".......EEEEEEEEEEEEEEEEEEEEEEEE.......",
+    "......EEEEEEEEEEEEEEEEEEEEEEEEEE......",
+    ".....EEEEEEEEEEEEEEEEEEEEEEEEEEEE.....",
+    "....EEEEEEEEEEEEEEEEEEEEEEEEEEEEEE....",
+    "...EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE...",
+    "..EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE..",
+    ".EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.",
+    "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+    ".DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.",
+    "..DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD..",
+    "...DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...",
+    "....DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD....",
+    ".....DDDDDDDDDDDDDDDDDDDDDDDDDDDD.....",
+    "......DDDDDDDDDDDDDDDDDDDDDDDDDD......",
+    ".......DDDDDDDDDDDDDDDDDDDDDDDD.......",
+    "........DDDDDDDDDDDDDDDDDDDDDD........",
+    ".........DDDDDDDDDDDDDDDDDDDD.........",
+    "..........DDDDDDDDDDDDDDDDDD..........",
+    "...........DDDDDDDDDDDDDDDD...........",
+    "............DDDDDDDDDDDDDD............",
+    ".............DDDDDDDDDDDD.............",
+    "..............DDDDDDDDDD..............",
+    "...............DDDDDDDD...............",
+    "................DDDDDD................",
+    ".................DDDD.................",
+    "..................DD...................",
+  ], { E: "#9945ff", D: "#7b68ee" });
 
-  // "$1M" target
-  drawPattern(g, 170, 240, [
-    "SSS.1..MMM.",
-    "S...1..MMM.",
-    "SSS.1..M.M.",
-    "..S.1..M.M.",
-    "SSS.1..M.M.",
-  ], { S: "#ffd700", "1": "#ffd700", M: "#ffd700" });
+  // ── LAYER 6: LARGE TRUMP FACE (center, 34w×26h) ───────────────────────────
+  drawPattern(g, 290, 390, [
+    "..HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH..",
+    ".HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+    "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+    "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+    "HHSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSH",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSS.BBBB.SSSSSSSSSSSSSSSS.BBBB.SSSSS",
+    "SSSBBBBBBSSSSSSSSSSSSSSSSBBBBBBBSSSSS",
+    "SSSB....BSSSSSSSSSSSSSSSSB....BBSSSSS",
+    "SSSBBBBBBSSSSSSSSSSSSSSSSBBBBBBBSSSSS",
+    "SSS.BBBB.SSSSSSSSSSSSSSSS.BBBB.SSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSS.NNNNNN.SSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSRRRRRRRRRRRSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSRRRRRRRRRRRRRSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSRRRRRRRRRRRSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+    ".WTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTW",
+    "..TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+    "...TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT..",
+    "....TTTTTTTTTTTTTTTTTTTTTTTTTTTTT...",
+    ".....TTTTTTTTTTTTTTTTTTTTTTTTTTT....",
+    "......TTTTTTTTTTTTTTTTTTTTTTTTT.....",
+  ], { H:"#f97316",S:"#fddcb0",B:"#111",N:"#cc9966",R:"#cc1111",W:"#f0f0f0",T:"#cc0000" });
 
-  // Scattered ₿ symbols in BTC zone
-  for (const [sx, sy] of [[310,30],[380,60],[430,140],[350,200],[290,80],[450,250],[320,270]]) {
-    drawPattern(g, sx, sy, [".B.",".B.","BBB",".B.",".B."], { B: "#f7931a" });
+  // ── LAYER 7: LARGE MUSK FACE (left side, 34w×26h) ─────────────────────────
+  drawPattern(g, 30, 540, [
+    "...DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...",
+    "..DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD..",
+    ".DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.",
+    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDDSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSDDD",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSS.EEEE.SSSSSSSSSSSSSSSS.EEEE.SSSSS",
+    "SSSEEEEEESSSSSSSSSSSSSSSSEEEEEESSSSS",
+    "SSSE....ESSSSSSSSSSSSSSSSSE....ESSSS",
+    "SSSEEEEEESSSSSSSSSSSSSSSSEEEEEESSSSS",
+    "SSS.EEEE.SSSSSSSSSSSSSSSS.EEEE.SSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSS.NNNNNNNNN.SSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSMMMMMMMMMMSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSMMMMMMMMMSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSMMMMMMMMMMSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.",
+    "..BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB..",
+    "...BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB...",
+    "....BBBBBBBBBBBBBBBBBBBBBBBBBBBB....",
+    ".....BBBBBBBBBBBBBBBBBBBBBBBBBB.....",
+  ], { D:"#2d2020",S:"#ffdfbf",E:"#111",N:"#cc9966",M:"#444",B:"#0a0a30" });
+
+  // ── LAYER 8: LARGE CZ FACE (right side) ───────────────────────────────────
+  drawPattern(g, 660, 560, [
+    "....KKKKKKKKKKKKKKKKKKKKKKKKKKKK....",
+    "...KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK...",
+    "..KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK..",
+    ".KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK.",
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+    "KKKKSSSSSSSSSSSSSSSSSSSSSSSSSSSSKKKK",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSS.EEEE.SSSSSSSSSSSSSSSS.EEEE.SSSSS",
+    "SSSEEEEEESSSSSSSSSSSSSSSSEEEEEESSSS",
+    "SSSE....ESSSSSSSSSSSSSSSSEE....ESSSS",
+    "SSSEEEEEESSSSSSSSSSSSSSSSEEEEEESSSS",
+    "SSS.EEEE.SSSSSSSSSSSSSSSS.EEEE.SSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSS.NNNNNNNNNNNN.SSSSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSS.YYYYYYYYYYYYYY.SSSSSSSSSSSSS",
+    "SSSSSSSS.YYYYYYYYYYYY.SSSSSSSSSSSSSS",
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.",
+    ".GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.",
+    "..GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG..",
+    "...GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG...",
+    "....GGGGGGGGGGGGGGGGGGGGGGGGGGGG....",
+  ], { K:"#111",S:"#ffe0c8",E:"#111",N:"#cc9966",Y:"#f7c948",G:"#f3ba2f" });
+
+  // ── LAYER 9: TEXT BANNERS ─────────────────────────────────────────────────
+  drawPattern(g, 5, 5, ["BBB.TTT.CCC.","B.B.T...C...","BBB.T...C...","B...T...C...","B...T...CCC."],
+    { B:"#f7931a",T:"#f7931a",C:"#f7931a" });
+  drawPattern(g, 820, 5, ["EEE.TTT.HHH.","E...T...H.H.","EEE.T...HHH.","E...T...H.H.","EEE.T...H.H."],
+    { E:"#9945ff",T:"#9945ff",H:"#9945ff" });
+  drawPattern(g, 5, 505, ["DDD.OOO.GGG.EEE.","D.D.O.O.G...E...","D.D.O.O.GGG.EEE.","D.D.O.O.G.G.E...","DDD.OOO.GGG.EEE."],
+    { D:"#c8922a",O:"#c8922a",G:"#c8922a",E:"#c8922a" });
+  drawPattern(g, 505, 505, ["SSS.OOO.LLL.AAA.NNN.AAA.","S...O.O.L...A.A.N.N.A.A.","SSS.O.O.L...AAA.NNN.AAA.","..S.O.O.L...A.A.N.N.A.A.","SSS.OOO.LLL.A.A.N.N.A.A."],
+    { S:"#9945ff",O:"#9945ff",L:"#14f195",A:"#14f195",N:"#14f195" });
+  drawPattern(g, 330, 320, ["HHH.OOO.DDD.LLL.","H.H.O.O.D.D.L...","HHH.O.O.D.D.L...","H.H.O.O.D.D.L...","H.H.OOO.DDD.LLL."],
+    { H:"#ffd700",O:"#ffd700",D:"#ffd700",L:"#ffd700" });
+  drawPattern(g, 330, 820, ["W.W.AAA.GGG.M.M.III.","W.W.A.A.G...MMM..I..",".W..AAA.GGG.M.M..I..",".W..A.A.G.G.M.M..I..",".W..A.A.GGG.M.M.III."],
+    { W:"#00ff88",A:"#00ff88",G:"#00ff88",M:"#00ff88",I:"#00ff88" });
+  drawPattern(g, 500, 870, ["TTT.OOO...TTT.HHH.EEE...M.M.OOO.OOO.NNN.","T...O.O...T...H.H.E...MMM.M.O.O.O.O.N.N.","T...O.O...T...HHH.EEE.M.M.M.O.O.O.O.NNN.","T...O.O...T...H.H.E...M.M.M.O.O.O.O.N.N.","T...OOO...T...H.H.EEE.M.M.M.OOO.OOO.N.N."],
+    { T:"#ffd700",O:"#ffd700",H:"#ffd700",E:"#ffd700",M:"#ffd700",N:"#ffd700" });
+  drawPattern(g, 285, 665, ["M.M.AAA.GGG.AAA.","MMM.A.A.G...A.A.","M.M.AAA.GGG.AAA.","M.M.A.A.G.G.A.A.","M.M.A.A.GGG.A.A."],
+    { M:"#cc0000",A:"#cc0000",G:"#cc0000" });
+  drawPattern(g, 5, 985, ["NNN.FFF.AAA.","N.N.F...A.A.","NNN.FFF.AAA.","N.N.F...A.A.","N.N.F...A.A."],
+    { N:"#ff4444",F:"#ff4444",A:"#ff4444" });
+  drawPattern(g, 800, 985, ["DDD.Y.Y.OOO.R.R.","D.D..Y..O.O.RRR.","D.D..Y..O.O.R.R.","D.D..Y..O.O.R.R.","DDD..Y..OOO.R.R."],
+    { D:"#44ff88",Y:"#44ff88",O:"#44ff88",R:"#44ff88" });
+
+  // ── LAYER 10: PEPE FACES (scattered) ─────────────────────────────────────
+  for (const [px2,py2] of [[600,250],[790,650],[200,750],[50,310],[850,450],[420,750]] as [number,number][])
+    drawPattern(g, px2, py2, [
+      "..GGGGGGGGGG..","GGGGGGGGGGGGGG","GG.GGGGGGGG.GG",
+      "GWWGGGGGGWWGGG","GBBGGGGGGBBGGG","GGGGGGGGGGGGGG",
+      ".GGNNNNNNNGG..","..GLLLLLLLGG..",
+    ], { G:"#3d9a3d",W:"#f0f0f0",B:"#000",N:"#2d7a2d",L:"#1a5a1a" });
+
+  // ── LAYER 11: BNB DIAMONDS (scattered) ───────────────────────────────────
+  for (const [bx,by] of [[200,870],[350,50],[850,870],[450,290]] as [number,number][])
+    drawPattern(g, bx, by, [
+      "....YYYY....","...YYYYYY...","..YYYYYYYY..",
+      ".YYYYYY.YYY.","YYYYYYY.YYYY","YYYYYYYYYYY.",
+      ".YYYYYY.YYY.","..YYYYYYYY..","...YYYYYY...","....YYYY....",
+    ], { Y:"#f3ba2f" });
+
+  // ── LAYER 12: SOL LOGOS (scattered) ──────────────────────────────────────
+  for (const [sx,sy] of [[500,285],[100,795],[750,280],[600,800]] as [number,number][])
+    drawPattern(g, sx, sy, [
+      "PPPPPPPPPPPPPPPPPPPP","PPPPPPPPPPPPPPPPPP..","...................",
+      "GGGGGGGGGGGGGGGGGGGG","GGGGGGGGGGGGGGGG....","...................",
+      "PPPPPPPPPPPPPPPPPPPP","PPPPPPPPPPPPPPPPPP..",
+    ], { P:"#9945ff",G:"#14f195" });
+
+  // ── LAYER 13: RAINBOW SEPARATORS ─────────────────────────────────────────
+  const rc2 = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#8b5cf6","#ec4899"];
+  for (let x = 0; x < 1000; x++) {
+    const ci = Math.floor(x / 125) % 8;
+    for (let t = 0; t < 4; t++) { px(g, x, 496+t, rc2[ci]); px(g, x, 996+t, rc2[ci]); }
   }
 
-  // "HODL" text top-right of BTC zone
-  drawPattern(g, 280, 170, [
-    "H.H.OOO.DDD.LLL.",
-    "H.H.O.O.D.D.L...",
-    "HHH.O.O.D.D.L...",
-    "H.H.O.O.D.D.L...",
-    "H.H.OOO.DDD.LLL.",
-  ], { H: "#ff8c00", O: "#ff8c00", D: "#ff8c00", L: "#ff8c00" });
+  // ── LAYER 14: EXTRA TRUMP/MUSK/CZ CLOSE-UP PORTRAITS (larger, prominent) ─
+  // Big Trump close-up (top-center)
+  drawPattern(g, 400, 20, [
+    "....HHHHHHHHHHHHHHHH....","...HHHHHHHHHHHHHHHHHH...",
+    "..HHHHHHHHHHHHHHHHHHHH..","HHHHHHHHHHHHHHHHHHHHHHHH",
+    "HHHSSSSSSSSSSSSSSSSSSHHH","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SS.BBBB.SSSSSSSSSBBBB.SS","SSBBBBBBSSSSSSSSBBBBBBBSS",
+    "SSB....BSSSSSSSSB....BSSS","SSBBBBBBSSSSSSSSBBBBBBBSS",
+    "SS.BBBB.SSSSSSSSSBBBB.SS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSS.NNNNNN.SSSSSSSSSS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSRRRRRRRRRSSSSSSSS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    ".WWWWWWWWWWWWWWWWWWWWWW",".WRTTTTTTTTTTTTTTTTTTTW",
+    "..TTTTTTTTTTTTTTTTTTTT..","...TTTTTTTTTTTTTTTTTT...",
+  ], { H:"#f97316",S:"#fddcb0",B:"#111",N:"#cc9966",R:"#cc1111",W:"#f0f0f0",T:"#cc0000" });
 
-  // "SATS" small text
-  drawPattern(g, 60, 280, [
-    "SSS.AAA.TTT.SSS.",
-    "S...A.A.T...S...",
-    "SSS.AAA.T...SSS.",
-    "..S.A.A.T.....S.",
-    "SSS.A.A.T...SSS.",
-  ], { S: "#ff9900", A: "#ff9900", T: "#ff9900" });
+  // Big Musk (bottom-left)
+  drawPattern(g, 20, 820, [
+    "....DDDDDDDDDDDDDDDD....","...DDDDDDDDDDDDDDDDDD...",
+    "..DDDDDDDDDDDDDDDDDDDD..","DDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDSSSSSSSSSSSSSSSSSSSSDD","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SS.EEEE.SSSSSSSSSEEEE.SS","SSEEEEEEESSSSSSSSEEEEEESSS",
+    "SSE....ESSSSSSSSSSE....ESS","SSEEEEEEESSSSSSSSEEEEEESSS",
+    "SS.EEEE.SSSSSSSSSEEEE.SS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSS.NNNNNNN.SSSSSSSS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSSMMMMMMMMMSSSSSSS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    ".BBBBBBBBBBBBBBBBBBBBBB",".BBBBBBBBBBBBBBBBBBBBBB",
+    "..BBBBBBBBBBBBBBBBBBBB..","...BBBBBBBBBBBBBBBBBB...",
+  ], { D:"#2d2020",S:"#ffdfbf",E:"#111",N:"#cc9966",M:"#444",B:"#0a0a30" });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ETH ZONE (500,0 → 1000,320)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Ethereum diamond
-  drawPattern(g, 680, 30, [
-    "......EEEE......",
-    ".....EEEEEE.....",
-    "....EEEEEEEE....",
-    "...EEEEEEEEEE...",
-    "..EEEEEEEEEEEE..",
-    ".EEEEEEEEEEEEEE.",
-    "EEEEEEEEEEEEEEEE",
-    "EEEEEEEEEEEEEEEE",
-    ".DDDDDDDDDDDDDD.",
-    "..DDDDDDDDDDDD..",
-    "...DDDDDDDDDD...",
-    "....DDDDDDDD....",
-    ".....DDDDDD.....",
-    "......DDDD......",
-    ".......DD.......",
-    "........D.......",
-  ], { E: "#a79af5", D: "#7b68ee" });
-
-  // "ETH" label
-  drawPattern(g, 670, 175, [
-    "EEE.TTT.HHH.",
-    "E...T...H.H.",
-    "EEE.T...HHH.",
-    "E...T...H.H.",
-    "EEE.T...H.H.",
-  ], { E: "#a79af5", T: "#a79af5", H: "#a79af5" });
-
-  // Scattered ETH diamonds
-  for (const [sx, sy] of [[820,20],[900,80],[850,200],[950,150],[810,260],[770,40],[940,240]]) {
-    drawPattern(g, sx, sy, ["..E..","EEEEE","EEEEE",".EEE.","..E.."], { E: "#7b68ee" });
-  }
-
-  // "GAS FEES" humor
-  drawPattern(g, 505, 250, [
-    "GGG.AAA.SSS...FFF.EEE.EEE.SSS.",
-    "G...A.A.S.....F...E...E...S...",
-    "GGG.AAA.SSS...FFF.EEE.EEE.SSS.",
-    "G.G.A.A...S...F...E...E.....S.",
-    "GGG.A.A.SSS...F...EEE.EEE.SSS.",
-  ], { G: "#a79af5", A: "#a79af5", S: "#a79af5", F: "#ff4444", E: "#ff4444" });
-
-  // EIP-1559 burn flame
-  drawPattern(g, 940, 260, [
-    "..F..",
-    ".FFF.",
-    "FFFFF",
-    "FFFFF",
-    ".FFF.",
-    "..F..",
-  ], { F: "#ff4400" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // DOGE ZONE (0,320 → 270,540)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Shiba Inu face
-  drawPattern(g, 20, 345, [
-    "..CCCCCCCCCCC..",
-    ".CCCCCCCCCCCCC.",
-    "CCCCCCCCCCCCCCC",
-    "CCCCCCCCCCCCCCC",
-    "CC.CCCCCCC.CCCC",
-    "CWWCCCCCCCWWCCC",
-    "CBBCCCCCCCBBCCC",
-    "CCCCCCCCCCCCCCC",
-    ".CCNNNNNNNNCCC.",
-    ".CCNBBBBBBNCC..",
-    "..CCCCCCCCCCC..",
-    "..CRRRRRRRRCC..",
-    "...CRRRRRRCC...",
-    "CCCCCCCCCCCCCCC",
-  ], { C: "#c8922a", W: "#f5f5f5", B: "#333333", N: "#a0522d", R: "#cc3333" });
-
-  // "DOGE" label
-  drawPattern(g, 15, 490, [
-    "DDD.OOO.GGG.EEE.",
-    "D.D.O.O.G...E...",
-    "D.D.O.O.G.G.EEE.",
-    "D.D.O.O.G.G.E...",
-    "DDD.OOO.GGG.EEE.",
-  ], { D: "#c8922a", O: "#c8922a", G: "#c8922a", E: "#c8922a" });
-
-  // "MUCH WOW" meme text
-  drawPattern(g, 155, 360, [
-    "M.M.W.W.O.W.",
-    "MMM.W.W.WWW.",
-    "M.M..W..W.W.",
-    "M.M..W..W.W.",
-  ], { M: "#ffd700", W: "#ffd700", O: "#ffd700" });
-
-  // "VERY CRYPTO"
-  drawPattern(g, 155, 420, [
-    "V.V.EEE.R.R.Y.Y.",
-    "V.V.E...RRR..Y..",
-    ".V..EEE.R.R..Y..",
-    ".V..E...R.R..Y..",
-    ".V..EEE.R.R..Y..",
-  ], { V: "#f5c518", E: "#f5c518", R: "#f5c518", Y: "#f5c518" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // TRUMP / MAGA ZONE (270,320 → 500,540)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Trump pixel face (golden hair, skin, red tie)
-  drawPattern(g, 300, 330, [
-    "....HHHHHHHHHHHHHH....",
-    "...HHHHHHHHHHHHHHHH...",
-    "..HHHHHHHHHHHHHHHHHH..",
-    "..HHHHHHHHHHHHHHHHHH..",
-    "..SSSSSSSSSSSSSSSSSS..",
-    "..SSSSSSSSSSSSSSSSSS..",
-    "..SS..SSSSSSSS..SS...",
-    "..SBBSSSSSSSSBBSS....",
-    "..SEESSSSSSSEESS.....",
-    "..SWWSSSSSSSWWSS.....",
-    "..SSSSSSSSSSSSSS.....",
-    "..SSSSNNNNSSSSSS.....",
-    "..SSSSSSSSSSSSSS.....",
-    "..SRRRRRRRRRSSSS.....",
-    "..SSSSSSSSSSSSSS.....",
-    "...WWWWWWWWWWWW......",
-    "...WTTTTTTTTTW.......",
-    "...WTTTTTTTTTW.......",
-    "..BBBBBBBBBBBBB......",
-    "..BBBBBBBBBBBBB......",
-  ], { H: "#e8a200", S: "#ffd4a0", B: "#331100", E: "#552200", W: "#ffffff", R: "#dd3333", T: "#cc0000" });
-
-  // "MAGA" label
-  drawPattern(g, 290, 505, [
-    "M.M.AAA.GGG.AAA.",
-    "MMM.A.A.G...A.A.",
-    "M.M.AAA.GGG.AAA.",
-    "M.M.A.A.G.G.A.A.",
-    "M.M.A.A.GGG.A.A.",
-  ], { M: "#cc0000", A: "#cc0000", G: "#cc0000" });
-
-  // "TRUMP COIN" text
-  drawPattern(g, 390, 345, [
-    "TTT.R.R.",
-    "T...RRR.",
-    "T...R.R.",
-    "T...R.R.",
-    "T...R.R.",
-  ], { T: "#ffd700", R: "#ffd700" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // SOL ZONE (500,320 → 760,540)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Solana logo (three gradient bars)
-  drawPattern(g, 510, 345, [
-    "PPPPPPPPPPPPPPPPPPPP",
-    "PPPPPPPPPPPPPPPPPP..",
-    "PPPPPPPPPPPPPPPPPP..",
-    "PPPPPPPPPPPPPPPP....",
-    "....................",
-    "GGGGGGGGGGGGGGGGGGGG",
-    "GGGGGGGGGGGGGGGGGG..",
-    "GGGGGGGGGGGGGGGG....",
-    "GGGGGGGGGGGGGG......",
-    "....................",
-    "PPPPPPPPPPPPPPPPPPPP",
-    "PPPPPPPPPPPPPPPPPP..",
-    "PPPPPPPPPPPPPPPPPP..",
-    "PPPPPPPPPPPPPPPP....",
-  ], { P: "#9945ff", G: "#14f195" });
-
-  // "SOL" label
-  drawPattern(g, 515, 390, [
-    "SSS.OOO.L...",
-    "S...O.O.L...",
-    "SSS.O.O.L...",
-    "..S.O.O.L...",
-    "SSS.OOO.LLL.",
-  ], { S: "#9945ff", O: "#9945ff", L: "#14f195" });
-
-  // "$SOL" price text
-  drawPattern(g, 600, 390, [
-    "SSS.PPP.",
-    "S...P.P.",
-    "SSS.PPP.",
-    "..S.P...",
-    "SSS.P...",
-  ], { S: "#14f195", P: "#14f195" });
-
-  // "FASTEST L1" label
-  drawPattern(g, 510, 460, [
-    "FFF.AAA.SSS.TTT.EEE.SSS.TTT.",
-    "F...A.A.S...T...E...S...T...",
-    "FFF.AAA.SSS.T...EEE.SSS.T...",
-    "F...A.A...S.T...E.....S.T...",
-    "F...A.A.SSS.T...EEE.SSS.T...",
-  ], { F: "#14f195", A: "#14f195", S: "#14f195", T: "#14f195", E: "#14f195" });
-
-  // "DeFi" text
-  drawPattern(g, 640, 460, [
-    "DDD.EEE.FFF.iii.",
-    "D.D.E...F....i..",
-    "D.D.EEE.FFF..i..",
-    "D.D.E...F....i..",
-    "DDD.EEE.F...iii.",
-  ], { D: "#9945ff", E: "#9945ff", F: "#9945ff", i: "#9945ff" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // ELON / SPACE ZONE (760,320 → 1000,540)
-  // ─────────────────────────────────────────────────────────────────────────
-  // SpaceX rocket
-  drawPattern(g, 820, 330, [
-    "...WW...",
-    "..WWWW..",
-    ".WWWWWW.",
-    ".WRRWWW.",
-    ".WRRWWW.",
-    ".WWWWWW.",
-    "WWWWWWWW",
-    "WWWWWWWW",
-    "WWWWWWWW",
-    "WWWWWWWW",
-    "WWWWWWWW",
-    "BWWWWWWB",
-    "BWWWWWWB",
-    "BWWWWWWB",
-    ".BBBBBB.",
-    "..FFFF..",
-    "..FFFF..",
-    "...FF...",
-    "...FF...",
-  ], { W: "#c0c0c0", R: "#3399ff", B: "#707070", F: "#ff6600" });
-
-  // Stars in space
-  for (const [sx, sy] of [[780,325],[800,340],[850,360],[900,330],[960,345],[770,380],[990,370],
-                           [785,410],[930,400],[870,430],[800,450],[950,460],[775,490],[920,500]]) {
-    px(g, sx, sy, "#ffffff");
-  }
-
-  // Elon face (simple pixel portrait)
-  drawPattern(g, 900, 340, [
-    ".SSSSSS.",
-    "SSSSSSSS",
-    "SS.SS.SS",
-    "SBBSSBBS",
-    "SSSSSSSS",
-    ".SNSSNSS",
-    "SSSSSSSS",
-    ".SRRRRSS",
-    "SSSSSSSS",
-    ".SSSSSS.",
-  ], { S: "#f0d5b0", B: "#444444", N: "#cc9966", R: "#cc5555" });
-
-  // "X" logo
-  drawPattern(g, 955, 340, [
-    "X...X",
-    ".X.X.",
-    "..X..",
-    ".X.X.",
-    "X...X",
-  ], { X: "#ffffff" });
-
-  // "SPACEX" label
-  drawPattern(g, 775, 490, [
-    "SSS.PPP.AAA.CCC.EEE.X.X.",
-    "S...P.P.A.A.C...E...X.X.",
-    "SSS.PPP.AAA.C...EEE..X..",
-    "..S.P...A.A.C...E...X.X.",
-    "SSS.P...A.A.CCC.EEE.X.X.",
-  ], { S: "#ffffff", P: "#ffffff", A: "#ffffff", C: "#ffffff", E: "#ffffff", X: "#ffffff" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // CHINA ZONE (0,540 → 270,750)
-  // ─────────────────────────────────────────────────────────────────────────
-  fillRect(g, 10, 555, 240, 150, "#de2910");
-  // Big yellow star
-  drawPattern(g, 25, 565, [
-    "...YY...",
-    "..YYYY..",
-    ".YYYYYY.",
-    "YYYYYYYY",
-    ".YYYYYY.",
-    "..YYYY..",
-    "...YY...",
-  ], { Y: "#ffde00" });
-  // 4 small stars
-  drawPattern(g, 90, 565, [".y.","yyy",".y."], { y: "#ffde00" });
-  drawPattern(g, 115, 580, [".y.","yyy",".y."], { y: "#ffde00" });
-  drawPattern(g, 115, 605, [".y.","yyy",".y."], { y: "#ffde00" });
-  drawPattern(g, 90, 620, [".y.","yyy",".y."], { y: "#ffde00" });
-
-  // "CHINA" label
-  drawPattern(g, 10, 715, [
-    "CCC.HHH.III.NNN.AAA.",
-    "C...H.H..I..N.N.A.A.",
-    "C...HHH..I..NNN.AAA.",
-    "C...H.H..I..N.N.A.A.",
-    "CCC.H.H.III.N.N.A.A.",
-  ], { C: "#de2910", H: "#de2910", I: "#de2910", N: "#de2910", A: "#de2910" });
-
-  // Crypto ban/chaos text
-  drawPattern(g, 140, 620, [
-    "BBB.AAA.NNN.",
-    "B...A.A.N.N.",
-    "BBB.AAA.NNN.",
-    "B...A.A.N.N.",
-    "BBB.A.A.N.N.",
-  ], { B: "#ffde00", A: "#ffde00", N: "#ffde00" });
-  drawPattern(g, 145, 675, [
-    "CCC.R.R.Y.Y.PPP.",
-    "C...RRR..Y..P.P.",
-    "C...R.R..Y..PPP.",
-    "C...R.R..Y..P...",
-    "CCC.R.R..Y..P...",
-  ], { C: "#ffde00", R: "#ffde00", Y: "#ffde00", P: "#ffde00" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // CZ / BNB ZONE (270,540 → 500,750)
-  // ─────────────────────────────────────────────────────────────────────────
-  // BNB diamond logo (bigger)
-  drawPattern(g, 290, 560, [
-    "....YYYY....",
-    "...YYYYYY...",
-    "..YYYYYYYY..",
-    ".YYYYYY.YYY.",
-    "YYYYYYY.YYYY",
-    "YYYYYYYYYYY.",
-    ".YYYYYY.YYY.",
-    "..YYYYYYYY..",
-    "...YYYYYY...",
-    "....YYYY....",
-  ], { Y: "#f3ba2f" });
-
-  // CZ pixel face
-  drawPattern(g, 380, 558, [
-    ".SSSSSSS.",
-    "SSSSSSSSS",
-    "SS.SSS.SS",
-    "SBBSSSBBSS",
-    "SSSSSSSSS",
-    ".SNNNSSS.",
-    "SSSSSSSSS",
-    ".SRRRRSS.",
-    "SSSSSSSSS",
-    ".SSSSSSS.",
-  ], { S: "#f5c27a", B: "#333333", N: "#cc9966", R: "#cc5555" });
-
-  // "CZ" label
-  drawPattern(g, 380, 670, [
-    "CCC.ZZZ.",
-    "C...Z...",
-    "C...ZZZ.",
-    "C...Z...",
-    "CCC.ZZZ.",
-  ], { C: "#f3ba2f", Z: "#f3ba2f" });
-
-  // "BNB" label
-  drawPattern(g, 285, 680, [
-    "BBB.NNN.BBB.",
-    "B.B.NNN.B.B.",
-    "BBB.N.N.BBB.",
-    "B.B.N.N.B.B.",
-    "BBB.N.N.BBB.",
-  ], { B: "#f3ba2f", N: "#f3ba2f" });
-
-  // "BINANCE" text
-  drawPattern(g, 285, 720, [
-    "BBB.III.NNN.AAA.NNN.CCC.EEE.",
-    "B.B..I..N.N.A.A.N.N.C...E...",
-    "BBB..I..NNN.AAA.NNN.C...EEE.",
-    "B...III.N.N.A.A.N.N.C...E...",
-    "B...III.N.N.A.A.N.N.CCC.EEE.",
-  ], { B: "#f3ba2f", I: "#f3ba2f", N: "#f3ba2f", A: "#f3ba2f", C: "#f3ba2f", E: "#f3ba2f" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // KOREA ZONE (500,540 → 760,750)
-  // ─────────────────────────────────────────────────────────────────────────
-  fillRect(g, 510, 552, 230, 160, "#f0f0f0");
-  // Taegeuk circle — red top, blue bottom
-  for (let dy = -30; dy <= 30; dy++)
-    for (let dx = -30; dx <= 30; dx++)
-      if (dx*dx + dy*dy <= 900)
-        px(g, 625+dx, 632+dy, dy < 0 ? "#cd2e3a" : "#003478");
-  // White yin-yang divider
-  for (let dx = -30; dx <= 30; dx++) { px(g, 625+dx, 631, "#f0f0f0"); px(g, 625+dx, 632, "#f0f0f0"); }
-  // Trigrams corners
-  for (const [tx, ty, p] of [[515,557,3],[725,557,3],[515,677,3],[725,677,3]] as [number,number,number][]) {
-    for (let i = 0; i < p; i++) fillRect(g, tx, ty + i*7, 15, 4, "#000000");
-  }
-
-  // "KOREA" label
-  drawPattern(g, 510, 720, [
-    "K.K.OOO.R.R.EEE.AAA.",
-    "KK..O.O.RRR.E...A.A.",
-    "K.K.O.O.R.R.EEE.AAA.",
-    "KK..O.O.RRR.E...A.A.",
-    "K.K.OOO.R.R.EEE.A.A.",
-  ], { K: "#cd2e3a", O: "#cd2e3a", R: "#cd2e3a", E: "#cd2e3a", A: "#cd2e3a" });
-
-  // "KIMCHI PREMIUM"
-  drawPattern(g, 505, 508, [
-    "K.K.III.M.M.CCC.HHH.III.",
-    "KK...I..MMM.C...H.H..I..",
-    "K.K..I..M.M.CCC.HHH..I..",
-    "KK...I..M.M.C...H.H..I..",
-    "K.K.III.M.M.CCC.H.H.III.",
-  ], { K: "#003478", I: "#003478", M: "#003478", C: "#cd2e3a", H: "#cd2e3a" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // PEPE ZONE (760,540 → 1000,750)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Pepe frog face (classic meme)
-  drawPattern(g, 780, 555, [
-    "..GGGGGGGGGGGG..",
-    ".GGGGGGGGGGGGGG.",
-    "GGGGGGGGGGGGGGGG",
-    "GG.GGGGGGGGGG.GG",
-    "GEWWGGGGGGWWGGGG",
-    "GBBGGGGGGGBBGGGG",
-    "GGGGGGGGGGGGGGGG",
-    "GGGGGGGGGGGGGGGG",
-    ".GGNNGGGGNNGGGG.",
-    ".GGGGGGGGGGGGG..",
-    ".GLLLLLLLLLLLG..",
-    "GGGGGGGGGGGGGG..",
-  ], { G: "#3d9a3d", W: "#f0f0f0", B: "#000000", N: "#2d7a2d", L: "#2d7a2d" });
-
-  // "KEKW" text
-  drawPattern(g, 780, 680, [
-    "K.K.EEE.K.K.W.W.",
-    "KK..E...KK..W.W.",
-    "K.K.EEE.K.K..W..",
-    "KK..E...KK..W.W.",
-    "K.K.EEE.K.K.W.W.",
-  ], { K: "#3d9a3d", E: "#3d9a3d", W: "#3d9a3d" });
-
-  // "GG EZ" text
-  drawPattern(g, 890, 680, [
-    "GGG.GGG...EEE.ZZZ.",
-    "G...G.....E.....Z.",
-    "GGG.GGG...EEE..Z..",
-    "G.G.G.....E...Z...",
-    "GGG.GGG...EEE.ZZZ.",
-  ], { G: "#55cc55", E: "#55cc55", Z: "#55cc55" });
-
-  // "PEPE" label
-  drawPattern(g, 780, 720, [
-    "PPP.EEE.PPP.EEE.",
-    "P.P.E...P.P.E...",
-    "PPP.EEE.PPP.EEE.",
-    "P...E...P...E...",
-    "P...EEE.P...EEE.",
-  ], { P: "#3d9a3d", E: "#3d9a3d" });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // MOON / HODL BOTTOM ZONE (0,750 → 1000,1000)
-  // ─────────────────────────────────────────────────────────────────────────
-  // Moon (large circle)
-  for (let dy = -55; dy <= 55; dy++)
-    for (let dx = -55; dx <= 55; dx++)
-      if (dx*dx + dy*dy <= 3025) px(g, 110+dx, 840+dy, "#f5f5a0");
-  // Craters
-  for (let dy = -10; dy <= 10; dy++)
-    for (let dx = -10; dx <= 10; dx++)
-      if (dx*dx + dy*dy <= 100) px(g, 90+dx, 820+dy, "#d8d870");
-  for (let dy = -7; dy <= 7; dy++)
-    for (let dx = -7; dx <= 7; dx++)
-      if (dx*dx + dy*dy <= 49) px(g, 145+dx, 865+dy, "#d8d870");
-  for (let dy = -4; dy <= 4; dy++)
-    for (let dx = -4; dx <= 4; dx++)
-      if (dx*dx + dy*dy <= 16) px(g, 100+dx, 870+dy, "#d8d870");
-
-  // "TO THE MOON" text
-  drawPattern(g, 185, 790, [
-    "TTT.OOO...TTT.HHH.EEE...M.M.OOO.OOO.NNN.",
-    "T...O.O...T...H.H.E...MMM.M.O.O.O.O.N.N.",
-    "T...O.O...T...HHH.EEE.M.M.M.O.O.O.O.NNN.",
-    "T...O.O...T...H.H.E...M.M.M.O.O.O.O.N.N.",
-    "T...OOO...T...H.H.EEE.M.M.M.OOO.OOO.N.N.",
-  ], { T: "#ffff44", O: "#ffff44", H: "#ffff44", E: "#ffff44", M: "#ffff44", N: "#ffff44" });
-
-  // "HODL" large
-  drawPattern(g, 185, 860, [
-    "HHH.OOO.DDD.LLL.",
-    "H.H.O.O.D.D.L...",
-    "HHH.O.O.D.D.L...",
-    "H.H.O.O.D.D.L...",
-    "H.H.OOO.DDD.LLL.",
-  ], { H: "#ff8c00", O: "#ff8c00", D: "#ff8c00", L: "#ff8c00" });
-
-  // "WAGMI" text
-  drawPattern(g, 185, 930, [
-    "W.W.AAA.GGG.M.M.III.",
-    "W.W.A.A.G...MMM..I..",
-    "W.W.AAA.GGG.M.M..I..",
-    ".W..A.A.G.G.M.M..I..",
-    ".W..A.A.GGG.M.M.III.",
-  ], { W: "#00ff88", A: "#00ff88", G: "#00ff88", M: "#00ff88", I: "#00ff88" });
-
-  // "GM" crypto greeting
-  drawPattern(g, 60, 900, [
-    "GGG.M.M.",
-    "G...MMM.",
-    "GGG.M.M.",
-    "G.G.M.M.",
-    "GGG.M.M.",
-  ], { G: "#44ffaa", M: "#44ffaa" });
-
-  // "NFA DYOR" disclaimer humor
-  drawPattern(g, 60, 960, [
-    "NNN.FFF.AAA...DDD.Y.Y.OOO.R.R.",
-    "N.N.F...A.A...D.D..Y..O.O.RRR.",
-    "NNN.FFF.AAA...D.D..Y..O.O.R.R.",
-    "N.N.F...A.A...D.D..Y..O.O.R.R.",
-    "N.N.F...A.A...DDD..Y..OOO.R.R.",
-  ], { N: "#ff4444", F: "#ff4444", A: "#ff4444", D: "#88ff88", Y: "#88ff88", O: "#88ff88", R: "#88ff88" });
-
-  // Bull pixel art
-  drawPattern(g, 520, 860, [
-    "H.......H.",
-    "HH.BBB.HH.",
-    ".BBBBBBB..",
-    ".BBBBBBB..",
-    "BBBBBBBBB.",
-    "BBBBBBBBB.",
-    "BBBBBBBBB.",
-    ".BB.B.BB..",
-    ".BB.B.BB..",
-    ".BB.B.BB..",
-  ], { H: "#c0c0c0", B: "#8B5e3c" });
-
-  // "BULL RUN" text
-  drawPattern(g, 540, 940, [
-    "BBB.U.U.LLL.LLL...R.R.U.U.NNN.",
-    "B.B.U.U.L...L.....RRR.U.U.NNN.",
-    "BBB.U.U.L...L.....R.R.U.U.N.N.",
-    "B...U.U.L...L.....R.R.U.U.N.N.",
-    "B...UUU.LLL.LLL...R.R.UUU.N.N.",
-  ], { B: "#ff8800", U: "#ff8800", L: "#ff8800", R: "#ff8800", N: "#ff8800" });
-
-  // Diamond hands 💎
-  drawPattern(g, 720, 820, [
-    "..DDD.DDD..",
-    ".DDDDDDDDD.",
-    "DDDDDDDDDDD",
-    "DDDDDDDDDDD",
-    ".DDDDDDDDD.",
-    "..DDDDDDD..",
-    "...DDDDD...",
-    "....DDD....",
-    ".....D.....",
-  ], { D: "#00bfff" });
-  drawPattern(g, 790, 820, [
-    "..DDD.DDD..",
-    ".DDDDDDDDD.",
-    "DDDDDDDDDDD",
-    "DDDDDDDDDDD",
-    ".DDDDDDDDD.",
-    "..DDDDDDD..",
-    "...DDDDD...",
-    "....DDD....",
-    ".....D.....",
-  ], { D: "#00bfff" });
-
-  // "DIAMOND HANDS" text
-  drawPattern(g, 700, 880, [
-    "DDD.III.AAA.M.M.OOO.NNN.DDD.",
-    "D.D..I..A.A.MMM.O.O.N.N.D.D.",
-    "D.D..I..AAA.M.M.O.O.NNN.D.D.",
-    "D.D..I..A.A.M.M.O.O.N.N.D.D.",
-    "DDD.III.A.A.M.M.OOO.N.N.DDD.",
-  ], { D: "#00bfff", I: "#00bfff", A: "#00bfff", M: "#00bfff", O: "#00bfff", N: "#00bfff" });
-
-  // Lambo pixel art
-  drawPattern(g, 700, 935, [
-    ".......YYYY....",
-    ".....YYYYYY....",
-    "....YYYYYYYYYYY",
-    "...YYYYYYWWYYYY",
-    "YYYYYYYYYY.YYYY",
-    "YYYYYYYYYY.YYYY",
-    ".WW.YYYYYYY.WW.",
-    ".WW.YYYYYYY.WW.",
-  ], { Y: "#ffd700", W: "#333333" });
-
-  // "$$$" money signs scattered
-  for (const [sx, sy] of [[860,760],[910,785],[870,830],[940,760],[920,920],[960,880],[880,960]]) {
-    drawPattern(g, sx, sy, [".S.","SSS",".S.","SSS",".S."], { S: "#ffd700" });
-  }
-
-  // Scattered moon crescent symbols
-  for (const [sx, sy] of [[30,755],[430,780],[450,860],[420,940]]) {
-    drawPattern(g, sx, sy, [".CCC","C...","C...","C...","C...",".CCC"], { C: "#ffff88" });
-  }
-
-  // Stars scattered in bottom zone
-  for (const [sx, sy] of [[395,760],[470,820],[480,900],[385,830],[475,960],[465,755]]) {
-    px(g, sx, sy, "#ffffff"); px(g, sx+1, sy, "#ffffff");
-    px(g, sx, sy+1, "#ffffff"); px(g, sx+1, sy+1, "#ffffff");
-  }
+  // Big CZ (bottom-right)
+  drawPattern(g, 770, 820, [
+    "....KKKKKKKKKKKKKKKK....","...KKKKKKKKKKKKKKKKKK...",
+    "..KKKKKKKKKKKKKKKKKKKK..","KKKKKKKKKKKKKKKKKKKKKKKK",
+    "KKSSSSSSSSSSSSSSSSSSSSKK","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SS.EEEE.SSSSSSSSSEEEE.SS","SSEEEEEEESSSSSSSSEEEEEESS",
+    "SSE....ESSSSSSSSSSE....ESS","SSEEEEEEESSSSSSSSEEEEEESS",
+    "SS.EEEE.SSSSSSSSSEEEE.SS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSS.NNNNNNN.SSSSSSSS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    "SSSSSSS.YYYYYYYY.SSSSSSS","SSSSSSSSSSSSSSSSSSSSSSSS",
+    ".GGGGGGGGGGGGGGGGGGGGGG",".GGGGGGGGGGGGGGGGGGGGGG",
+    "..GGGGGGGGGGGGGGGGGGGG..","...GGGGGGGGGGGGGGGGGG...",
+  ], { K:"#111",S:"#ffe0c8",E:"#111",N:"#cc9966",Y:"#f7c948",G:"#f3ba2f" });
 }
+
 
 export default function Play() {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
