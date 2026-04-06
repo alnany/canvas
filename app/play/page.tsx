@@ -31,6 +31,12 @@ const BET_TIERS = [
 ] as const;
 type BetIdx = 0 | 1 | 2;
 
+function fmtCompact(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2).replace(/\.?0+$/, "") + "M";
+  if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.?0+$/, "") + "K";
+  return String(Math.floor(n));
+}
+
 function rollSolPrize(): { mult: number; label: string } {
   let r = Math.random();
   for (const p of SOL_PRIZES) {
@@ -591,8 +597,7 @@ export default function Play() {
             <div style={{
               fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",
-            }}>{String(Math.floor(bucket))}</div>
-            <div style={{fontSize:10,color:"#78350f",marginTop:4}}>$CANVAS jackpot</div>
+            }}>{fmtCompact(bucket)}</div>
             <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
             </div>
