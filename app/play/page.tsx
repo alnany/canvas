@@ -344,6 +344,7 @@ export default function Play() {
   const [hovered,   setHovered]   = useState<{x:number;y:number;d:PxData|null}|null>(null);
   const [profilePopup, setProfilePopup] = useState<{x:number;y:number;owner:string;canvasX:number;canvasY:number}|null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
   const [log,       setLog]       = useState<string[]>(["[CANVAS] Click any pixel to place."]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -521,8 +522,8 @@ export default function Play() {
       ? `+${netSOL.toFixed(4)} SOL net`
       : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
     const logMsg = bestTier !== "none"
-      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}`
-      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}`;
+      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${px},${py}`
+      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${px},${py}`;
     setLog(l => [logMsg, ...l.slice(0,11)]);
   },[betIdx, color, sol]);
 
@@ -843,7 +844,7 @@ export default function Play() {
         </div>
 
         {/* CANVAS CENTER */}
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+        <div ref={canvasWrapRef} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
           {/* Vault jackpot popup */}
           {bucketWin !== null && (() => {
@@ -1198,9 +1199,23 @@ export default function Play() {
                 }}/>
               ))}
             </div>
-            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6,fontSize:10}}>
+            {/* Custom color picker */}
+            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6}}>
+              <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Custom color">
+                <div style={{
+                  width:24,height:24,borderRadius:4,
+                  background:`conic-gradient(red,yellow,lime,cyan,blue,magenta,red)`,
+                  border: color && !PALETTE.includes(color) ? "2px solid #fff" : "2px solid #334155",
+                  boxShadow: color && !PALETTE.includes(color) ? "0 0 8px rgba(255,255,255,0.5)" : "none",
+                  transition:"border 0.15s",
+                }}/>
+                <input type="color" value={color}
+                  onChange={e => setColor(e.target.value)}
+                  style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}}
+                />
+              </label>
               <div style={{width:14,height:14,borderRadius:3,background:color,flexShrink:0,border:"1px solid #2d1b69"}}/>
-              <span style={{color:"#475569"}}>{color}</span>
+              <span style={{color:"#475569",fontSize:10}}>{color}</span>
             </div>
           </div>
 
@@ -1227,9 +1242,24 @@ export default function Play() {
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
             <div style={{fontSize:10,lineHeight:2,overflow:"hidden"}}>
-              {log.slice(0,8).map((l,i) => (
-                <div key={i} style={{color:i===0?"#a855f7":"#334155",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l}</div>
-              ))}
+              {log.slice(0,8).map((l,i) => {
+                const [dispText, coordStr] = l.split('|');
+                const hasCoords = coordStr && coordStr.includes(',');
+                const [lx, ly] = hasCoords ? coordStr.split(',').map(Number) : [-1,-1];
+                return (
+                <div key={i}
+                  onClick={() => {
+                    if (!hasCoords) return;
+                    spawnAnim(lx, ly, '#a855f7', 'rare');
+                    canvasWrapRef.current?.scrollTo({
+                      left: Math.max(0, lx - 200),
+                      top: Math.max(0, ly - 200),
+                      behavior: 'smooth',
+                    });
+                  }}
+                  style={{color:i===0?"#a855f7":hasCoords?"#4a3060":"#334155",cursor:hasCoords?"pointer":"default",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} title={hasCoords?"Click to highlight pixel":undefined}>{dispText}</div>
+              );
+              })}
             </div>
           </div>
 
@@ -1246,11 +1276,18 @@ export default function Play() {
             .sort((a,b)=>b.px-a.px)
             .slice(0,5)
             .map((p,i) => (
-              <div key={p.addr} style={{
-                display:"flex",justifyContent:"space-between",
-                marginBottom:6,fontSize:10,
-                color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
-              }}>
+              <div key={p.addr}
+                onClick={e => setProfilePopup({ x: e.clientX, y: e.clientY, owner: p.addr, canvasX: 0, canvasY: 0 })}
+                style={{
+                  display:"flex",justifyContent:"space-between",
+                  marginBottom:6,fontSize:10,
+                  color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
+                  cursor:"pointer",
+                  borderRadius:4,padding:"2px 4px",margin:"-2px -4px 4px",
+                  transition:"background 0.15s",
+                }}
+                onMouseEnter={e=>(e.currentTarget.style.background="rgba(168,85,247,0.08)")}
+                onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
                   {i+1}. {p.addr}
                 </span>
