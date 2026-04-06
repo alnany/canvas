@@ -4,7 +4,6 @@ import Link from "next/link";
 
 const GRID = 1000;
 const PX   = 1;
-const COOLDOWN_SEC = 10;
 const BASE_EARN = 5;
 const HOLD_REWARD_RATE = 0.5 / 3600;
 
@@ -236,7 +235,6 @@ export default function Play() {
 
   const [color,     setColor]     = useState(PALETTE[6]);
   const [balance,   setBalance]   = useState(0);
-  const [cooldown,  setCooldown]  = useState(0);
   const [owned,     setOwned]     = useState(0);
   const [placed,    setPlaced]    = useState(0);
   const [strike,    setStrike]    = useState<{tier:StrikeTier;earn:number}|null>(null);
@@ -284,10 +282,9 @@ export default function Play() {
     draw();
   },[draw]);
 
-  // Timer: cooldown + shield + hold rewards
+  // Timer: hold rewards + bucket growth
   useEffect(() => {
     const t = setInterval(() => {
-      setCooldown(c => Math.max(0,c-1));
       setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
       // Bucket grows ~0.5 $CANVAS/sec (simulates global activity)
       setBucket(bk => bk + 0.5);
@@ -782,14 +779,6 @@ export default function Play() {
           })()}
 
           <div style={{position:"relative"}}>
-            {shield && (
-              <div style={{
-                position:"absolute",inset:-12,borderRadius:8,
-                border:"2px solid #f59e0b",
-                boxShadow:"0 0 60px rgba(245,158,11,0.5),inset 0 0 40px rgba(245,158,11,0.04)",
-                pointerEvents:"none",zIndex:2,
-              }}/>
-            )}
 
             <canvas
               ref={overlayRef}
