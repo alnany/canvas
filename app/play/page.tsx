@@ -10,7 +10,7 @@ const HOLD_REWARD_RATE = 0.5 / 3600;
 
 // ── SOL Economy ──────────────────────────────────────────────────────────────
 const PIXEL_COST_SOL  = 0.001;          // SOL per placement
-const SOL_START       = 0.25;           // demo starting balance
+const SOL_START       = 20;             // demo starting balance
 // Prize table — 97% RTP (EV = 0.00097 SOL per 0.001 SOL bet)
 const SOL_PRIZES = [
   { mult: 0,   label: "—",     prob: 0.380 },  // 38% loss
@@ -237,8 +237,6 @@ export default function Play() {
   const [color,     setColor]     = useState(PALETTE[6]);
   const [balance,   setBalance]   = useState(0);
   const [cooldown,  setCooldown]  = useState(0);
-  const [shield,    setShield]    = useState(false);
-  const [shieldT,   setShieldT]   = useState(0);
   const [owned,     setOwned]     = useState(0);
   const [placed,    setPlaced]    = useState(0);
   const [strike,    setStrike]    = useState<{tier:StrikeTier;earn:number}|null>(null);
@@ -247,7 +245,7 @@ export default function Play() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [sol,       setSol]       = useState(SOL_START);
-  const [bucket,    setBucket]    = useState(150);         // $CANVAS jackpot
+  const [bucket,    setBucket]    = useState(36253);       // $CANVAS jackpot
   const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
   const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=0.01, 1=0.1, 2=1 SOL
@@ -290,11 +288,9 @@ export default function Play() {
   useEffect(() => {
     const t = setInterval(() => {
       setCooldown(c => Math.max(0,c-1));
-      setShieldT(s => {
-        if (s <= 1) { setShield(false); return 0; }
-        return s-1;
-      });
       setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
+      // Bucket grows ~0.5 $CANVAS/sec (simulates global activity)
+      setBucket(bk => bk + 0.5);
     }, 1000);
     return () => clearInterval(t);
   },[]);
@@ -527,16 +523,6 @@ export default function Play() {
     setHovered({x:gx, y:gy, d:gridRef.current[gy*GRID+gx]});
   },[]);
 
-  const shieldCost = 3*owned;
-  const canShield = balance>=shieldCost && owned>0 && !shield;
-
-  const activateShield = () => {
-    if (!canShield) return;
-    setBalance(b => b-shieldCost);
-    setShield(true);
-    setShieldT(30);
-    setLog(l => [`[SHIELD] Active 30s · Cost: ${shieldCost.toFixed(0)} $CANVAS`, ...l.slice(0,11)]);
-  };
 
   const handleConnect = () => {
     setConnecting(true);
@@ -598,36 +584,36 @@ export default function Play() {
                 100% { transform:scale(1); }
               }
             `}</style>
-            <div style={{fontSize:8,letterSpacing:3,color:"#92400e",marginBottom:4}}>🪣 THE BUCKET</div>
+            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>🪣 THE BUCKET</div>
             <div style={{
               fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",
             }}>{Math.floor(bucket).toLocaleString()}</div>
-            <div style={{fontSize:8,color:"#78350f",marginTop:4}}>$CANVAS jackpot</div>
+            <div style={{fontSize:10,color:"#78350f",marginTop:4}}>$CANVAS jackpot</div>
             <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
             </div>
-            <div style={{fontSize:7,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
+            <div style={{fontSize:10,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
               0.5% chance per pixel<br/>Win 10% of bucket
             </div>
           </div>
 
           {/* SOL Balance */}
           <div style={{background:"#0a120a",border:"1px solid #166534",borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#166534",marginBottom:4,letterSpacing:1}}>◎ SOL BALANCE</div>
+            <div style={{fontSize:10,color:"#166534",marginBottom:4,letterSpacing:1}}>◎ SOL BALANCE</div>
             <div style={{fontSize:22,fontWeight:"bold",color:"#22c55e",lineHeight:1}}>{sol.toFixed(4)}</div>
-            <div style={{fontSize:8,color:"#166534",marginTop:3}}>
+            <div style={{fontSize:10,color:"#166534",marginTop:3}}>
               Bet: {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px · up to 10× back
             </div>
-            <div style={{fontSize:7,color:"#14532d",marginTop:2}}>RTP 97% · 97% avg return</div>
+            <div style={{fontSize:10,color:"#14532d",marginTop:2}}>RTP 97% · 97% avg return</div>
           </div>
 
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
             <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{Math.floor(balance).toLocaleString()}</div>
             {owned > 0 && (
-              <div style={{fontSize:9,color:"#6d28d9",marginTop:3}}>
+              <div style={{fontSize:10,color:"#6d28d9",marginTop:3}}>
                 +{(owned*HOLD_REWARD_RATE*60).toFixed(3)}/min hold
               </div>
             )}
@@ -635,7 +621,7 @@ export default function Play() {
 
           {/* Bet Size */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>BET SIZE</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>BET SIZE</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
                 const active = betIdx === i;
@@ -648,10 +634,10 @@ export default function Play() {
                     background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
                     opacity: canAfford ? 1 : 0.4,
                   }}>
-                    <span style={{fontSize:9,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>
+                    <span style={{fontSize:10,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>
                       {tier.label}
                     </span>
-                    <span style={{fontSize:8,color:active?"#7c3aed":"#334155",background:"#12121a",
+                    <span style={{fontSize:10,color:active?"#7c3aed":"#334155",background:"#12121a",
                       padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>
                       {tier.tag}
                     </span>
@@ -659,7 +645,7 @@ export default function Play() {
                 );
               })}
             </div>
-            <div style={{marginTop:8,fontSize:8,color:"#334155",lineHeight:1.6}}>
+            <div style={{marginTop:8,fontSize:10,color:"#334155",lineHeight:1.6}}>
               Cost: <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
               {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
             </div>
@@ -667,7 +653,7 @@ export default function Play() {
 
           {/* Stats */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:12,fontSize:11}}>
-            <div style={{color:"#64748b",marginBottom:8,fontSize:9,letterSpacing:1}}>YOUR STATS</div>
+            <div style={{color:"#64748b",marginBottom:8,fontSize:10,letterSpacing:1}}>YOUR STATS</div>
             {([
               ["Pixels owned", owned],
               ["Total placed", placed],
@@ -679,49 +665,21 @@ export default function Play() {
             ))}
             <div style={{marginTop:8}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontSize:9,color:"#475569"}}>Holdr status</span>
-                <span style={{fontSize:9,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span>
+                <span style={{fontSize:10,color:"#475569"}}>Holdr status</span>
+                <span style={{fontSize:10,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span>
               </div>
               <div style={{height:3,background:"#1e1e2e",borderRadius:2}}>
                 <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
               </div>
               {!isHoldr && (
-                <div style={{fontSize:8,color:"#334155",marginTop:3}}>need {(10000-Math.floor(owned*12)).toLocaleString()} more $C</div>
+                <div style={{fontSize:10,color:"#334155",marginTop:3}}>need {(10000-Math.floor(owned*12)).toLocaleString()} more $C</div>
               )}
             </div>
           </div>
 
-          {/* Shield */}
-          <div style={{background:"#0d0d1a",border:`1px solid ${shield?"#f59e0b":"#1e1e3f"}`,borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>PIXEL SHIELD</div>
-            {shield ? (
-              <div>
-                <div style={{color:"#f59e0b",fontSize:13,fontWeight:"bold"}}>🛡️ ACTIVE</div>
-                <div style={{fontSize:9,color:"#92400e",marginTop:2}}>{shieldT}s remaining</div>
-                <div style={{marginTop:6,height:3,background:"#1e1e2e",borderRadius:2}}>
-                  <div style={{height:"100%",background:"#f59e0b",width:`${(shieldT/30)*100}%`,transition:"width 1s linear",borderRadius:2}}/>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div style={{fontSize:10,color:"#475569",marginBottom:8,lineHeight:1.6}}>
-                  Cost: <span style={{color:"#a855f7"}}>{shieldCost} $CANVAS</span><br/>
-                  <span style={{fontSize:8,color:"#334155"}}>3 × {owned} pixels · 8h real / 30s demo</span>
-                </div>
-                <button onClick={activateShield} disabled={!canShield} style={{
-                  width:"100%",padding:"7px 0",borderRadius:6,fontSize:9,fontWeight:"bold",fontFamily:"inherit",
-                  background:canShield?"linear-gradient(135deg,#7c3aed,#a855f7)":"#12121a",
-                  color:canShield?"#fff":"#334155",border:"none",cursor:canShield?"pointer":"default",
-                }}>
-                  {owned===0?"Place pixels first":balance<shieldCost?`Need ${(shieldCost-balance).toFixed(0)} more`:"Activate Shield"}
-                </button>
-              </>
-            )}
-          </div>
-
           {/* Withdraw info */}
-          <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:9,color:"#334155",lineHeight:1.8}}>
-            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:8}}>WITHDRAW</div>
+          <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:10,color:"#334155",lineHeight:1.8}}>
+            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:10}}>WITHDRAW</div>
             Withdraw anytime to wallet.<br/>
             10% tax → <span style={{color:"#6d28d9"}}>Holdr pool</span><br/>
             Holdrs earn passively from<br/>all ecosystem withdrawals.
@@ -753,9 +711,9 @@ export default function Play() {
                 fontFamily:"'Press Start 2P',monospace",
                 animation:"bucketWinIn 5s ease-out forwards",
               }}>
-                <div style={{fontSize:8,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🪣 BUCKET HIT</div>
+                <div style={{fontSize:10,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🪣 BUCKET HIT</div>
                 <div style={{fontSize:32,color:"#fbbf24",fontWeight:"bold"}}>+{bucketWin.toLocaleString()}</div>
-                <div style={{fontSize:8,color:"#92400e",marginTop:6}}>$CANVAS · 10% of jackpot</div>
+                <div style={{fontSize:10,color:"#92400e",marginTop:6}}>$CANVAS · 10% of jackpot</div>
               </div>
             </div>
           )}
@@ -782,9 +740,9 @@ export default function Play() {
                 fontFamily:"'Press Start 2P',monospace",
                 animation:"solWinIn 2.5s ease-out forwards",
               }}>
-                <div style={{fontSize:8,color:"#4ade80",marginBottom:6,letterSpacing:2}}>◎ SOL WIN {solWin.label}</div>
+                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2}}>◎ SOL WIN {solWin.label}</div>
                 <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold"}}>+{solWin.amount.toFixed(4)}</div>
-                <div style={{fontSize:7,color:"#166534",marginTop:4}}>SOL returned to wallet</div>
+                <div style={{fontSize:10,color:"#166534",marginTop:4}}>SOL returned to wallet</div>
               </div>
             </div>
           )}
@@ -813,11 +771,11 @@ export default function Play() {
                   fontFamily:"'Press Start 2P',monospace",
                   animation:"strikeIn 3s ease-out forwards",
                 }}>
-                  <div style={{fontSize:9,color:sc.text,marginBottom:6,letterSpacing:2}}>
+                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2}}>
                     {strike.tier.toUpperCase()} STRIKE
                   </div>
                   <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold"}}>+{strike.earn}</div>
-                  <div style={{fontSize:8,color:sc.text,marginTop:4}}>{strikeBonus(strike.tier)}× base · $CANVAS</div>
+                  <div style={{fontSize:10,color:sc.text,marginTop:4}}>{strikeBonus(strike.tier)}× base · $CANVAS</div>
                 </div>
               </div>
             );
@@ -868,7 +826,7 @@ export default function Play() {
                 top:  Math.max(hovered.y*PX-38, 0),
                 background:"#0d0d1a",border:"1px solid #2d1b69",
                 borderRadius:6,padding:"5px 10px",
-                fontSize:9,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
+                fontSize:10,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
               }}>
                 ({hovered.x},{hovered.y}) ·{" "}
                 {hovered.d
@@ -889,7 +847,7 @@ export default function Play() {
         <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
           {/* Color picker */}
           <div>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:4}}>
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{
@@ -899,7 +857,7 @@ export default function Play() {
                 }}/>
               ))}
             </div>
-            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6,fontSize:9}}>
+            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6,fontSize:10}}>
               <div style={{width:14,height:14,borderRadius:3,background:color,flexShrink:0,border:"1px solid #2d1b69"}}/>
               <span style={{color:"#475569"}}>{color}</span>
             </div>
@@ -907,27 +865,27 @@ export default function Play() {
 
           {/* Strike tiers */}
           <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>STRIKE ODDS</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>STRIKE ODDS</div>
             {[
               {tier:"Common",  chance:"5%",   mult:"5×",   color:"#64748b"},
               {tier:"Rare",    chance:"1%",   mult:"25×",  color:"#22d3ee"},
               {tier:"Legendary",chance:"0.1%",mult:"200×", color:"#f59e0b"},
             ].map(s => (
-              <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:9}}>
+              <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:10}}>
                 <span style={{color:s.color}}>{s.tier}</span>
                 <span style={{color:"#334155"}}>{s.chance}</span>
                 <span style={{color:s.color,fontWeight:"bold"}}>{s.mult}</span>
               </div>
             ))}
-            <div style={{marginTop:6,fontSize:8,color:"#1e3a4f",lineHeight:1.6}}>
+            <div style={{marginTop:6,fontSize:10,color:"#1e3a4f",lineHeight:1.6}}>
               Pyth Entropy RNG · on-chain verifiable
             </div>
           </div>
 
           {/* Activity log */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
-            <div style={{fontSize:8,lineHeight:2,overflow:"hidden"}}>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
+            <div style={{fontSize:10,lineHeight:2,overflow:"hidden"}}>
               {log.slice(0,8).map((l,i) => (
                 <div key={i} style={{color:i===0?"#a855f7":"#334155",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l}</div>
               ))}
@@ -936,7 +894,7 @@ export default function Play() {
 
           {/* Leaderboard */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:10,letterSpacing:1}}>TOP PLAYERS</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:10,letterSpacing:1}}>TOP PLAYERS</div>
             {[
               {addr:"0xaf1…c32", px:1284, earn:24680, isYou:false},
               {addr:"0x7a3…b9f", px:963,  earn:18420, isYou:false},
@@ -949,7 +907,7 @@ export default function Play() {
             .map((p,i) => (
               <div key={p.addr} style={{
                 display:"flex",justifyContent:"space-between",
-                marginBottom:6,fontSize:9,
+                marginBottom:6,fontSize:10,
                 color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
               }}>
                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
