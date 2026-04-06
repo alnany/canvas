@@ -328,7 +328,7 @@ export default function Play() {
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const bet = BET_TIERS[betIdx];
     if (sol < bet.sol) {
-      setLog(l => [`[BROKE] Need ${bet.sol} SOL · top up wallet`, ...l.slice(0,11)]);
+      setLog(l => [`[BROKE] Need ${bet.sol} SOL  —  top up wallet`, ...l.slice(0,11)]);
       return;
     }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
@@ -554,7 +554,7 @@ export default function Play() {
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{fontSize:10,color:"#334155",background:"#0f0f1a",padding:"4px 12px",borderRadius:4,border:"1px solid #1e1e3f"}}>
-            0.01/0.1/1 SOL bets · 1/10/100 pixels · 97% RTP · 🏛️ The Vault jackpot
+            0.01/0.1/1 SOL  ·  1/10/100 pixels  ·  🏛️ The Vault jackpot
           </div>
           {/* Social links */}
           <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -640,9 +640,8 @@ export default function Play() {
             <div style={{fontSize:10,color:"#166534",marginBottom:4,letterSpacing:1}}>◎ SOL BALANCE</div>
             <div style={{fontSize:22,fontWeight:"bold",color:"#22c55e",lineHeight:1}}>{sol.toFixed(4)}</div>
             <div style={{fontSize:10,color:"#166534",marginTop:3}}>
-              Bet: {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px · up to 10× back
+              {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px
             </div>
-            <div style={{fontSize:10,color:"#14532d",marginTop:2}}>RTP 97% · 97% avg return</div>
           </div>
 
           {/* Balance */}
@@ -656,7 +655,7 @@ export default function Play() {
             )}
           </div>
 
-          {/* Bet Size */}
+          {/* Brush Size */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>BRUSH SIZE</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -683,7 +682,7 @@ export default function Play() {
               })}
             </div>
             <div style={{marginTop:8,fontSize:10,color:"#334155",lineHeight:1.6}}>
-              Bet: <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
+              <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
               {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
             </div>
           </div>
