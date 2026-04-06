@@ -8,6 +8,32 @@ const COOLDOWN_SEC = 10;
 const BASE_EARN = 5;
 const HOLD_REWARD_RATE = 0.5 / 3600;
 
+// ── SOL Economy ──────────────────────────────────────────────────────────────
+const PIXEL_COST_SOL  = 0.001;          // SOL per placement
+const SOL_START       = 0.25;           // demo starting balance
+// Prize table — 97% RTP (EV = 0.00097 SOL per 0.001 SOL bet)
+const SOL_PRIZES = [
+  { mult: 0,   label: "—",     prob: 0.380 },  // 38% loss
+  { mult: 0.5, label: "0.5×",  prob: 0.250 },  // 25% tiny
+  { mult: 1.0, label: "1×",    prob: 0.190 },  // 19% break-even
+  { mult: 2.0, label: "2×",    prob: 0.110 },  // 11% double
+  { mult: 5.0, label: "5×",    prob: 0.055 },  // 5.5% big
+  { mult: 10.0,label: "10×",   prob: 0.015 },  // 1.5% max
+] as const;
+// Bucket jackpot
+const BUCKET_WIN_CHANCE = 0.005;        // 0.5% per placement
+const BUCKET_WIN_PCT    = 0.10;         // win 10% of bucket
+const BUCKET_FEED_PCT   = 0.01;         // 1% of CANVAS earn → bucket
+
+function rollSolPrize(): { mult: number; label: string } {
+  let r = Math.random();
+  for (const p of SOL_PRIZES) {
+    r -= p.prob;
+    if (r <= 0) return p;
+  }
+  return SOL_PRIZES[0];
+}
+
 const PALETTE = [
   "#ef4444","#f97316","#f59e0b","#84cc16",
   "#22c55e","#06b6d4","#3b82f6","#6366f1",
@@ -213,6 +239,10 @@ export default function Play() {
   const [log,       setLog]       = useState<string[]>(["[CANVAS] Click any pixel to place."]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [sol,       setSol]       = useState(SOL_START);
+  const [bucket,    setBucket]    = useState(150);         // $CANVAS jackpot
+  const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
+  const [bucketWin, setBucketWin] = useState<number|null>(null);
 
   // ── Pixel-placement animation overlay ─────────────────────────────────────
   type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
@@ -284,6 +314,10 @@ export default function Play() {
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (cooldown > 0) return;
+    if (sol < PIXEL_COST_SOL) {
+      setLog(l => [`[BROKE] Need ${PIXEL_COST_SOL} SOL to place · top up wallet`, ...l.slice(0,11)]);
+      return;
+    }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
     const gx = Math.floor((e.clientX-rect2.left)/PX);
     const gy = Math.floor((e.clientY-rect2.top)/PX);
@@ -293,6 +327,9 @@ export default function Play() {
     const prev = g[idx];
     const wasOwn = prev?.owner===WALLET;
     g[idx] = {color, owner:WALLET};
+
+    // Deduct SOL cost
+    setSol(s => s - PIXEL_COST_SOL);
 
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
@@ -317,11 +354,38 @@ export default function Play() {
       setStrike({tier, earn});
       setTimeout(() => setStrike(null), 3000);
     }
+    // SOL prize roll
+    const prize = rollSolPrize();
+    const solReturn = prize.mult * PIXEL_COST_SOL;
+    if (solReturn > 0) {
+      setSol(s => s + solReturn);
+      setSolWin({ mult: prize.mult, label: prize.label, amount: solReturn });
+      setTimeout(() => setSolWin(null), prize.mult >= 5 ? 4000 : 2500);
+    }
+
+    // Bucket: feed 1% of CANVAS earn, then roll jackpot
+    const feedAmt = earn * BUCKET_FEED_PCT;
+    setBucket(bk => {
+      const newBk = bk + feedAmt;
+      if (Math.random() < BUCKET_WIN_CHANCE) {
+        const jackpot = Math.floor(newBk * BUCKET_WIN_PCT);
+        setBucketWin(jackpot);
+        setTimeout(() => setBucketWin(null), 5000);
+        setLog(l => [`[🪣 JACKPOT] You won ${jackpot} $CANVAS from the Bucket!`, ...l.slice(0,11)]);
+        setBalance(b => b + jackpot);
+        return newBk - jackpot;
+      }
+      return newBk;
+    });
+
+    const solMsg = prize.mult >= 2
+      ? `[SOL WIN ${prize.label}] +${solReturn.toFixed(4)} SOL @ (${gx},${gy})`
+      : `[PLACE] (${gx},${gy}) +${earn} $CANVAS · ${prize.mult>0?`${prize.label} SOL`:"no SOL win"}`;
     const msg = tier !== "none"
-      ? `[STRIKE] ${tier.toUpperCase()}! +${earn} $CANVAS @ (${gx},${gy})`
-      : `[PLACE] (${gx},${gy}) → +${BASE_EARN} $CANVAS`;
+      ? `[STRIKE ${tier.toUpperCase()}] +${earn} $CANVAS · ${prize.label} SOL @ (${gx},${gy})`
+      : solMsg;
     setLog(l => [msg, ...l.slice(0,11)]);
-  },[cooldown, color]);
+  },[cooldown, color, sol]);
 
   // Animation tick (overlay canvas)
   const tickAnims = useCallback(() => {
@@ -457,7 +521,7 @@ export default function Play() {
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{fontSize:10,color:"#334155",background:"#0f0f1a",padding:"4px 12px",borderRadius:4,border:"1px solid #1e1e3f"}}>
-            100×100 demo · 10s cooldown (real: 5 min) · no wallet needed
+            0.001 SOL/pixel · 97% RTP · up to 10× SOL · 🪣 Bucket jackpot
           </div>
           {walletConnected ? (
             <div style={{fontSize:10,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
@@ -479,6 +543,51 @@ export default function Play() {
       <div style={{display:"flex",height:"calc(100vh - 46px)"}}>
         {/* LEFT PANEL */}
         <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
+          {/* ── THE BUCKET (jackpot) ─────────────────────────────────────── */}
+          <div style={{
+            background:"linear-gradient(135deg,#1c0900,#120800)",
+            border:"2px solid #f59e0b",
+            borderRadius:10,padding:"12px 14px",
+            boxShadow:"0 0 24px rgba(245,158,11,0.35)",
+            textAlign:"center",
+          }}>
+            <style>{`
+              @keyframes bucketPulse {
+                0%,100% { box-shadow: 0 0 24px rgba(245,158,11,0.35); }
+                50%      { box-shadow: 0 0 48px rgba(245,158,11,0.70); }
+              }
+              @keyframes bucketNum {
+                0%   { transform:scale(1); }
+                30%  { transform:scale(1.12); }
+                100% { transform:scale(1); }
+              }
+            `}</style>
+            <div style={{fontSize:8,letterSpacing:3,color:"#92400e",marginBottom:4}}>🪣 THE BUCKET</div>
+            <div style={{
+              fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
+              fontFamily:"'Press Start 2P',monospace",
+              animation:"bucketNum 0.4s ease-out",
+              key: Math.floor(bucket),
+            }}>{Math.floor(bucket).toLocaleString()}</div>
+            <div style={{fontSize:8,color:"#78350f",marginTop:4}}>$CANVAS jackpot</div>
+            <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
+              <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
+            </div>
+            <div style={{fontSize:7,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
+              0.5% chance per pixel<br/>Win 10% of bucket
+            </div>
+          </div>
+
+          {/* SOL Balance */}
+          <div style={{background:"#0a120a",border:"1px solid #166534",borderRadius:8,padding:12}}>
+            <div style={{fontSize:9,color:"#166534",marginBottom:4,letterSpacing:1}}>◎ SOL BALANCE</div>
+            <div style={{fontSize:22,fontWeight:"bold",color:"#22c55e",lineHeight:1}}>{sol.toFixed(4)}</div>
+            <div style={{fontSize:8,color:"#166534",marginTop:3}}>
+              Cost: {PIXEL_COST_SOL} SOL/pixel · max win: {(PIXEL_COST_SOL*10).toFixed(3)} SOL
+            </div>
+            <div style={{fontSize:7,color:"#14532d",marginTop:2}}>RTP 97% · 97% avg return</div>
+          </div>
+
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
             <div style={{fontSize:9,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
@@ -570,6 +679,64 @@ export default function Play() {
 
         {/* CANVAS CENTER */}
         <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+
+          {/* Bucket jackpot popup */}
+          {bucketWin !== null && (
+            <div style={{
+              position:"absolute",top:"20%",left:"50%",
+              transform:"translate(-50%,0)",
+              zIndex:25,textAlign:"center",pointerEvents:"none",
+            }}>
+              <style>{`
+                @keyframes bucketWinIn {
+                  0%   { opacity:0; transform:translate(-50%,20px) scale(0.6); }
+                  20%  { opacity:1; transform:translate(-50%,-10px) scale(1.15); }
+                  80%  { opacity:1; transform:translate(-50%,0) scale(1); }
+                  100% { opacity:0; transform:translate(-50%,-20px) scale(0.9); }
+                }
+              `}</style>
+              <div style={{
+                padding:"20px 40px",borderRadius:16,
+                background:"#1c0900",border:"3px solid #f59e0b",
+                boxShadow:"0 0 100px rgba(245,158,11,0.8)",
+                fontFamily:"'Press Start 2P',monospace",
+                animation:"bucketWinIn 5s ease-out forwards",
+              }}>
+                <div style={{fontSize:8,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🪣 BUCKET HIT</div>
+                <div style={{fontSize:32,color:"#fbbf24",fontWeight:"bold"}}>+{bucketWin.toLocaleString()}</div>
+                <div style={{fontSize:8,color:"#92400e",marginTop:6}}>$CANVAS · 10% of jackpot</div>
+              </div>
+            </div>
+          )}
+
+          {/* SOL Win popup */}
+          {solWin !== null && solWin.mult >= 2 && (
+            <div style={{
+              position:"absolute",bottom:"20%",left:"50%",
+              transform:"translate(-50%,0)",
+              zIndex:22,textAlign:"center",pointerEvents:"none",
+            }}>
+              <style>{`
+                @keyframes solWinIn {
+                  0%   { opacity:0; transform:translate(-50%,20px) scale(0.7); }
+                  15%  { opacity:1; transform:translate(-50%,-8px) scale(1.08); }
+                  75%  { opacity:1; transform:translate(-50%,0) scale(1); }
+                  100% { opacity:0; transform:translate(-50%,-15px) scale(0.9); }
+                }
+              `}</style>
+              <div style={{
+                padding:"14px 30px",borderRadius:12,
+                background:"#0a150a",border:`2px solid ${solWin.mult>=10?"#22c55e":"#4ade80"}`,
+                boxShadow:`0 0 ${solWin.mult>=10?"80px":"40px"} rgba(34,197,94,${solWin.mult>=10?0.8:0.4})`,
+                fontFamily:"'Press Start 2P',monospace",
+                animation:"solWinIn 2.5s ease-out forwards",
+              }}>
+                <div style={{fontSize:8,color:"#4ade80",marginBottom:6,letterSpacing:2}}>◎ SOL WIN {solWin.label}</div>
+                <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold"}}>+{solWin.amount.toFixed(4)}</div>
+                <div style={{fontSize:7,color:"#166534",marginTop:4}}>SOL returned to wallet</div>
+              </div>
+            </div>
+          )}
 
           {/* Strike popup */}
           {strike && (() => {
