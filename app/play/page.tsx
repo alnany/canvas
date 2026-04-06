@@ -364,7 +364,7 @@ export default function Play() {
   const [bucket,    setBucket]    = useState(9221732);       // $CANVAS jackpot
   const [players,   setPlayers]   = useState(1247);
   const [pixelsTotal, setPixelsTotal] = useState(834920);
-  const [solEarned, setSolEarned] = useState(0);
+  const [solEarned, setSolEarned] = useState(12847.382);
   const [miningPct, setMiningPct] = useState(12.32);
   const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
@@ -416,6 +416,7 @@ export default function Play() {
       if (Math.random() < 0.12) setPlayers(p => p + 1);
       setPixelsTotal(pp => pp + Math.floor(40 + Math.random() * 120));
       setMiningPct(m => Math.min(100, m + 0.00006));
+      setSolEarned(s => s + 0.3 + Math.random() * 0.5);
     }, 1000);
     return () => clearInterval(t);
   },[]);
@@ -691,6 +692,31 @@ export default function Play() {
             <span style={{fontSize:11,color:"#a78bfa",fontWeight:"bold",letterSpacing:1}}>${canvasPrice.toFixed(5)}</span>
             <span style={{fontSize:8,color:"#4c1d95"}}>↗</span>
           </a>
+          {/* Global stats — inline next to price */}
+          <div style={{display:"flex",alignItems:"center",gap:10,borderLeft:"1px solid #1e1e3f",paddingLeft:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PLAYERS</span>
+              <span style={{fontSize:10,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
+            </div>
+            <div style={{width:1,height:10,background:"#1e1e3f"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PIXELS</span>
+              <span style={{fontSize:10,color:"#a78bfa",fontWeight:"bold"}}>{pixelsTotal.toLocaleString()}</span>
+            </div>
+            <div style={{width:1,height:10,background:"#1e1e3f"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>SOL EARNED</span>
+              <span style={{fontSize:10,color:"#22c55e",fontWeight:"bold"}}>◎ {solEarned.toFixed(1)}</span>
+            </div>
+            <div style={{width:1,height:10,background:"#1e1e3f"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>$CANVAS MINED</span>
+              <div style={{width:56,height:5,background:"#1e1e3f",borderRadius:3,overflow:"hidden"}}>
+                <div style={{width:`${miningPct}%`,height:"100%",background:"linear-gradient(90deg,#7c3aed,#a855f7)",borderRadius:3,transition:"width 1s linear"}}/>
+              </div>
+              <span style={{fontSize:10,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
+            </div>
+          </div>
           {/* Social links */}
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <a href="https://x.com/canvas_game" target="_blank" rel="noopener noreferrer" title="X / Twitter"
@@ -735,37 +761,7 @@ export default function Play() {
         </div>
       </div>
 
-      {/* Stats bar */}
-      <div style={{borderBottom:"1px solid #1a1a35",background:"rgba(7,7,16,0.92)",padding:"5px 16px",display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-        {/* Players */}
-        <div style={{display:"flex",alignItems:"center",gap:5}}>
-          <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PLAYERS</span>
-          <span style={{fontSize:10,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
-        </div>
-        <div style={{width:1,height:12,background:"#1e1e3f"}}/>
-        {/* Pixels placed */}
-        <div style={{display:"flex",alignItems:"center",gap:5}}>
-          <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PIXELS</span>
-          <span style={{fontSize:10,color:"#a78bfa",fontWeight:"bold"}}>{pixelsTotal.toLocaleString()}</span>
-        </div>
-        <div style={{width:1,height:12,background:"#1e1e3f"}}/>
-        {/* SOL earned */}
-        <div style={{display:"flex",alignItems:"center",gap:5}}>
-          <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>SOL EARNED</span>
-          <span style={{fontSize:10,color:"#22c55e",fontWeight:"bold"}}>◎ {solEarned.toFixed(3)}</span>
-        </div>
-        <div style={{width:1,height:12,background:"#1e1e3f"}}/>
-        {/* Mining progress */}
-        <div style={{display:"flex",alignItems:"center",gap:6}}>
-          <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>$CANVAS MINED</span>
-          <div style={{width:80,height:6,background:"#1e1e3f",borderRadius:3,overflow:"hidden"}}>
-            <div style={{width:`${miningPct}%`,height:"100%",background:"linear-gradient(90deg,#7c3aed,#a855f7)",borderRadius:3,transition:"width 1s linear"}}/>
-          </div>
-          <span style={{fontSize:10,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
-        </div>
-      </div>
-
-      <div style={{display:"flex",height:"calc(100vh - 72px)"}}>
+      <div style={{display:"flex",height:"calc(100vh - 46px)"}}>
         {/* LEFT PANEL */}
         <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
           {/* ── THE VAULT (jackpot) ─────────────────────────────────────── */}
