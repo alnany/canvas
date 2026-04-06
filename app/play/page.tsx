@@ -25,6 +25,13 @@ const BUCKET_WIN_CHANCE = 0.005;        // 0.5% per placement
 const BUCKET_WIN_PCT    = 0.10;         // win 10% of bucket
 const BUCKET_FEED_PCT   = 0.01;         // 1% of CANVAS earn → bucket
 
+const BET_TIERS = [
+  { sol: 0.01, pixels: 1,   label: "0.01 SOL",  tag: "×1"  },
+  { sol: 0.1,  pixels: 10,  label: "0.1 SOL",   tag: "×10" },
+  { sol: 1.0,  pixels: 100, label: "1 SOL",      tag: "×100"},
+] as const;
+type BetIdx = 0 | 1 | 2;
+
 function rollSolPrize(): { mult: number; label: string } {
   let r = Math.random();
   for (const p of SOL_PRIZES) {
@@ -243,6 +250,7 @@ export default function Play() {
   const [bucket,    setBucket]    = useState(150);         // $CANVAS jackpot
   const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
+  const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=0.01, 1=0.1, 2=1 SOL
 
   // ── Pixel-placement animation overlay ─────────────────────────────────────
   type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
@@ -313,60 +321,87 @@ export default function Play() {
   },[]);
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (cooldown > 0) return;
-    if (sol < PIXEL_COST_SOL) {
-      setLog(l => [`[BROKE] Need ${PIXEL_COST_SOL} SOL to place · top up wallet`, ...l.slice(0,11)]);
+    const bet = BET_TIERS[betIdx];
+    if (sol < bet.sol) {
+      setLog(l => [`[BROKE] Need ${bet.sol} SOL · top up wallet`, ...l.slice(0,11)]);
       return;
     }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
     const gx = Math.floor((e.clientX-rect2.left)/PX);
     const gy = Math.floor((e.clientY-rect2.top)/PX);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) return;
-    const idx = gy*GRID+gx;
     const g = gridRef.current;
-    const prev = g[idx];
-    const wasOwn = prev?.owner===WALLET;
-    g[idx] = {color, owner:WALLET};
-
-    // Deduct SOL cost
-    setSol(s => s - PIXEL_COST_SOL);
-
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
-    const img4 = ctx.createImageData(1, 1);
-    const hex4 = color.replace("#","");
-    img4.data[0]=parseInt(hex4.slice(0,2),16); img4.data[1]=parseInt(hex4.slice(2,4),16);
-    img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
-    ctx.putImageData(img4, gx, gy);
 
-    // spawn placement animation (tier unknown yet — use 'none'; will be updated after rollStrike)
-    if (!wasOwn) {
-      setOwned(o => { ownedRef.current = o+1; return o+1; });
+    // Deduct full bet cost upfront
+    setSol(s => s - bet.sol);
+
+    let totalEarn = 0;
+    let newOwned = 0;
+    let bestTier: StrikeTier = "none";
+    let bestEarn = 0;
+    let totalSolReturn = 0;
+    let bestPrize: { mult: number; label: string } | null = null;
+    let bucketFeed = 0;
+    const pixelBetShare = bet.sol / bet.pixels;
+
+    // Place drawCount pixels in a cluster around (gx, gy)
+    const radius = Math.ceil(Math.sqrt(bet.pixels));
+    let placed2 = 0;
+    for (let dy = -radius; dy <= radius && placed2 < bet.pixels; dy++) {
+      for (let dx = -radius; dx <= radius && placed2 < bet.pixels; dx++) {
+        const px = gx + dx, py = gy + dy;
+        if (px < 0 || py < 0 || px >= GRID || py >= GRID) continue;
+        const pidx = py * GRID + px;
+        const prev = g[pidx];
+        if (!prev || prev.owner !== WALLET) newOwned++;
+        g[pidx] = { color, owner: WALLET };
+
+        const img4 = ctx.createImageData(1, 1);
+        const hex4 = color.replace("#","");
+        img4.data[0]=parseInt(hex4.slice(0,2),16); img4.data[1]=parseInt(hex4.slice(2,4),16);
+        img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
+        ctx.putImageData(img4, px, py);
+
+        const tier = rollStrike();
+        const earn = BASE_EARN * strikeBonus(tier);
+        totalEarn += earn;
+        bucketFeed += earn * BUCKET_FEED_PCT;
+        if (tier !== "none" && strikeBonus(tier) > strikeBonus(bestTier)) {
+          bestTier = tier; bestEarn = earn;
+        }
+
+        const prize = rollSolPrize();
+        const solReturn = prize.mult * pixelBetShare;
+        totalSolReturn += solReturn;
+        if (!bestPrize || prize.mult > bestPrize.mult) bestPrize = prize;
+
+        if (dx === 0 && dy === 0) spawnAnim(px, py, color, tier);
+        placed2++;
+      }
     }
-    setPlaced(p => p+1);
-    setCooldown(COOLDOWN_SEC);
 
-    const tier = rollStrike();
-    spawnAnim(gx, gy, color, tier);
-    const earn = BASE_EARN * strikeBonus(tier);
-    setBalance(b => b+earn);
-    if (tier !== "none") {
-      setStrike({tier, earn});
+    // Batch state updates
+    if (newOwned > 0) setOwned(o => { ownedRef.current = o + newOwned; return o + newOwned; });
+    setPlaced(p => p + placed2);
+    setBalance(b => b + totalEarn);
+
+    if (totalSolReturn > 0) {
+      setSol(s => s + totalSolReturn);
+      if (bestPrize && bestPrize.mult >= 2) {
+        setSolWin({ mult: bestPrize.mult, label: bestPrize.label, amount: totalSolReturn });
+        setTimeout(() => setSolWin(null), bestPrize.mult >= 5 ? 4000 : 2500);
+      }
+    }
+
+    if (bestTier !== "none") {
+      setStrike({ tier: bestTier, earn: bestEarn });
       setTimeout(() => setStrike(null), 3000);
     }
-    // SOL prize roll
-    const prize = rollSolPrize();
-    const solReturn = prize.mult * PIXEL_COST_SOL;
-    if (solReturn > 0) {
-      setSol(s => s + solReturn);
-      setSolWin({ mult: prize.mult, label: prize.label, amount: solReturn });
-      setTimeout(() => setSolWin(null), prize.mult >= 5 ? 4000 : 2500);
-    }
 
-    // Bucket: feed 1% of CANVAS earn, then roll jackpot
-    const feedAmt = earn * BUCKET_FEED_PCT;
     setBucket(bk => {
-      const newBk = bk + feedAmt;
+      const newBk = bk + bucketFeed;
       if (Math.random() < BUCKET_WIN_CHANCE) {
         const jackpot = Math.floor(newBk * BUCKET_WIN_PCT);
         setBucketWin(jackpot);
@@ -378,14 +413,15 @@ export default function Play() {
       return newBk;
     });
 
-    const solMsg = prize.mult >= 2
-      ? `[SOL WIN ${prize.label}] +${solReturn.toFixed(4)} SOL @ (${gx},${gy})`
-      : `[PLACE] (${gx},${gy}) +${earn} $CANVAS · ${prize.mult>0?`${prize.label} SOL`:"no SOL win"}`;
-    const msg = tier !== "none"
-      ? `[STRIKE ${tier.toUpperCase()}] +${earn} $CANVAS · ${prize.label} SOL @ (${gx},${gy})`
-      : solMsg;
-    setLog(l => [msg, ...l.slice(0,11)]);
-  },[cooldown, color, sol]);
+    const netSOL = totalSolReturn - bet.sol;
+    const solTag = netSOL > 0
+      ? `+${netSOL.toFixed(4)} SOL net`
+      : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
+    const logMsg = bestTier !== "none"
+      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}`
+      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}`;
+    setLog(l => [logMsg, ...l.slice(0,11)]);
+  },[betIdx, color, sol]);
 
   // Animation tick (overlay canvas)
   const tickAnims = useCallback(() => {
@@ -521,7 +557,7 @@ export default function Play() {
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{fontSize:10,color:"#334155",background:"#0f0f1a",padding:"4px 12px",borderRadius:4,border:"1px solid #1e1e3f"}}>
-            0.001 SOL/pixel · 97% RTP · up to 10× SOL · 🪣 Bucket jackpot
+            0.01/0.1/1 SOL bets · 1/10/100 pixels · 97% RTP · 🪣 Bucket jackpot
           </div>
           {walletConnected ? (
             <div style={{fontSize:10,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
@@ -581,7 +617,7 @@ export default function Play() {
             <div style={{fontSize:9,color:"#166534",marginBottom:4,letterSpacing:1}}>◎ SOL BALANCE</div>
             <div style={{fontSize:22,fontWeight:"bold",color:"#22c55e",lineHeight:1}}>{sol.toFixed(4)}</div>
             <div style={{fontSize:8,color:"#166534",marginTop:3}}>
-              Cost: {PIXEL_COST_SOL} SOL/pixel · max win: {(PIXEL_COST_SOL*10).toFixed(3)} SOL
+              Bet: {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px · up to 10× back
             </div>
             <div style={{fontSize:7,color:"#14532d",marginTop:2}}>RTP 97% · 97% avg return</div>
           </div>
@@ -597,19 +633,36 @@ export default function Play() {
             )}
           </div>
 
-          {/* Cooldown */}
-          <div style={{background:"#0d0d1a",border:`1px solid ${cooldown>0?"#7c3aed":"#166534"}`,borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>COOLDOWN</div>
-            {cooldown > 0 ? (
-              <>
-                <div style={{fontSize:22,fontWeight:"bold",color:"#f59e0b"}}>{cooldown}s</div>
-                <div style={{marginTop:6,height:3,background:"#1e1e2e",borderRadius:2}}>
-                  <div style={{height:"100%",background:"#7c3aed",width:`${(cooldown/COOLDOWN_SEC)*100}%`,transition:"width 1s linear",borderRadius:2}}/>
-                </div>
-              </>
-            ) : (
-              <div style={{fontSize:13,fontWeight:"bold",color:"#22c55e"}}>✓ READY</div>
-            )}
+          {/* Bet Size */}
+          <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
+            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>BET SIZE</div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
+                const active = betIdx === i;
+                const canAfford = sol >= tier.sol;
+                return (
+                  <button key={i} onClick={() => setBetIdx(i as BetIdx)} style={{
+                    display:"flex",justifyContent:"space-between",alignItems:"center",
+                    padding:"7px 10px",borderRadius:6,cursor:"pointer",
+                    border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
+                    background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
+                    opacity: canAfford ? 1 : 0.4,
+                  }}>
+                    <span style={{fontSize:9,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>
+                      {tier.label}
+                    </span>
+                    <span style={{fontSize:8,color:active?"#7c3aed":"#334155",background:"#12121a",
+                      padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>
+                      {tier.tag}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{marginTop:8,fontSize:8,color:"#334155",lineHeight:1.6}}>
+              Cost: <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
+              {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
+            </div>
           </div>
 
           {/* Stats */}
@@ -799,7 +852,7 @@ export default function Play() {
               onMouseMove={handleMove}
               onMouseLeave={() => setHovered(null)}
               style={{
-                cursor: cooldown>0 ? "not-allowed" : "crosshair",
+                cursor: "crosshair",
                 display:"block",
                 imageRendering:"pixelated",
                 border:"1px solid #1e1e3f",
