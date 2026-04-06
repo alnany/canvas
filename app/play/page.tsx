@@ -214,6 +214,12 @@ export default function Play() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
+  // ── Pixel-placement animation overlay ─────────────────────────────────────
+  type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
+  const overlayRef = useRef<HTMLCanvasElement>(null);
+  const animsRef   = useRef<AnimEntry[]>([]);
+  const rafRef     = useRef<number>(0);
+
   const draw = useCallback(() => {
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
@@ -296,6 +302,7 @@ export default function Play() {
     img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
     ctx.putImageData(img4, gx, gy);
 
+    // spawn placement animation (tier unknown yet — use 'none'; will be updated after rollStrike)
     if (!wasOwn) {
       setOwned(o => { ownedRef.current = o+1; return o+1; });
     }
@@ -303,6 +310,7 @@ export default function Play() {
     setCooldown(COOLDOWN_SEC);
 
     const tier = rollStrike();
+    spawnAnim(gx, gy, color, tier);
     const earn = BASE_EARN * strikeBonus(tier);
     setBalance(b => b+earn);
     if (tier !== "none") {
@@ -314,6 +322,102 @@ export default function Play() {
       : `[PLACE] (${gx},${gy}) → +${BASE_EARN} $CANVAS`;
     setLog(l => [msg, ...l.slice(0,11)]);
   },[cooldown, color]);
+
+  // Animation tick (overlay canvas)
+  const tickAnims = useCallback(() => {
+    const ov = overlayRef.current; if (!ov) return;
+    const ctx = ov.getContext('2d')!;
+    ctx.clearRect(0, 0, ov.width, ov.height);
+    const now = performance.now();
+    animsRef.current = animsRef.current.filter(anim => {
+      const t = Math.min(1, (now - anim.start) / anim.dur);
+      if (t >= 1) return false;
+      const hex = anim.color.replace('#','');
+      const r = parseInt(hex.slice(0,2),16);
+      const g = parseInt(hex.slice(2,4),16);
+      const b = parseInt(hex.slice(4,6),16);
+      const cx = anim.x + 0.5, cy = anim.y + 0.5;
+
+      // 1. Instant white flash at pixel
+      if (t < 0.25) {
+        const ft = t / 0.25;
+        ctx.fillStyle = `rgba(255,255,255,${(1-ft)*0.95})`;
+        ctx.fillRect(anim.x - 2, anim.y - 2, 5, 5);
+      }
+
+      // 2. Expanding rings (3 for normal, +2 for rare, +4 for legendary)
+      const numRings = anim.tier==='legendary' ? 7 : anim.tier==='rare' ? 5 : 3;
+      const maxR     = anim.tier==='legendary' ? 55 : anim.tier==='rare' ? 38 : 22;
+      for (let i = 0; i < numRings; i++) {
+        const delay  = i * 0.12;
+        const ringT  = Math.max(0, (t - delay) / (1 - delay));
+        if (ringT <= 0 || ringT >= 1) continue;
+        const radius = ringT * maxR;
+        const alpha  = (1 - ringT) * 0.85;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // 3. Pixel sparks (8 directions, pixel-art squares)
+      const numSparks = anim.tier==='legendary' ? 16 : anim.tier==='rare' ? 12 : 8;
+      const sparkEnd  = 0.75;
+      if (t < sparkEnd) {
+        const sT     = t / sparkEnd;
+        const maxDst = anim.tier==='legendary' ? 30 : anim.tier==='rare' ? 22 : 14;
+        const alpha  = (1 - sT) * 0.9;
+        for (let i = 0; i < numSparks; i++) {
+          const angle = (i / numSparks) * Math.PI * 2;
+          const dist  = sT * maxDst;
+          const sz    = Math.max(0.8, 2 * (1 - sT * 0.6));
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+          ctx.fillRect(cx + Math.cos(angle)*dist - sz/2, cy + Math.sin(angle)*dist - sz/2, sz, sz);
+        }
+        // interleaved white sparks for "sparkle" feel
+        for (let i = 0; i < numSparks; i++) {
+          const angle = ((i + 0.5) / numSparks) * Math.PI * 2;
+          const dist  = sT * maxDst * 0.7;
+          const sz    = Math.max(0.5, 1.2 * (1 - sT));
+          ctx.fillStyle = `rgba(255,255,255,${alpha * 0.7})`;
+          ctx.fillRect(cx + Math.cos(angle)*dist - sz/2, cy + Math.sin(angle)*dist - sz/2, sz, sz);
+        }
+      }
+
+      // 4. Radial glow for strikes
+      if (anim.tier !== 'none' && t < 0.6) {
+        const gT    = t / 0.6;
+        const gR    = gT * 70;
+        const gA    = (1 - gT) * 0.35;
+        const goldR = anim.tier==='legendary' ? '255,215,0' : '139,92,246';
+        const grad  = ctx.createRadialGradient(cx, cy, 0, cx, cy, gR);
+        grad.addColorStop(0, `rgba(${goldR},${gA})`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, gR, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      return true;
+    });
+
+    if (animsRef.current.length > 0) {
+      rafRef.current = requestAnimationFrame(tickAnims);
+    } else {
+      overlayRef.current?.getContext('2d')?.clearRect(0,0,GRID*PX,GRID*PX);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const spawnAnim = useCallback((x:number, y:number, color:string, tier:StrikeTier|'none') => {
+    const dur = tier==='legendary' ? 1600 : tier==='rare' ? 1100 : 650;
+    animsRef.current.push({ x, y, color, tier, start: performance.now(), dur });
+    if (animsRef.current.length === 1) {
+      rafRef.current = requestAnimationFrame(tickAnims);
+    }
+  }, [tickAnims]);
 
   const handleMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
@@ -511,6 +615,17 @@ export default function Play() {
               }}/>
             )}
 
+            <canvas
+              ref={overlayRef}
+              width={GRID*PX}
+              height={GRID*PX}
+              style={{
+                position:"absolute",inset:0,
+                pointerEvents:"none",
+                imageRendering:"pixelated",
+                zIndex:3,
+              }}
+            />
             <canvas
               ref={canvasRef}
               width={GRID*PX}
