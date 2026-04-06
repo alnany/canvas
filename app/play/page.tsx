@@ -753,7 +753,7 @@ function seedCanvas(g: (PxData|null)[]) {
     px(g, sx, sy, "#ffffff"); px(g, sx+1, sy, "#ffffff");
     px(g, sx, sy+1, "#ffffff"); px(g, sx+1, sy+1, "#ffffff");
   }
-}}
+}
 
 export default function Play() {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
