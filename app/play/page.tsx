@@ -252,7 +252,7 @@ export default function Play() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [sol,       setSol]       = useState(SOL_START);
-  const [bucket,    setBucket]    = useState(1230000);       // $CANVAS jackpot
+  const [bucket,    setBucket]    = useState(9221732);       // $CANVAS jackpot
   const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
   const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=0.01, 1=0.1, 2=1 SOL
@@ -623,8 +623,8 @@ export default function Play() {
             `}</style>
             <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>🏛️ THE VAULT</div>
             <div style={{
-              fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
-              fontFamily:"'Press Start 2P',monospace",
+              fontSize:20,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
+              fontFamily:"'Press Start 2P',monospace",letterSpacing:-0.5,
             }}>{fmtCompact(bucket)}</div>
             <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
