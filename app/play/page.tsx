@@ -19,7 +19,7 @@ const SOL_PRIZES = [
   { mult: 5.0, label: "5×",    prob: 0.055 },  // 5.5% big
   { mult: 10.0,label: "10×",   prob: 0.015 },  // 1.5% max
 ] as const;
-// Bucket jackpot
+// Vault jackpot
 const BUCKET_WIN_CHANCE = 0.005;        // 0.5% per placement
 const BUCKET_WIN_PCT    = 0.10;         // win 10% of bucket
 const BUCKET_FEED_PCT   = 0.01;         // 1% of CANVAS earn → bucket
@@ -289,7 +289,7 @@ export default function Play() {
   useEffect(() => {
     const t = setInterval(() => {
       setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
-      // Bucket grows ~0.5 $CANVAS/sec (simulates global activity)
+      // Vault grows ~0.5 $CANVAS/sec (simulates global activity)
       setBucket(bk => bk + 0.5);
     }, 1000);
     return () => clearInterval(t);
@@ -405,7 +405,7 @@ export default function Play() {
         const jackpot = Math.floor(newBk * BUCKET_WIN_PCT);
         setBucketWin(jackpot);
         setTimeout(() => setBucketWin(null), 5000);
-        setLog(l => [`[🪣 JACKPOT] You won ${jackpot} $CANVAS from the Bucket!`, ...l.slice(0,11)]);
+        setLog(l => [`[🏛️ VAULT HIT] You won ${jackpot} $CANVAS from The Vault!`, ...l.slice(0,11)]);
         setBalance(b => b + jackpot);
         return newBk - jackpot;
       }
@@ -546,7 +546,7 @@ export default function Play() {
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{fontSize:10,color:"#334155",background:"#0f0f1a",padding:"4px 12px",borderRadius:4,border:"1px solid #1e1e3f"}}>
-            0.01/0.1/1 SOL bets · 1/10/100 pixels · 97% RTP · 🪣 Bucket jackpot
+            0.01/0.1/1 SOL bets · 1/10/100 pixels · 97% RTP · 🏛️ The Vault jackpot
           </div>
           {walletConnected ? (
             <div style={{fontSize:10,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
@@ -568,7 +568,7 @@ export default function Play() {
       <div style={{display:"flex",height:"calc(100vh - 46px)"}}>
         {/* LEFT PANEL */}
         <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
-          {/* ── THE BUCKET (jackpot) ─────────────────────────────────────── */}
+          {/* ── THE VAULT (jackpot) ─────────────────────────────────────── */}
           <div style={{
             background:"linear-gradient(135deg,#1c0900,#120800)",
             border:"2px solid #f59e0b",
@@ -577,17 +577,17 @@ export default function Play() {
             textAlign:"center",
           }}>
             <style>{`
-              @keyframes bucketPulse {
+              @keyframes vaultPulse {
                 0%,100% { box-shadow: 0 0 24px rgba(245,158,11,0.35); }
                 50%      { box-shadow: 0 0 48px rgba(245,158,11,0.70); }
               }
-              @keyframes bucketNum {
+              @keyframes vaultNum {
                 0%   { transform:scale(1); }
                 30%  { transform:scale(1.12); }
                 100% { transform:scale(1); }
               }
             `}</style>
-            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>🪣 THE BUCKET</div>
+            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>🏛️ THE VAULT</div>
             <div style={{
               fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",
@@ -597,7 +597,7 @@ export default function Play() {
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
             </div>
             <div style={{fontSize:10,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
-              0.5% chance per pixel<br/>Win 10% of bucket
+              0.5% chance per pixel<br/>Win 10% of The Vault
             </div>
           </div>
 
@@ -692,7 +692,7 @@ export default function Play() {
         {/* CANVAS CENTER */}
         <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
-          {/* Bucket jackpot popup */}
+          {/* Vault jackpot popup */}
           {bucketWin !== null && (
             <div style={{
               position:"absolute",top:"20%",left:"50%",
@@ -700,7 +700,7 @@ export default function Play() {
               zIndex:25,textAlign:"center",pointerEvents:"none",
             }}>
               <style>{`
-                @keyframes bucketWinIn {
+                @keyframes vaultCrackIn {
                   0%   { opacity:0; transform:translate(-50%,20px) scale(0.6); }
                   20%  { opacity:1; transform:translate(-50%,-10px) scale(1.15); }
                   80%  { opacity:1; transform:translate(-50%,0) scale(1); }
@@ -712,9 +712,9 @@ export default function Play() {
                 background:"#1c0900",border:"3px solid #f59e0b",
                 boxShadow:"0 0 100px rgba(245,158,11,0.8)",
                 fontFamily:"'Press Start 2P',monospace",
-                animation:"bucketWinIn 5s ease-out forwards",
+                animation:"vaultCrackIn 5s ease-out forwards",
               }}>
-                <div style={{fontSize:10,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🪣 BUCKET HIT</div>
+                <div style={{fontSize:10,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🏛️ VAULT CRACKED</div>
                 <div style={{fontSize:32,color:"#fbbf24",fontWeight:"bold"}}>+{String(bucketWin)}</div>
                 <div style={{fontSize:10,color:"#92400e",marginTop:6}}>$CANVAS · 10% of jackpot</div>
               </div>
