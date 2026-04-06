@@ -523,7 +523,7 @@ export default function Play() {
       : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
     const logMsg = bestTier !== "none"
       ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`
-      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${px},${py}`;
+      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`;
     setLog(l => [logMsg, ...l.slice(0,11)]);
   },[betIdx, color, sol]);
 
