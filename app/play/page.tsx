@@ -246,7 +246,7 @@ export default function Play() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [sol,       setSol]       = useState(SOL_START);
-  const [bucket,    setBucket]    = useState(36253);       // $CANVAS jackpot
+  const [bucket,    setBucket]    = useState(1230000);       // $CANVAS jackpot
   const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
   const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=0.01, 1=0.1, 2=1 SOL
