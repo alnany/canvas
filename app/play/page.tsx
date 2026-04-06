@@ -73,7 +73,13 @@ function strikeStyle(t: StrikeTier): {bg:string;border:string;text:string;shadow
   return                      {bg:"#12121a",border:"#64748b",text:"#94a3b8",shadow:"rgba(100,116,139,0.4)"};
 }
 
-const BOTS = ["0x7a3…b9f","0xaf1…c32","0x99d…441","0xb82…71a","0x55e…f90","0xcc4…d18"];
+const BOTS = [
+  "0x7a3…b9f","0xaf1…c32","0x99d…441","0xb82…71a","0x55e…f90","0xcc4…d18",
+  "0x31f…e77","0x0c8…a12","0xfe2…b56","0x8d4…c90","0x12b…d33","0x77a…f01",
+  "0xab9…e45","0x66c…918","0x29e…772","0xd1a…b84","0x4f7…c61","0x93b…d20",
+  "0xe5c…a37","0x18d…f94","0x2a6…b15","0xbc3…e88","0x5e1…a49","0x07f…c73",
+  "0xd9b…142","0x44e…f60","0x6c2…a91","0xf3a…b28","0xa1d…e56","0x88c…703",
+];
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
 const WALLET = "YOU (Demo_7f4…a9c)";
 
@@ -88,57 +94,36 @@ interface UserProfile {
 }
 
 const PROFILES: Record<string, UserProfile> = {
-  "0x7a3…b9f": {
-    displayName: "CryptoWalrus",
-    handle:      "0x7a3…b9f",
-    avatar:      "🦭",
-    bio:         "Full-time pixel artist on Solana. Founding member of Canvas.",
-    xUrl:        "https://x.com/cryptowalrus_sol",
-    homepage:    "https://walrus.art",
-    joinedSlot:  1240,
-  },
-  "0xaf1…c32": {
-    displayName: "SolMaxi88",
-    handle:      "0xaf1…c32",
-    avatar:      "⚡",
-    bio:         "SOL or nothing. Placing pixels since block 0.",
-    xUrl:        "https://x.com/solmaxi88",
-    joinedSlot:  874,
-  },
-  "0x99d…441": {
-    displayName: "PixelHunter",
-    handle:      "0x99d…441",
-    avatar:      "🎯",
-    bio:         "Hunting legendary strikes every day. 12× personal best.",
-    xUrl:        "https://x.com/pixelhunter_nft",
-    homepage:    "https://pixelhunter.xyz",
-    joinedSlot:  3601,
-  },
-  "0xb82…71a": {
-    displayName: "DogeFather",
-    handle:      "0xb82…71a",
-    avatar:      "🐕",
-    bio:         "Such pixel. Very CANVAS. Wow.",
-    xUrl:        "https://x.com/dogefather_sol",
-    joinedSlot:  511,
-  },
-  "0x55e…f90": {
-    displayName: "MoonBoi",
-    handle:      "0x55e…f90",
-    avatar:      "🌙",
-    bio:         "Staking pixels, stacking $CANVAS. LFG.",
-    xUrl:        "https://x.com/moonboi_sol",
-    homepage:    "https://moonboi.io",
-    joinedSlot:  2288,
-  },
-  "0xcc4…d18": {
-    displayName: "CZ_Army",
-    handle:      "0xcc4…d18",
-    avatar:      "🔶",
-    bio:         "BNB zone defender. Cross-chain pixel warrior.",
-    xUrl:        "https://x.com/czarmy_official",
-    joinedSlot:  999,
-  },
+  "0x7a3…b9f": { displayName:"CryptoWalrus",  handle:"0x7a3…b9f", avatar:"🦭", bio:"Full-time pixel artist on Solana. Founding member of Canvas.", xUrl:"https://x.com/cryptowalrus_sol", homepage:"https://walrus.art", joinedSlot:1240 },
+  "0xaf1…c32": { displayName:"SolMaxi88",      handle:"0xaf1…c32", avatar:"⚡", bio:"SOL or nothing. Placing pixels since block 0.", xUrl:"https://x.com/solmaxi88", joinedSlot:874 },
+  "0x99d…441": { displayName:"PixelHunter",    handle:"0x99d…441", avatar:"🎯", bio:"Hunting legendary strikes every day. 12× personal best.", xUrl:"https://x.com/pixelhunter_nft", homepage:"https://pixelhunter.xyz", joinedSlot:3601 },
+  "0xb82…71a": { displayName:"DogeFather",     handle:"0xb82…71a", avatar:"🐕", bio:"Such pixel. Very CANVAS. Wow.", xUrl:"https://x.com/dogefather_sol", joinedSlot:511 },
+  "0x55e…f90": { displayName:"MoonBoi",        handle:"0x55e…f90", avatar:"🌙", bio:"Staking pixels, stacking $CANVAS. LFG.", xUrl:"https://x.com/moonboi_sol", homepage:"https://moonboi.io", joinedSlot:2288 },
+  "0xcc4…d18": { displayName:"CZ_Army",        handle:"0xcc4…d18", avatar:"🔶", bio:"BNB zone defender. Cross-chain pixel warrior.", xUrl:"https://x.com/czarmy_official", joinedSlot:999 },
+  "0x31f…e77": { displayName:"NakamotoKid",    handle:"0x31f…e77", avatar:"₿",  bio:"The original pixel territory belongs to BTC. Always.", xUrl:"https://x.com/nakamotokid", homepage:"https://nakamotokid.com", joinedSlot:7842 },
+  "0x0c8…a12": { displayName:"ETH_Queen",      handle:"0x0c8…a12", avatar:"💎", bio:"Ethereum forever. Smart contracts, smarter pixels.", xUrl:"https://x.com/eth_queen_nft", joinedSlot:4320 },
+  "0xfe2…b56": { displayName:"GigaBrain",      handle:"0xfe2…b56", avatar:"🧠", bio:"Algorithmic pixel placement. I wrote a bot. No I won't share it.", xUrl:"https://x.com/gigabrain_xyz", homepage:"https://gigabrain.xyz", joinedSlot:18920 },
+  "0x8d4…c90": { displayName:"PepeArmy",       handle:"0x8d4…c90", avatar:"🐸", bio:"Defending the Pepe zone one pixel at a time. WAGMI.", xUrl:"https://x.com/pepearmy_sol", joinedSlot:6610 },
+  "0x12b…d33": { displayName:"SatoshiGhost",   handle:"0x12b…d33", avatar:"👻", bio:"Anonymous. Always watching. Pixels don't lie.", joinedSlot:2930 },
+  "0x77a…f01": { displayName:"VaultBreaker",   handle:"0x77a…f01", avatar:"🏛️", bio:"Hit the Vault 3 times. Lucky streak or skill? You decide.", xUrl:"https://x.com/vaultbreaker_sol", joinedSlot:1105 },
+  "0xab9…e45": { displayName:"TrumpZone",      handle:"0xab9…e45", avatar:"🇺🇸", bio:"MAGA canvas. The best pixels, believe me.", xUrl:"https://x.com/trumpzone_canvas", joinedSlot:3377 },
+  "0x66c…918": { displayName:"MarsOrBust",     handle:"0x66c…918", avatar:"🚀", bio:"SpaceX fan, Elon pixel collector. See you on Mars.", xUrl:"https://x.com/marsorbus_t", homepage:"https://marsorbus.io", joinedSlot:5512 },
+  "0x29e…772": { displayName:"DegenKing",      handle:"0x29e…772", avatar:"👑", bio:"Full degen. 100 SOL bets every morning. Not financial advice.", xUrl:"https://x.com/degenking_sol", joinedSlot:44100 },
+  "0xd1a…b84": { displayName:"PixelMonk",      handle:"0xd1a…b84", avatar:"🧘", bio:"Patience is the strategy. I place one pixel per day, perfectly.", joinedSlot:365 },
+  "0x4f7…c61": { displayName:"W3B_Witch",      handle:"0x4f7…c61", avatar:"🔮", bio:"On-chain pixel divination. The canvas reveals all truths.", xUrl:"https://x.com/w3b_witch", homepage:"https://w3bwitch.art", joinedSlot:2218 },
+  "0x93b…d20": { displayName:"Solfluencer",    handle:"0x93b…d20", avatar:"📸", bio:"Documenting every legendary strike since launch.", xUrl:"https://x.com/solfluencer", joinedSlot:8830 },
+  "0xe5c…a37": { displayName:"NightOwlNFT",    handle:"0xe5c…a37", avatar:"🦉", bio:"Only places pixels after midnight. 0 sleep = max alpha.", xUrl:"https://x.com/nightowlnft", joinedSlot:3140 },
+  "0x18d…f94": { displayName:"CanvasDAO",      handle:"0x18d…f94", avatar:"🏛️", bio:"Community-run pixel holding. 47 wallets, one vision.", xUrl:"https://x.com/canvasdao_sol", homepage:"https://canvasdao.xyz", joinedSlot:92400 },
+  "0x2a6…b15": { displayName:"HashRateHero",   handle:"0x2a6…b15", avatar:"⛏️", bio:"Mined BTC since 2011. Now I mine pixels.", joinedSlot:1790 },
+  "0xbc3…e88": { displayName:"FloorSweepr",    handle:"0xbc3…e88", avatar:"🧹", bio:"Sweeping the canvas floor. Every unclaimed pixel is mine.", xUrl:"https://x.com/floorsweepr", joinedSlot:71300 },
+  "0x5e1…a49": { displayName:"KoreanWhale",    handle:"0x5e1…a49", avatar:"🐋", bio:"Seoul-based pixel whale. I own the K-zone and I'm not selling.", xUrl:"https://x.com/koreanwhale_px", joinedSlot:28850 },
+  "0x07f…c73": { displayName:"ChinaDragon",    handle:"0x07f…c73", avatar:"🐉", bio:"Great Canvas of the blockchain. Pixel sovereignty.", xUrl:"https://x.com/chinadragon_sol", joinedSlot:15670 },
+  "0xd9b…142": { displayName:"Lambo2025",      handle:"0xd9b…142", avatar:"🏎️", bio:"If this doesn't buy me a Lambo I'm suing Satoshi.", xUrl:"https://x.com/lambo2025_real", joinedSlot:4440 },
+  "0x44e…f60": { displayName:"PixelSensei",    handle:"0x44e…f60", avatar:"⛩️", bio:"Teaching pixel strategy on X. DM for lessons.", xUrl:"https://x.com/pixelsensei_sol", homepage:"https://pixelsensei.xyz", joinedSlot:6600 },
+  "0x6c2…a91": { displayName:"OnChainAnna",    handle:"0x6c2…a91", avatar:"🌸", bio:"Artist turned pixel warlord. The canvas is my gallery.", xUrl:"https://x.com/onchainna_art", homepage:"https://onchainna.com", joinedSlot:3390 },
+  "0xf3a…b28": { displayName:"ZeroFeeMax",     handle:"0xf3a…b28", avatar:"🔥", bio:"Solana fees are nothing. I place pixels hourly.", xUrl:"https://x.com/zerofeemax", joinedSlot:12200 },
+  "0xa1d…e56": { displayName:"AlphaSignal",    handle:"0xa1d…e56", avatar:"📡", bio:"I called Canvas at mint. Told you so. Substack in bio.", xUrl:"https://x.com/alphasignal_sol", homepage:"https://alphasignal.substack.com", joinedSlot:5510 },
+  "0x88c…703": { displayName:"GoldBlockGary",  handle:"0x88c…703", avatar:"🟨", bio:"BTC maxi, pixel maxi. Gold blocks only.", xUrl:"https://x.com/goldblockgary", joinedSlot:9870 },
 };
 
 // ─── Pixel Art Seeding ────────────────────────────────────────────────────────
@@ -183,6 +168,16 @@ function drawScaled(
   );
 }
 
+
+// After seeding, assign random player owners to all pixels that still carry "art"
+function assignRandomOwners(g: (PxData|null)[]) {
+  for (let i = 0; i < g.length; i++) {
+    const cell = g[i];
+    if (cell && cell.owner === "art") {
+      g[i] = { color: cell.color, owner: rndOwner() };
+    }
+  }
+}
 function seedCanvas(g: (PxData|null)[]) {
 
   // ZONE BACKGROUNDS
@@ -374,6 +369,7 @@ export default function Play() {
   useEffect(() => {
     const g = gridRef.current;
     seedCanvas(g);
+    assignRandomOwners(g);
     draw();
   },[draw]);
 
