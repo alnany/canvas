@@ -650,10 +650,9 @@ export default function Play() {
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) { setHovered(null); return; }
     const cell = gridRef.current[gy*GRID+gx];
     setHovered({x:gx, y:gy, d:cell});
-    // Clear previous 3s timer on every move
+    // Clear previous 3s timer on every move — but don't dismiss an open popup
     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    setProfilePopup(null);
-    // Only show profile popup for owned (non-art) pixels
+    // Only restart the profile-popup timer when no popup is currently open
     if (cell && cell.owner !== "art") {
       const clientX = e.clientX;
       const clientY = e.clientY;
@@ -1054,8 +1053,8 @@ export default function Play() {
               onMouseMove={handleMove}
               onMouseLeave={() => {
                 setHovered(null);
-                setProfilePopup(null);
                 if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                // Do NOT clear profilePopup here — it should stay until user explicitly closes it
               }}
               style={{
                 cursor: "crosshair",
