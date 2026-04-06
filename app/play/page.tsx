@@ -64,290 +64,696 @@ function drawPattern(
 }
 
 function seedCanvas(g: (PxData|null)[]) {
-  // ── Faction territory backgrounds ─────────────────────────────────────────
-  fillRect(g, 0, 0, 370, 460, "#1e3a5f"); // navy – top-left
-  fillRect(g, 370, 0, 260, 460, "#180b35"); // dark purple – top-center
-  fillRect(g, 630, 0, 370, 460, "#7f1d1d"); // crimson – top-right
-  fillRect(g, 0, 480, 370, 320, "#14532d"); // forest green – mid-left
-  fillRect(g, 370, 480, 260, 320, "#042f2e"); // deep teal – mid-center
-  fillRect(g, 630, 480, 370, 320, "#0c4a6e"); // ocean blue – mid-right
-  fillRect(g, 0, 820, 370, 180, "#f0f0f0"); // white – bottom-left (flag)
-  fillRect(g, 370, 820, 260, 180, "#92400e"); // amber – bottom-center (text bg)
-  fillRect(g, 630, 820, 370, 180, "#3b0764"); // deep purple – bottom-right
+  // ── ZONE BACKGROUNDS ──────────────────────────────────────────────────────
+  fillRect(g, 0,   0,   500, 320, "#0a0500");   // BTC zone — dark amber
+  fillRect(g, 500, 0,   500, 320, "#04001a");   // ETH zone — deep navy
+  fillRect(g, 0,   320, 270, 220, "#0a0800");   // DOGE zone — warm dark
+  fillRect(g, 270, 320, 230, 220, "#120000");   // TRUMP/MAGA zone
+  fillRect(g, 500, 320, 260, 220, "#04001a");   // SOL zone — indigo
+  fillRect(g, 760, 320, 240, 220, "#010108");   // SPACE/ELON zone — near black
+  fillRect(g, 0,   540, 270, 210, "#100000");   // CHINA zone — dark red
+  fillRect(g, 270, 540, 230, 210, "#0d0900");   // CZ/BNB zone — dark gold
+  fillRect(g, 500, 540, 260, 210, "#030010");   // KOREA zone
+  fillRect(g, 760, 540, 240, 210, "#001200");   // PEPE zone — dark green
+  fillRect(g, 0,   750, 1000,250, "#020202");   // MOON/HODL bottom
 
-  // ── Rainbow separator band y:46–47 ────────────────────────────────────────
-  const rainbows = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#3b82f6","#8b5cf6"];
-  for (let x = 0; x < GRID; x++) {
-    const ci = Math.min(Math.floor(x / (GRID / rainbows.length)), rainbows.length - 1);
-    px(g, x, 460, rainbows[ci]);
-    px(g, x, 470, rainbows[ci]);
+  // ── RAINBOW SEPARATORS ───────────────────────────────────────────────────
+  const rc = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#8b5cf6","#ec4899"];
+  for (let x = 0; x < 1000; x++) {
+    const ci = Math.floor(x / 125) % 8;
+    px(g, x, 318, rc[ci]); px(g, x, 319, rc[ci]); px(g, x, 320, rc[ci]);
+    px(g, x, 538, rc[ci]); px(g, x, 539, rc[ci]); px(g, x, 540, rc[ci]);
+    px(g, x, 748, rc[ci]); px(g, x, 749, rc[ci]); px(g, x, 750, rc[ci]);
   }
 
-  // ── Large heart – center top (x:38, y:8) ──────────────────────────────────
-  drawPattern(g, 380, 80, [
-    ".RRR.RRR.",
-    "RRRRRRRRR",
-    "RRRRRRRRR",
-    "RRRRRRRRR",
-    ".RRRRRRR.",
-    "..RRRRR..",
-    "...RRR...",
-    "....R....",
-  ], { R: "#ef4444" });
-  // Highlight
-  drawPattern(g, 380, 80, [
-    ".PPP.PPP.",
-    "PPPPP.PPP",
-    "PP.......",
-  ], { P: "#fca5a5" });
-
-  // ── Smiley face – navy zone (x:3, y:5) ────────────────────────────────────
-  drawPattern(g, 30, 50, [
-    "...YYYYY...",
-    "..YYYYYYY..",
-    ".YYYYYYYYY.",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    ".YYYYYYYYY.",
-    "..YYYYYYY..",
-    "...YYYYY...",
-  ], { Y: "#f59e0b" });
-  // Eyes
-  drawPattern(g, 30, 50, [
-    "...........",
-    "...........",
-    "...........",
-    "..BB..BB...",
-    "..BB..BB...",
-    "...........",
-    "...........",
-    ".B.......B.",
-    ".BB.....BB.",
-    "...........",
-    "...........",
-    "...........",
-  ], { B: "#1e293b" });
-
-  // ── "PLACE" text – navy zone (x:2, y:21) ──────────────────────────────────
-  const letterP = ["WW.","W.W","WW.","W..","W.."];
-  const letterL = ["W..","W..","W..","W..","WWW"];
-  const letterA = [".W.","W.W","WWW","W.W","W.W"];
-  const letterC = [".WW","W..","W..","W..","..W",".WW"]; // unused but kept
-  const letterE = ["WWW","W..","WW.","W..","WWW"];
-  [letterP, letterL, letterA, letterC, letterE].forEach((ltr, i) => {
-    drawPattern(g, 20 + i * 40, 210, ltr.slice(0,5), { W: "#ffffff" });
-  });
-
-  // ── Sun with rays – navy zone (x:27, y:5) ─────────────────────────────────
-  // Rays
-  for (let i = 0; i < 8; i++) {
-    const angle = (i * Math.PI) / 4;
-    for (let r = 40; r <= 60; r++) {
-      const rx = Math.round(Math.cos(angle) * r);
-      const ry = Math.round(Math.sin(angle) * r);
-      px(g, 310 + rx, 90 + ry, "#fbbf24");
+  // ─────────────────────────────────────────────────────────────────────────
+  // BTC ZONE (0,0 → 500,320)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Large Bitcoin coin — circle with ₿
+  for (let dy = -60; dy <= 60; dy++)
+    for (let dx = -60; dx <= 60; dx++) {
+      const r2 = dx*dx + dy*dy;
+      if (r2 <= 3600 && r2 > 3025) px(g, 130+dx, 150+dy, "#c46a00");
+      else if (r2 <= 3025) px(g, 130+dx, 150+dy, "#f7931a");
     }
+  // ₿ symbol
+  drawPattern(g, 98, 108, [
+    "..BBBBBBBBB...",
+    ".B.........BB.",
+    "B...........BB",
+    "B...........B.",
+    "B...........B.",
+    "B...BBBBBBB...",
+    "B...BBBBBBBB..",
+    "B...........BB",
+    "B...........BB",
+    "B...........B.",
+    ".B.........BB.",
+    "..BBBBBBBBB...",
+  ], { B: "#7a3d00" });
+  // vertical bar
+  for (let y = 103; y <= 197; y++) { px(g, 109, y, "#7a3d00"); px(g, 110, y, "#7a3d00"); }
+
+  // "BTC" label
+  drawPattern(g, 60, 240, [
+    "BBB.TTT.CCC.",
+    "B.B.T...C...",
+    "BBB.T...C...",
+    "B...T...C...",
+    "B...T...CCC.",
+  ], { B: "#f7931a", T: "#f7931a", C: "#f7931a" });
+
+  // "$1M" target
+  drawPattern(g, 170, 240, [
+    "SSS.1..MMM.",
+    "S...1..MMM.",
+    "SSS.1..M.M.",
+    "..S.1..M.M.",
+    "SSS.1..M.M.",
+  ], { S: "#ffd700", "1": "#ffd700", M: "#ffd700" });
+
+  // Scattered ₿ symbols in BTC zone
+  for (const [sx, sy] of [[310,30],[380,60],[430,140],[350,200],[290,80],[450,250],[320,270]]) {
+    drawPattern(g, sx, sy, [".B.",".B.","BBB",".B.",".B."], { B: "#f7931a" });
   }
-  // Sun disk
-  for (let dy = -3; dy <= 3; dy++)
-    for (let dx = -3; dx <= 3; dx++)
-      if (dx * dx + dy * dy <= 1000) px(g, 310 + dx, 90 + dy, "#fef08a");
 
-  // ── Among Us crewmate – crimson zone (x:67, y:3) ──────────────────────────
-  drawPattern(g, 670, 30, [
-    ".RRRRRR.",
-    "RRRRRRRRR",
-    "RBBBBBBBR",
-    "RBWBBBBBR",
-    "RBBBBBBBR",
-    "RRRRRRRRR",
-    "RRRRRRRRR",
-    ".RR..RRR.",
-    ".RR..RRR.",
-    ".RRRRRR..",
-  ], { R: "#ef4444", B: "#93c5fd", W: "#dbeafe" });
-  // Backpack
-  fillRect(g, 760, 60, 30, 40, "#dc2626");
+  // "HODL" text top-right of BTC zone
+  drawPattern(g, 280, 170, [
+    "H.H.OOO.DDD.LLL.",
+    "H.H.O.O.D.D.L...",
+    "HHH.O.O.D.D.L...",
+    "H.H.O.O.D.D.L...",
+    "H.H.OOO.DDD.LLL.",
+  ], { H: "#ff8c00", O: "#ff8c00", D: "#ff8c00", L: "#ff8c00" });
 
-  // ── Troll face – crimson zone (x:65, y:16) ────────────────────────────────
-  drawPattern(g, 660, 170, [
-    "..WWWWWWWWW..",
-    ".WWWWWWWWWWW.",
-    "WWWWWWWWWWWWW",
-    "WW.WW.WW.WWWW",
-    "WWWWWWWWWWWWW",
-    "WWWWWWWWWWWWW",
-    "W.WWWWWWWWW.W",
-    "WW.........WW",
-    "WWWWWWWWWWWWW",
-    ".WWWWWWWWWWW.",
-    "..WWWWWWWWW..",
-  ], { W: "#fde68a" });
-  // Eyes (dots)
-  px(g, 690, 200, "#1e293b"); px(g, 70, 20, "#1e293b");
-  px(g, 740, 200, "#1e293b"); px(g, 75, 20, "#1e293b");
-  // Smile
-  px(g, 680, 250, "#1e293b"); px(g, 77, 25, "#1e293b");
-  for (let x = 690; x <= 760; x++) px(g, x, 260, "#1e293b");
+  // "SATS" small text
+  drawPattern(g, 60, 280, [
+    "SSS.AAA.TTT.SSS.",
+    "S...A.A.T...S...",
+    "SSS.AAA.T...SSS.",
+    "..S.A.A.T.....S.",
+    "SSS.A.A.T...SSS.",
+  ], { S: "#ff9900", A: "#ff9900", T: "#ff9900" });
 
-  // ── Pixel trees – forest zone (x:2, y:52) ─────────────────────────────────
-  // Tree 1
-  drawPattern(g, 20, 520, [
-    "....G....",
-    "...GGG...",
-    "..GGGGG..",
-    ".GGGGGGG.",
-    "GGGGGGGGG",
-    "..GGGGG..",
-    "....T....",
-    "....T....",
-    "....T....",
-  ], { G: "#22c55e", T: "#a16207" });
-  // Tree 2
-  drawPattern(g, 150, 540, [
-    "...G...",
-    "..GGG..",
-    ".GGGGG.",
-    "GGGGGGG",
-    "...T...",
-    "...T...",
-    "...T...",
-  ], { G: "#16a34a", T: "#78350f" });
-  // Tree 3 (darker)
-  drawPattern(g, 250, 560, [
-    "..D..",
-    ".DDD.",
-    "DDDDD",
-    "..T..",
-    "..T..",
-  ], { D: "#15803d", T: "#7c2d12" });
-  // Mushroom
-  drawPattern(g, 80, 640, [
-    ".RRR.",
-    "RRRRR",
-    "R.R.R",
-    "WWWWW",
-    ".WWW.",
-  ], { R: "#ef4444", W: "#f8fafc" });
-  // Star
-  drawPattern(g, 280, 630, [
-    "..S..",
-    ".SSS.",
-    "SSSSS",
-    ".SSS.",
-    "..S..",
-  ], { S: "#fef08a" });
+  // ─────────────────────────────────────────────────────────────────────────
+  // ETH ZONE (500,0 → 1000,320)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Ethereum diamond
+  drawPattern(g, 680, 30, [
+    "......EEEE......",
+    ".....EEEEEE.....",
+    "....EEEEEEEE....",
+    "...EEEEEEEEEE...",
+    "..EEEEEEEEEEEE..",
+    ".EEEEEEEEEEEEEE.",
+    "EEEEEEEEEEEEEEEE",
+    "EEEEEEEEEEEEEEEE",
+    ".DDDDDDDDDDDDDD.",
+    "..DDDDDDDDDDDD..",
+    "...DDDDDDDDDD...",
+    "....DDDDDDDD....",
+    ".....DDDDDD.....",
+    "......DDDD......",
+    ".......DD.......",
+    "........D.......",
+  ], { E: "#a79af5", D: "#7b68ee" });
 
-  // ── Rocket – teal zone (x:42, y:52) ───────────────────────────────────────
-  drawPattern(g, 430, 520, [
-    "..W..",
-    ".WBW.",
-    "WWWWW",
-    "RWWWR",
-    "RWWWR",
-    "RRRRR",
-    ".RRR.",
-    "Y.R.Y",
-  ], { W: "#e2e8f0", R: "#3b82f6", Y: "#f97316", B: "#dbeafe" });
+  // "ETH" label
+  drawPattern(g, 670, 175, [
+    "EEE.TTT.HHH.",
+    "E...T...H.H.",
+    "EEE.T...HHH.",
+    "E...T...H.H.",
+    "EEE.T...H.H.",
+  ], { E: "#a79af5", T: "#a79af5", H: "#a79af5" });
 
-  // ── r/CANVAS text – amber zone (x:38, y:84) ───────────────────────────────
-  // r
-  drawPattern(g, 380, 840, [".W.","WW.","W..","W..","W.."], { W: "#fff7ed" });
-  // /
-  drawPattern(g, 420, 840, ["..W",".W.",".W.","W..","W.."], { W: "#fde68a" });
-  // C
-  drawPattern(g, 460, 840, [".WW","W..","W..","W..",".WW"], { W: "#f59e0b" });
-  // A
-  drawPattern(g, 500, 840, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
-  // N
-  drawPattern(g, 540, 840, ["W.W","WWW","WWW","W.W","W.W"], { W: "#f59e0b" });
-  // V
-  drawPattern(g, 580, 840, ["W.W","W.W","W.W",".W.",".W."], { W: "#f59e0b" });
-  // A
-  drawPattern(g, 620, 840, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
-  // S
-  drawPattern(g, 660, 840, ["WW.","W..",".W.","..W",".WW"], { W: "#f59e0b" });
-
-  // ── Japan flag – white zone (x:1, y:84) ───────────────────────────────────
-  const jcx = 180, jcy = 910;
-  for (let dy = -5; dy <= 5; dy++)
-    for (let dx = -5; dx <= 5; dx++)
-      if (dx * dx + dy * dy <= 26) px(g, jcx + dx, jcy + dy, "#ef4444");
-
-  // ── Ocean waves + fish – ocean zone ────────────────────────────────────────
-  // Wave line
-  for (let x = 63; x < 100; x++) {
-    const wy = 50 + Math.round(Math.sin((x - 63) * 0.55) * 2);
-    px(g, x, wy, "#7dd3fc");
-    px(g, x, wy + 1, "#38bdf8");
+  // Scattered ETH diamonds
+  for (const [sx, sy] of [[820,20],[900,80],[850,200],[950,150],[810,260],[770,40],[940,240]]) {
+    drawPattern(g, sx, sy, ["..E..","EEEEE","EEEEE",".EEE.","..E.."], { E: "#7b68ee" });
   }
-  // Fish 1
-  drawPattern(g, 670, 550, [
-    "..FF.",
-    "FFFFT",
+
+  // "GAS FEES" humor
+  drawPattern(g, 505, 250, [
+    "GGG.AAA.SSS...FFF.EEE.EEE.SSS.",
+    "G...A.A.S.....F...E...E...S...",
+    "GGG.AAA.SSS...FFF.EEE.EEE.SSS.",
+    "G.G.A.A...S...F...E...E.....S.",
+    "GGG.A.A.SSS...F...EEE.EEE.SSS.",
+  ], { G: "#a79af5", A: "#a79af5", S: "#a79af5", F: "#ff4444", E: "#ff4444" });
+
+  // EIP-1559 burn flame
+  drawPattern(g, 940, 260, [
+    "..F..",
+    ".FFF.",
     "FFFFF",
-    "FFFFT",
-    "..FF.",
-  ], { F: "#f97316", T: "#fdba74" });
-  // Fish 2
-  drawPattern(g, 830, 620, [
-    ".FF..",
-    "TFFFF",
     "FFFFF",
-    "TFFFF",
-    ".FF..",
-  ], { F: "#06b6d4", T: "#67e8f9" });
-  // Fish 3 small
-  drawPattern(g, 740, 690, [
-    ".F.",
-    "FFF",
-    ".F.",
-  ], { F: "#22c55e" });
-  // Bubbles
-  px(g, 720, 530, "#bfdbfe"); px(g, 73, 52, "#bfdbfe");
-  px(g, 880, 600, "#bfdbfe"); px(g, 89, 59, "#bfdbfe");
-  px(g, 780, 670, "#bfdbfe");
+    ".FFF.",
+    "..F..",
+  ], { F: "#ff4400" });
 
-  // ── Checkered pattern – purple zone (x:63, y:82) ──────────────────────────
-  for (let dy = 0; dy < 180; dy++)
-    for (let dx = 0; dx < 370; dx++)
-      px(g, 630 + dx, 820 + dy, (dx + dy) % 2 === 0 ? "#a855f7" : "#6d28d9");
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOGE ZONE (0,320 → 270,540)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Shiba Inu face
+  drawPattern(g, 20, 345, [
+    "..CCCCCCCCCCC..",
+    ".CCCCCCCCCCCCC.",
+    "CCCCCCCCCCCCCCC",
+    "CCCCCCCCCCCCCCC",
+    "CC.CCCCCCC.CCCC",
+    "CWWCCCCCCCWWCCC",
+    "CBBCCCCCCCBBCCC",
+    "CCCCCCCCCCCCCCC",
+    ".CCNNNNNNNNCCC.",
+    ".CCNBBBBBBNCC..",
+    "..CCCCCCCCCCC..",
+    "..CRRRRRRRRCC..",
+    "...CRRRRRRCC...",
+    "CCCCCCCCCCCCCCC",
+  ], { C: "#c8922a", W: "#f5f5f5", B: "#333333", N: "#a0522d", R: "#cc3333" });
 
-  // ── "VOID" logo – purple zone (x:70, y:85) ────────────────────────────────
-  // V
-  drawPattern(g, 700, 850, ["W.W","W.W","W.W",".W.",".W."], { W: "#f8fafc" });
-  // O
-  drawPattern(g, 740, 850, [".W.","W.W","W.W","W.W",".W."], { W: "#f8fafc" });
-  // I
-  drawPattern(g, 780, 850, ["W","W","W","W","W"], { W: "#f8fafc" });
-  // D
-  drawPattern(g, 800, 850, ["WW.","W.W","W.W","W.W","WW."], { W: "#f8fafc" });
+  // "DOGE" label
+  drawPattern(g, 15, 490, [
+    "DDD.OOO.GGG.EEE.",
+    "D.D.O.O.G...E...",
+    "D.D.O.O.G.G.EEE.",
+    "D.D.O.O.G.G.E...",
+    "DDD.OOO.GGG.EEE.",
+  ], { D: "#c8922a", O: "#c8922a", G: "#c8922a", E: "#c8922a" });
 
-  // ── Scattered filler pixels (organic texture) ─────────────────────────────
-  // Tiny pixel clusters to add r/place organic feel
-  const scatterColors = [
-    { cx: 5,  cy: 37, color: "#3b82f6" },
-    { cx: 12, cy: 40, color: "#22c55e" },
-    { cx: 20, cy: 38, color: "#f59e0b" },
-    { cx: 30, cy: 42, color: "#ec4899" },
-    { cx: 55, cy: 28, color: "#8b5cf6" },
-    { cx: 55, cy: 35, color: "#06b6d4" },
-    { cx: 55, cy: 42, color: "#84cc16" },
-    { cx: 80, cy: 30, color: "#fbbf24" },
-    { cx: 90, cy: 35, color: "#a3e635" },
-  ];
-  scatterColors.forEach(({ cx, cy, color }) => {
-    for (let i = 0; i < 6; i++) {
-      const ox = Math.round(Math.cos(i) * 2);
-      const oy = Math.round(Math.sin(i) * 2);
-      px(g, cx + ox, cy + oy, color, "scatter_art");
-    }
-  });
-}
+  // "MUCH WOW" meme text
+  drawPattern(g, 155, 360, [
+    "M.M.W.W.O.W.",
+    "MMM.W.W.WWW.",
+    "M.M..W..W.W.",
+    "M.M..W..W.W.",
+  ], { M: "#ffd700", W: "#ffd700", O: "#ffd700" });
+
+  // "VERY CRYPTO"
+  drawPattern(g, 155, 420, [
+    "V.V.EEE.R.R.Y.Y.",
+    "V.V.E...RRR..Y..",
+    ".V..EEE.R.R..Y..",
+    ".V..E...R.R..Y..",
+    ".V..EEE.R.R..Y..",
+  ], { V: "#f5c518", E: "#f5c518", R: "#f5c518", Y: "#f5c518" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TRUMP / MAGA ZONE (270,320 → 500,540)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Trump pixel face (golden hair, skin, red tie)
+  drawPattern(g, 300, 330, [
+    "....HHHHHHHHHHHHHH....",
+    "...HHHHHHHHHHHHHHHH...",
+    "..HHHHHHHHHHHHHHHHHH..",
+    "..HHHHHHHHHHHHHHHHHH..",
+    "..SSSSSSSSSSSSSSSSSS..",
+    "..SSSSSSSSSSSSSSSSSS..",
+    "..SS..SSSSSSSS..SS...",
+    "..SBBSSSSSSSSBBSS....",
+    "..SEESSSSSSSEESS.....",
+    "..SWWSSSSSSSWWSS.....",
+    "..SSSSSSSSSSSSSS.....",
+    "..SSSSNNNNSSSSSS.....",
+    "..SSSSSSSSSSSSSS.....",
+    "..SRRRRRRRRRSSSS.....",
+    "..SSSSSSSSSSSSSS.....",
+    "...WWWWWWWWWWWW......",
+    "...WTTTTTTTTTW.......",
+    "...WTTTTTTTTTW.......",
+    "..BBBBBBBBBBBBB......",
+    "..BBBBBBBBBBBBB......",
+  ], { H: "#e8a200", S: "#ffd4a0", B: "#331100", E: "#552200", W: "#ffffff", R: "#dd3333", T: "#cc0000" });
+
+  // "MAGA" label
+  drawPattern(g, 290, 505, [
+    "M.M.AAA.GGG.AAA.",
+    "MMM.A.A.G...A.A.",
+    "M.M.AAA.GGG.AAA.",
+    "M.M.A.A.G.G.A.A.",
+    "M.M.A.A.GGG.A.A.",
+  ], { M: "#cc0000", A: "#cc0000", G: "#cc0000" });
+
+  // "TRUMP COIN" text
+  drawPattern(g, 390, 345, [
+    "TTT.R.R.",
+    "T...RRR.",
+    "T...R.R.",
+    "T...R.R.",
+    "T...R.R.",
+  ], { T: "#ffd700", R: "#ffd700" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOL ZONE (500,320 → 760,540)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Solana logo (three gradient bars)
+  drawPattern(g, 510, 345, [
+    "PPPPPPPPPPPPPPPPPPPP",
+    "PPPPPPPPPPPPPPPPPP..",
+    "PPPPPPPPPPPPPPPPPP..",
+    "PPPPPPPPPPPPPPPP....",
+    "....................",
+    "GGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGG..",
+    "GGGGGGGGGGGGGGGG....",
+    "GGGGGGGGGGGGGG......",
+    "....................",
+    "PPPPPPPPPPPPPPPPPPPP",
+    "PPPPPPPPPPPPPPPPPP..",
+    "PPPPPPPPPPPPPPPPPP..",
+    "PPPPPPPPPPPPPPPP....",
+  ], { P: "#9945ff", G: "#14f195" });
+
+  // "SOL" label
+  drawPattern(g, 515, 390, [
+    "SSS.OOO.L...",
+    "S...O.O.L...",
+    "SSS.O.O.L...",
+    "..S.O.O.L...",
+    "SSS.OOO.LLL.",
+  ], { S: "#9945ff", O: "#9945ff", L: "#14f195" });
+
+  // "$SOL" price text
+  drawPattern(g, 600, 390, [
+    "SSS.PPP.",
+    "S...P.P.",
+    "SSS.PPP.",
+    "..S.P...",
+    "SSS.P...",
+  ], { S: "#14f195", P: "#14f195" });
+
+  // "FASTEST L1" label
+  drawPattern(g, 510, 460, [
+    "FFF.AAA.SSS.TTT.EEE.SSS.TTT.",
+    "F...A.A.S...T...E...S...T...",
+    "FFF.AAA.SSS.T...EEE.SSS.T...",
+    "F...A.A...S.T...E.....S.T...",
+    "F...A.A.SSS.T...EEE.SSS.T...",
+  ], { F: "#14f195", A: "#14f195", S: "#14f195", T: "#14f195", E: "#14f195" });
+
+  // "DeFi" text
+  drawPattern(g, 640, 460, [
+    "DDD.EEE.FFF.iii.",
+    "D.D.E...F....i..",
+    "D.D.EEE.FFF..i..",
+    "D.D.E...F....i..",
+    "DDD.EEE.F...iii.",
+  ], { D: "#9945ff", E: "#9945ff", F: "#9945ff", i: "#9945ff" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ELON / SPACE ZONE (760,320 → 1000,540)
+  // ─────────────────────────────────────────────────────────────────────────
+  // SpaceX rocket
+  drawPattern(g, 820, 330, [
+    "...WW...",
+    "..WWWW..",
+    ".WWWWWW.",
+    ".WRRWWW.",
+    ".WRRWWW.",
+    ".WWWWWW.",
+    "WWWWWWWW",
+    "WWWWWWWW",
+    "WWWWWWWW",
+    "WWWWWWWW",
+    "WWWWWWWW",
+    "BWWWWWWB",
+    "BWWWWWWB",
+    "BWWWWWWB",
+    ".BBBBBB.",
+    "..FFFF..",
+    "..FFFF..",
+    "...FF...",
+    "...FF...",
+  ], { W: "#c0c0c0", R: "#3399ff", B: "#707070", F: "#ff6600" });
+
+  // Stars in space
+  for (const [sx, sy] of [[780,325],[800,340],[850,360],[900,330],[960,345],[770,380],[990,370],
+                           [785,410],[930,400],[870,430],[800,450],[950,460],[775,490],[920,500]]) {
+    px(g, sx, sy, "#ffffff");
+  }
+
+  // Elon face (simple pixel portrait)
+  drawPattern(g, 900, 340, [
+    ".SSSSSS.",
+    "SSSSSSSS",
+    "SS.SS.SS",
+    "SBBSSBBS",
+    "SSSSSSSS",
+    ".SNSSNSS",
+    "SSSSSSSS",
+    ".SRRRRSS",
+    "SSSSSSSS",
+    ".SSSSSS.",
+  ], { S: "#f0d5b0", B: "#444444", N: "#cc9966", R: "#cc5555" });
+
+  // "X" logo
+  drawPattern(g, 955, 340, [
+    "X...X",
+    ".X.X.",
+    "..X..",
+    ".X.X.",
+    "X...X",
+  ], { X: "#ffffff" });
+
+  // "SPACEX" label
+  drawPattern(g, 775, 490, [
+    "SSS.PPP.AAA.CCC.EEE.X.X.",
+    "S...P.P.A.A.C...E...X.X.",
+    "SSS.PPP.AAA.C...EEE..X..",
+    "..S.P...A.A.C...E...X.X.",
+    "SSS.P...A.A.CCC.EEE.X.X.",
+  ], { S: "#ffffff", P: "#ffffff", A: "#ffffff", C: "#ffffff", E: "#ffffff", X: "#ffffff" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CHINA ZONE (0,540 → 270,750)
+  // ─────────────────────────────────────────────────────────────────────────
+  fillRect(g, 10, 555, 240, 150, "#de2910");
+  // Big yellow star
+  drawPattern(g, 25, 565, [
+    "...YY...",
+    "..YYYY..",
+    ".YYYYYY.",
+    "YYYYYYYY",
+    ".YYYYYY.",
+    "..YYYY..",
+    "...YY...",
+  ], { Y: "#ffde00" });
+  // 4 small stars
+  drawPattern(g, 90, 565, [".y.","yyy",".y."], { y: "#ffde00" });
+  drawPattern(g, 115, 580, [".y.","yyy",".y."], { y: "#ffde00" });
+  drawPattern(g, 115, 605, [".y.","yyy",".y."], { y: "#ffde00" });
+  drawPattern(g, 90, 620, [".y.","yyy",".y."], { y: "#ffde00" });
+
+  // "CHINA" label
+  drawPattern(g, 10, 715, [
+    "CCC.HHH.III.NNN.AAA.",
+    "C...H.H..I..N.N.A.A.",
+    "C...HHH..I..NNN.AAA.",
+    "C...H.H..I..N.N.A.A.",
+    "CCC.H.H.III.N.N.A.A.",
+  ], { C: "#de2910", H: "#de2910", I: "#de2910", N: "#de2910", A: "#de2910" });
+
+  // Crypto ban/chaos text
+  drawPattern(g, 140, 620, [
+    "BBB.AAA.NNN.",
+    "B...A.A.N.N.",
+    "BBB.AAA.NNN.",
+    "B...A.A.N.N.",
+    "BBB.A.A.N.N.",
+  ], { B: "#ffde00", A: "#ffde00", N: "#ffde00" });
+  drawPattern(g, 145, 675, [
+    "CCC.R.R.Y.Y.PPP.",
+    "C...RRR..Y..P.P.",
+    "C...R.R..Y..PPP.",
+    "C...R.R..Y..P...",
+    "CCC.R.R..Y..P...",
+  ], { C: "#ffde00", R: "#ffde00", Y: "#ffde00", P: "#ffde00" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CZ / BNB ZONE (270,540 → 500,750)
+  // ─────────────────────────────────────────────────────────────────────────
+  // BNB diamond logo (bigger)
+  drawPattern(g, 290, 560, [
+    "....YYYY....",
+    "...YYYYYY...",
+    "..YYYYYYYY..",
+    ".YYYYYY.YYY.",
+    "YYYYYYY.YYYY",
+    "YYYYYYYYYYY.",
+    ".YYYYYY.YYY.",
+    "..YYYYYYYY..",
+    "...YYYYYY...",
+    "....YYYY....",
+  ], { Y: "#f3ba2f" });
+
+  // CZ pixel face
+  drawPattern(g, 380, 558, [
+    ".SSSSSSS.",
+    "SSSSSSSSS",
+    "SS.SSS.SS",
+    "SBBSSSBBSS",
+    "SSSSSSSSS",
+    ".SNNNSSS.",
+    "SSSSSSSSS",
+    ".SRRRRSS.",
+    "SSSSSSSSS",
+    ".SSSSSSS.",
+  ], { S: "#f5c27a", B: "#333333", N: "#cc9966", R: "#cc5555" });
+
+  // "CZ" label
+  drawPattern(g, 380, 670, [
+    "CCC.ZZZ.",
+    "C...Z...",
+    "C...ZZZ.",
+    "C...Z...",
+    "CCC.ZZZ.",
+  ], { C: "#f3ba2f", Z: "#f3ba2f" });
+
+  // "BNB" label
+  drawPattern(g, 285, 680, [
+    "BBB.NNN.BBB.",
+    "B.B.NNN.B.B.",
+    "BBB.N.N.BBB.",
+    "B.B.N.N.B.B.",
+    "BBB.N.N.BBB.",
+  ], { B: "#f3ba2f", N: "#f3ba2f" });
+
+  // "BINANCE" text
+  drawPattern(g, 285, 720, [
+    "BBB.III.NNN.AAA.NNN.CCC.EEE.",
+    "B.B..I..N.N.A.A.N.N.C...E...",
+    "BBB..I..NNN.AAA.NNN.C...EEE.",
+    "B...III.N.N.A.A.N.N.C...E...",
+    "B...III.N.N.A.A.N.N.CCC.EEE.",
+  ], { B: "#f3ba2f", I: "#f3ba2f", N: "#f3ba2f", A: "#f3ba2f", C: "#f3ba2f", E: "#f3ba2f" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // KOREA ZONE (500,540 → 760,750)
+  // ─────────────────────────────────────────────────────────────────────────
+  fillRect(g, 510, 552, 230, 160, "#f0f0f0");
+  // Taegeuk circle — red top, blue bottom
+  for (let dy = -30; dy <= 30; dy++)
+    for (let dx = -30; dx <= 30; dx++)
+      if (dx*dx + dy*dy <= 900)
+        px(g, 625+dx, 632+dy, dy < 0 ? "#cd2e3a" : "#003478");
+  // White yin-yang divider
+  for (let dx = -30; dx <= 30; dx++) { px(g, 625+dx, 631, "#f0f0f0"); px(g, 625+dx, 632, "#f0f0f0"); }
+  // Trigrams corners
+  for (const [tx, ty, p] of [[515,557,3],[725,557,3],[515,677,3],[725,677,3]] as [number,number,number][]) {
+    for (let i = 0; i < p; i++) fillRect(g, tx, ty + i*7, 15, 4, "#000000");
+  }
+
+  // "KOREA" label
+  drawPattern(g, 510, 720, [
+    "K.K.OOO.R.R.EEE.AAA.",
+    "KK..O.O.RRR.E...A.A.",
+    "K.K.O.O.R.R.EEE.AAA.",
+    "KK..O.O.RRR.E...A.A.",
+    "K.K.OOO.R.R.EEE.A.A.",
+  ], { K: "#cd2e3a", O: "#cd2e3a", R: "#cd2e3a", E: "#cd2e3a", A: "#cd2e3a" });
+
+  // "KIMCHI PREMIUM"
+  drawPattern(g, 505, 508, [
+    "K.K.III.M.M.CCC.HHH.III.",
+    "KK...I..MMM.C...H.H..I..",
+    "K.K..I..M.M.CCC.HHH..I..",
+    "KK...I..M.M.C...H.H..I..",
+    "K.K.III.M.M.CCC.H.H.III.",
+  ], { K: "#003478", I: "#003478", M: "#003478", C: "#cd2e3a", H: "#cd2e3a" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PEPE ZONE (760,540 → 1000,750)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Pepe frog face (classic meme)
+  drawPattern(g, 780, 555, [
+    "..GGGGGGGGGGGG..",
+    ".GGGGGGGGGGGGGG.",
+    "GGGGGGGGGGGGGGGG",
+    "GG.GGGGGGGGGG.GG",
+    "GEWWGGGGGGWWGGGG",
+    "GBBGGGGGGGBBGGGG",
+    "GGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGG",
+    ".GGNNGGGGNNGGGG.",
+    ".GGGGGGGGGGGGG..",
+    ".GLLLLLLLLLLLG..",
+    "GGGGGGGGGGGGGG..",
+  ], { G: "#3d9a3d", W: "#f0f0f0", B: "#000000", N: "#2d7a2d", L: "#2d7a2d" });
+
+  // "KEKW" text
+  drawPattern(g, 780, 680, [
+    "K.K.EEE.K.K.W.W.",
+    "KK..E...KK..W.W.",
+    "K.K.EEE.K.K..W..",
+    "KK..E...KK..W.W.",
+    "K.K.EEE.K.K.W.W.",
+  ], { K: "#3d9a3d", E: "#3d9a3d", W: "#3d9a3d" });
+
+  // "GG EZ" text
+  drawPattern(g, 890, 680, [
+    "GGG.GGG...EEE.ZZZ.",
+    "G...G.....E.....Z.",
+    "GGG.GGG...EEE..Z..",
+    "G.G.G.....E...Z...",
+    "GGG.GGG...EEE.ZZZ.",
+  ], { G: "#55cc55", E: "#55cc55", Z: "#55cc55" });
+
+  // "PEPE" label
+  drawPattern(g, 780, 720, [
+    "PPP.EEE.PPP.EEE.",
+    "P.P.E...P.P.E...",
+    "PPP.EEE.PPP.EEE.",
+    "P...E...P...E...",
+    "P...EEE.P...EEE.",
+  ], { P: "#3d9a3d", E: "#3d9a3d" });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MOON / HODL BOTTOM ZONE (0,750 → 1000,1000)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Moon (large circle)
+  for (let dy = -55; dy <= 55; dy++)
+    for (let dx = -55; dx <= 55; dx++)
+      if (dx*dx + dy*dy <= 3025) px(g, 110+dx, 840+dy, "#f5f5a0");
+  // Craters
+  for (let dy = -10; dy <= 10; dy++)
+    for (let dx = -10; dx <= 10; dx++)
+      if (dx*dx + dy*dy <= 100) px(g, 90+dx, 820+dy, "#d8d870");
+  for (let dy = -7; dy <= 7; dy++)
+    for (let dx = -7; dx <= 7; dx++)
+      if (dx*dx + dy*dy <= 49) px(g, 145+dx, 865+dy, "#d8d870");
+  for (let dy = -4; dy <= 4; dy++)
+    for (let dx = -4; dx <= 4; dx++)
+      if (dx*dx + dy*dy <= 16) px(g, 100+dx, 870+dy, "#d8d870");
+
+  // "TO THE MOON" text
+  drawPattern(g, 185, 790, [
+    "TTT.OOO...TTT.HHH.EEE...M.M.OOO.OOO.NNN.",
+    "T...O.O...T...H.H.E...MMM.M.O.O.O.O.N.N.",
+    "T...O.O...T...HHH.EEE.M.M.M.O.O.O.O.NNN.",
+    "T...O.O...T...H.H.E...M.M.M.O.O.O.O.N.N.",
+    "T...OOO...T...H.H.EEE.M.M.M.OOO.OOO.N.N.",
+  ], { T: "#ffff44", O: "#ffff44", H: "#ffff44", E: "#ffff44", M: "#ffff44", N: "#ffff44" });
+
+  // "HODL" large
+  drawPattern(g, 185, 860, [
+    "HHH.OOO.DDD.LLL.",
+    "H.H.O.O.D.D.L...",
+    "HHH.O.O.D.D.L...",
+    "H.H.O.O.D.D.L...",
+    "H.H.OOO.DDD.LLL.",
+  ], { H: "#ff8c00", O: "#ff8c00", D: "#ff8c00", L: "#ff8c00" });
+
+  // "WAGMI" text
+  drawPattern(g, 185, 930, [
+    "W.W.AAA.GGG.M.M.III.",
+    "W.W.A.A.G...MMM..I..",
+    "W.W.AAA.GGG.M.M..I..",
+    ".W..A.A.G.G.M.M..I..",
+    ".W..A.A.GGG.M.M.III.",
+  ], { W: "#00ff88", A: "#00ff88", G: "#00ff88", M: "#00ff88", I: "#00ff88" });
+
+  // "GM" crypto greeting
+  drawPattern(g, 60, 900, [
+    "GGG.M.M.",
+    "G...MMM.",
+    "GGG.M.M.",
+    "G.G.M.M.",
+    "GGG.M.M.",
+  ], { G: "#44ffaa", M: "#44ffaa" });
+
+  // "NFA DYOR" disclaimer humor
+  drawPattern(g, 60, 960, [
+    "NNN.FFF.AAA...DDD.Y.Y.OOO.R.R.",
+    "N.N.F...A.A...D.D..Y..O.O.RRR.",
+    "NNN.FFF.AAA...D.D..Y..O.O.R.R.",
+    "N.N.F...A.A...D.D..Y..O.O.R.R.",
+    "N.N.F...A.A...DDD..Y..OOO.R.R.",
+  ], { N: "#ff4444", F: "#ff4444", A: "#ff4444", D: "#88ff88", Y: "#88ff88", O: "#88ff88", R: "#88ff88" });
+
+  // Bull pixel art
+  drawPattern(g, 520, 860, [
+    "H.......H.",
+    "HH.BBB.HH.",
+    ".BBBBBBB..",
+    ".BBBBBBB..",
+    "BBBBBBBBB.",
+    "BBBBBBBBB.",
+    "BBBBBBBBB.",
+    ".BB.B.BB..",
+    ".BB.B.BB..",
+    ".BB.B.BB..",
+  ], { H: "#c0c0c0", B: "#8B5e3c" });
+
+  // "BULL RUN" text
+  drawPattern(g, 540, 940, [
+    "BBB.U.U.LLL.LLL...R.R.U.U.NNN.",
+    "B.B.U.U.L...L.....RRR.U.U.NNN.",
+    "BBB.U.U.L...L.....R.R.U.U.N.N.",
+    "B...U.U.L...L.....R.R.U.U.N.N.",
+    "B...UUU.LLL.LLL...R.R.UUU.N.N.",
+  ], { B: "#ff8800", U: "#ff8800", L: "#ff8800", R: "#ff8800", N: "#ff8800" });
+
+  // Diamond hands 💎
+  drawPattern(g, 720, 820, [
+    "..DDD.DDD..",
+    ".DDDDDDDDD.",
+    "DDDDDDDDDDD",
+    "DDDDDDDDDDD",
+    ".DDDDDDDDD.",
+    "..DDDDDDD..",
+    "...DDDDD...",
+    "....DDD....",
+    ".....D.....",
+  ], { D: "#00bfff" });
+  drawPattern(g, 790, 820, [
+    "..DDD.DDD..",
+    ".DDDDDDDDD.",
+    "DDDDDDDDDDD",
+    "DDDDDDDDDDD",
+    ".DDDDDDDDD.",
+    "..DDDDDDD..",
+    "...DDDDD...",
+    "....DDD....",
+    ".....D.....",
+  ], { D: "#00bfff" });
+
+  // "DIAMOND HANDS" text
+  drawPattern(g, 700, 880, [
+    "DDD.III.AAA.M.M.OOO.NNN.DDD.",
+    "D.D..I..A.A.MMM.O.O.N.N.D.D.",
+    "D.D..I..AAA.M.M.O.O.NNN.D.D.",
+    "D.D..I..A.A.M.M.O.O.N.N.D.D.",
+    "DDD.III.A.A.M.M.OOO.N.N.DDD.",
+  ], { D: "#00bfff", I: "#00bfff", A: "#00bfff", M: "#00bfff", O: "#00bfff", N: "#00bfff" });
+
+  // Lambo pixel art
+  drawPattern(g, 700, 935, [
+    ".......YYYY....",
+    ".....YYYYYY....",
+    "....YYYYYYYYYYY",
+    "...YYYYYYWWYYYY",
+    "YYYYYYYYYY.YYYY",
+    "YYYYYYYYYY.YYYY",
+    ".WW.YYYYYYY.WW.",
+    ".WW.YYYYYYY.WW.",
+  ], { Y: "#ffd700", W: "#333333" });
+
+  // "$$$" money signs scattered
+  for (const [sx, sy] of [[860,760],[910,785],[870,830],[940,760],[920,920],[960,880],[880,960]]) {
+    drawPattern(g, sx, sy, [".S.","SSS",".S.","SSS",".S."], { S: "#ffd700" });
+  }
+
+  // Scattered moon crescent symbols
+  for (const [sx, sy] of [[30,755],[430,780],[450,860],[420,940]]) {
+    drawPattern(g, sx, sy, [".CCC","C...","C...","C...","C...",".CCC"], { C: "#ffff88" });
+  }
+
+  // Stars scattered in bottom zone
+  for (const [sx, sy] of [[395,760],[470,820],[480,900],[385,830],[475,960],[465,755]]) {
+    px(g, sx, sy, "#ffffff"); px(g, sx+1, sy, "#ffffff");
+    px(g, sx, sy+1, "#ffffff"); px(g, sx+1, sy+1, "#ffffff");
+  }
+}}
 
 export default function Play() {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
