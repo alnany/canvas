@@ -41,10 +41,13 @@ function rollSolPrize(): { mult: number; label: string } {
 }
 
 const PALETTE = [
-  "#ef4444","#f97316","#f59e0b","#84cc16",
-  "#22c55e","#06b6d4","#3b82f6","#6366f1",
-  "#8b5cf6","#ec4899","#f43f5e","#ffffff",
-  "#e2e8f0","#94a3b8","#475569","#1e293b",
+  // vivid
+  "#ef4444","#f97316","#f59e0b","#eab308","#84cc16","#22c55e","#10b981","#06b6d4",
+  "#3b82f6","#6366f1","#8b5cf6","#a855f7","#ec4899","#f43f5e","#be123c","#7f1d1d",
+  // pastel
+  "#fca5a5","#fed7aa","#fef08a","#bbf7d0","#bfdbfe","#ddd6fe","#fbcfe8","#e0f2fe",
+  // neutral
+  "#ffffff","#e2e8f0","#94a3b8","#64748b","#475569","#334155","#1e293b","#000000",
 ];
 
 type StrikeTier = "none"|"common"|"rare"|"legendary";
@@ -339,13 +342,22 @@ export default function Play() {
     let bucketFeed = 0;
     const pixelBetShare = bet.sol / bet.pixels;
 
-    // Place drawCount pixels in a cluster around (gx, gy)
-    const radius = Math.ceil(Math.sqrt(bet.pixels));
-    let placed2 = 0;
-    for (let dy = -radius; dy <= radius && placed2 < bet.pixels; dy++) {
-      for (let dx = -radius; dx <= radius && placed2 < bet.pixels; dx++) {
+    // Place bet.pixels pixels in a circle around (gx, gy)
+    const circleR = bet.pixels === 1 ? 0 : Math.ceil(Math.sqrt(bet.pixels / Math.PI)) + 1;
+    const circleCandidates: [number, number, number][] = [];
+    for (let dy = -circleR; dy <= circleR; dy++) {
+      for (let dx = -circleR; dx <= circleR; dx++) {
+        if (dx*dx + dy*dy > circleR*circleR) continue;
         const px = gx + dx, py = gy + dy;
         if (px < 0 || py < 0 || px >= GRID || py >= GRID) continue;
+        circleCandidates.push([dx*dx + dy*dy, px, py]);
+      }
+    }
+    circleCandidates.sort((a, b) => a[0] - b[0]);
+    const toPlace = circleCandidates.slice(0, bet.pixels);
+    let placed2 = 0;
+    for (const [, px, py] of toPlace) {
+      if (px < 0 || py < 0 || px >= GRID || py >= GRID) continue;
         const pidx = py * GRID + px;
         const prev = g[pidx];
         if (!prev || prev.owner !== WALLET) newOwned++;
@@ -371,8 +383,7 @@ export default function Play() {
         if (!bestPrize || prize.mult > bestPrize.mult) bestPrize = prize;
 
         if (dx === 0 && dy === 0) spawnAnim(px, py, color, tier);
-        placed2++;
-      }
+      placed2++;
     }
 
     // Batch state updates
@@ -585,7 +596,7 @@ export default function Play() {
             <div style={{
               fontSize:28,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",
-            }}>{Math.floor(bucket).toLocaleString()}</div>
+            }}>{String(Math.floor(bucket))}</div>
             <div style={{fontSize:10,color:"#78350f",marginTop:4}}>$CANVAS jackpot</div>
             <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
@@ -608,7 +619,7 @@ export default function Play() {
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
-            <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{Math.floor(balance).toLocaleString()}</div>
+            <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{String(Math.floor(balance))}</div>
             {owned > 0 && (
               <div style={{fontSize:10,color:"#6d28d9",marginTop:3}}>
                 +{(owned*HOLD_REWARD_RATE*60).toFixed(3)}/min hold
@@ -618,7 +629,7 @@ export default function Play() {
 
           {/* Bet Size */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>BET SIZE</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>BRUSH SIZE</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
                 const active = betIdx === i;
@@ -643,7 +654,7 @@ export default function Play() {
               })}
             </div>
             <div style={{marginTop:8,fontSize:10,color:"#334155",lineHeight:1.6}}>
-              Cost: <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
+              Bet: <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
               {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
             </div>
           </div>
@@ -669,7 +680,7 @@ export default function Play() {
                 <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
               </div>
               {!isHoldr && (
-                <div style={{fontSize:10,color:"#334155",marginTop:3}}>need {(10000-Math.floor(owned*12)).toLocaleString()} more $C</div>
+                <div style={{fontSize:10,color:"#334155",marginTop:3}}>need {String(10000-Math.floor(owned*12))} more $C</div>
               )}
             </div>
           </div>
@@ -709,7 +720,7 @@ export default function Play() {
                 animation:"bucketWinIn 5s ease-out forwards",
               }}>
                 <div style={{fontSize:10,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🪣 BUCKET HIT</div>
-                <div style={{fontSize:32,color:"#fbbf24",fontWeight:"bold"}}>+{bucketWin.toLocaleString()}</div>
+                <div style={{fontSize:32,color:"#fbbf24",fontWeight:"bold"}}>+{String(bucketWin)}</div>
                 <div style={{fontSize:10,color:"#92400e",marginTop:6}}>$CANVAS · 10% of jackpot</div>
               </div>
             </div>
@@ -837,12 +848,12 @@ export default function Play() {
           {/* Color picker */}
           <div>
             <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:4}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:2}}>
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{
-                  aspectRatio:"1",borderRadius:4,background:c,border:"none",cursor:"pointer",
+                  width:16,height:16,borderRadius:2,background:c,border:"none",cursor:"pointer",padding:0,
                   outline:color===c?"2px solid #ffffff":"2px solid transparent",
-                  outlineOffset:2,transition:"outline 0.1s",
+                  outlineOffset:1,transition:"outline 0.1s",
                 }}/>
               ))}
             </div>
