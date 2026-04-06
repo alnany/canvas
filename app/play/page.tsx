@@ -1097,31 +1097,28 @@ export default function Play() {
               </div>
             )}
 
-            {/* Transparent backdrop — click outside to close profile popup */}
+            {/* Transparent backdrop (fixed) — click outside to close profile popup */}
             {profilePopup && (
               <div
-                style={{position:"absolute",inset:0,zIndex:18,cursor:"default"}}
+                style={{position:"fixed",inset:0,zIndex:18,cursor:"default"}}
                 onClick={() => setProfilePopup(null)}
               />
             )}
 
-            {/* Profile popup (fires after 3s hover) */}
+            {/* Profile popup (fires after 3s hover, fixed to cursor) */}
             {profilePopup && (() => {
-              const canvasEl = canvasRef.current;
-              if (!canvasEl) return null;
-              const rect3 = canvasEl.getBoundingClientRect();
-              const px3 = profilePopup.canvasX * PX;
-              const py3 = profilePopup.canvasY * PX;
               const popW = 240;
-              const popH = 180;
-              const leftPos = px3 + popW + 20 > GRID * PX ? px3 - popW - 10 : px3 + 14;
-              const topPos  = Math.max(4, Math.min(py3 - 20, GRID * PX - popH - 4));
+              const popH = 200;
+              const vw = typeof window !== "undefined" ? window.innerWidth  : 1920;
+              const vh = typeof window !== "undefined" ? window.innerHeight : 1080;
+              const leftPos = profilePopup.x + popW + 24 > vw ? profilePopup.x - popW - 14 : profilePopup.x + 14;
+              const topPos  = Math.max(8, Math.min(profilePopup.y - 20, vh - popH - 8));
               const prof = PROFILES[profilePopup.owner] ?? null;
               const isYou = profilePopup.owner === WALLET;
               return (
                 <div
                   style={{
-                    position:"absolute", left:leftPos, top:topPos,
+                    position:"fixed", left:leftPos, top:topPos,
                     width:popW, background:"#0a0a18",
                     border:"1px solid #7c3aed", borderRadius:10,
                     padding:14, zIndex:20, pointerEvents:"auto",
