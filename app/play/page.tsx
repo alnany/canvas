@@ -1243,9 +1243,12 @@ export default function Play() {
             <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
             <div style={{fontSize:10,lineHeight:2,overflow:"hidden"}}>
               {log.slice(0,8).map((l,i) => {
-                const [dispText, coordStr] = l.split('|');
-                const hasCoords = coordStr && coordStr.includes(',');
-                const [lx, ly] = hasCoords ? coordStr.split(',').map(Number) : [-1,-1];
+                const logParts = l.split('|');
+                const dispText = logParts[0];
+                const coordStr = logParts.length > 1 ? logParts[1] : '';
+                const hasCoords = coordStr.includes(',');
+                const lx = hasCoords ? parseInt(coordStr.split(',')[0], 10) : -1;
+                const ly = hasCoords ? parseInt(coordStr.split(',')[1], 10) : -1;
                 return (
                 <div key={i}
                   onClick={() => {
