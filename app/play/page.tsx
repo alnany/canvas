@@ -401,10 +401,8 @@ export default function Play() {
       }
     }
 
-    if (bestTier !== "none") {
-      setStrike({ tier: bestTier, earn: bestEarn });
-      setTimeout(() => setStrike(null), 3000);
-    }
+    setStrike({ tier: bestTier, earn: bestEarn });
+    setTimeout(() => setStrike(null), bestTier !== "none" ? 3000 : 1500);
 
     setBucket(bk => {
       const newBk = bk + bucketFeed;
@@ -726,33 +724,64 @@ export default function Play() {
         <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
           {/* Vault jackpot popup */}
-          {bucketWin !== null && (
-            <div style={{
-              position:"absolute",top:"20%",left:"50%",
-              transform:"translate(-50%,0)",
-              zIndex:25,textAlign:"center",pointerEvents:"none",
-            }}>
-              <style>{`
-                @keyframes vaultCrackIn {
-                  0%   { opacity:0; transform:translate(-50%,20px) scale(0.6); }
-                  20%  { opacity:1; transform:translate(-50%,-10px) scale(1.15); }
-                  80%  { opacity:1; transform:translate(-50%,0) scale(1); }
-                  100% { opacity:0; transform:translate(-50%,-20px) scale(0.9); }
-                }
-              `}</style>
-              <div style={{
-                padding:"20px 40px",borderRadius:16,
-                background:"#1c0900",border:"3px solid #f59e0b",
-                boxShadow:"0 0 100px rgba(245,158,11,0.8)",
-                fontFamily:"'Press Start 2P',monospace",
-                animation:"vaultCrackIn 5s ease-out forwards",
-              }}>
-                <div style={{fontSize:10,color:"#f59e0b",marginBottom:8,letterSpacing:3}}>🏛️ VAULT CRACKED</div>
-                <div style={{fontSize:32,color:"#fbbf24",fontWeight:"bold"}}>+{String(bucketWin)}</div>
-                <div style={{fontSize:10,color:"#92400e",marginTop:6}}>$CANVAS · 10% of jackpot</div>
-              </div>
-            </div>
-          )}
+          {bucketWin !== null && (() => {
+            const TOKENS = ["🪙","💰","✨","⭐","💎","🌟","🔥","🎰","💸","🏆"];
+            const particles = Array.from({length:80}, (_,i) => {
+              const angle = (i/80)*Math.PI*2 + (i%3)*0.15;
+              const dist  = 180 + (i%5)*110;
+              return {
+                tx: Math.cos(angle)*dist, ty: Math.sin(angle)*dist,
+                rot: (i%2===0?1:-1)*(180+i*7),
+                delay: (i%8)*0.06,
+                dur: 1.0 + (i%5)*0.25,
+                size: 14 + (i%4)*8,
+                tok: TOKENS[i%TOKENS.length],
+              };
+            });
+            return (
+              <>
+                <style>{`
+                  @keyframes vaultFlash   { 0%{opacity:0} 8%{opacity:0.55} 100%{opacity:0} }
+                  @keyframes tokenFly     { 0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)} 100%{opacity:0;transform:translate(var(--vtx),var(--vty)) scale(0.2) rotate(var(--vrot))} }
+                  @keyframes vaultBoom    { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.2)} 12%{opacity:1;transform:translate(-50%,-50%) scale(1.25)} 20%{transform:translate(-50%,-50%) scale(0.95)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.85)} }
+                  @keyframes vaultShake   { 0%,100%{transform:none} 15%{transform:translate(-6px,4px)} 30%{transform:translate(6px,-4px)} 45%{transform:translate(-4px,3px)} 60%{transform:translate(4px,-3px)} 75%{transform:translate(-2px,2px)} }
+                `}</style>
+
+                {/* Screen flash */}
+                <div style={{position:"fixed",inset:0,zIndex:98,pointerEvents:"none",
+                  background:"radial-gradient(ellipse at center,rgba(245,158,11,0.55),transparent 70%)",
+                  animation:"vaultFlash 1.2s ease-out forwards"}} />
+
+                {/* Token particles */}
+                {particles.map((p,i) => (
+                  <div key={i} style={{
+                    position:"fixed",left:"50%",top:"50%",
+                    fontSize:p.size,pointerEvents:"none",zIndex:99,userSelect:"none",
+                    "--vtx":`${p.tx}px`,"--vty":`${p.ty}px`,"--vrot":`${p.rot}deg`,
+                    animation:`tokenFly ${p.dur}s ${p.delay}s cubic-bezier(0.1,0.8,0.3,1) forwards`,
+                  } as React.CSSProperties}>{p.tok}</div>
+                ))}
+
+                {/* Central popup */}
+                <div style={{position:"fixed",top:"50%",left:"50%",zIndex:100,
+                  pointerEvents:"none",textAlign:"center",
+                  animation:"vaultBoom 5s ease-out forwards, vaultShake 0.5s ease-out forwards"}}>
+                  <div style={{
+                    padding:"28px 52px",borderRadius:20,
+                    background:"linear-gradient(135deg,#1c0900,#2d1200)",
+                    border:"3px solid #f59e0b",
+                    boxShadow:"0 0 160px rgba(245,158,11,1),0 0 60px rgba(251,191,36,0.9),inset 0 0 40px rgba(245,158,11,0.15)",
+                    fontFamily:"'Press Start 2P',monospace",
+                  }}>
+                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4}}>🏛️ VAULT CRACKED</div>
+                    <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1,
+                      textShadow:"0 0 30px rgba(251,191,36,1),0 0 60px rgba(245,158,11,0.8)"}}>+{String(bucketWin)}</div>
+                    <div style={{fontSize:10,color:"#92400e",marginTop:8}}>$CANVAS · 10% of The Vault</div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {/* SOL Win popup */}
           {solWin !== null && solWin.mult >= 2 && (
@@ -783,8 +812,32 @@ export default function Play() {
             </div>
           )}
 
-          {/* Strike popup */}
+          {/* Earnings / Strike popup */}
           {strike && (() => {
+            if (strike.tier === "none") {
+              return (
+                <div style={{position:"absolute",top:"50%",left:"50%",
+                  transform:"translate(-50%,-60%)",zIndex:20,textAlign:"center",pointerEvents:"none"}}>
+                  <style>{`
+                    @keyframes earnIn {
+                      0%   { opacity:0; transform:translate(-50%,-70%) scale(0.8); }
+                      20%  { opacity:1; transform:translate(-50%,-60%) scale(1.05); }
+                      70%  { opacity:1; transform:translate(-50%,-55%) scale(1); }
+                      100% { opacity:0; transform:translate(-50%,-45%) scale(0.9); }
+                    }
+                  `}</style>
+                  <div style={{
+                    padding:"8px 18px",borderRadius:8,
+                    background:"rgba(15,15,22,0.9)",border:"1px solid #334155",
+                    fontFamily:"'Press Start 2P',monospace",
+                    animation:"earnIn 1.5s ease-out forwards",
+                  }}>
+                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:"bold"}}>+{strike.earn}</div>
+                    <div style={{fontSize:8,color:"#475569",marginTop:2}}>$CANVAS</div>
+                  </div>
+                </div>
+              );
+            }
             const sc = strikeStyle(strike.tier);
             return (
               <div style={{
