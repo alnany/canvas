@@ -40,10 +40,10 @@ function MiniCanvas() {
 }
 
 const STEPS = [
-  { emoji:"🎨", label:"Place a pixel",      desc:"Click any cell on the 1000x1000 grid. 5-min cooldown. Cut it with referrals or $CANVAS burns." },
-  { emoji:"💰", label:"Earn $CANVAS",       desc:"5 per placement + 0.5/hr per pixel you hold + provably-fair strike bonuses up to 200x." },
-  { emoji:"\ud83d\udee1\ufe0f", label:"Spend to dominate",  desc:"Burn $CANVAS to shield your pixels for 8 hours. Unshielded pixels are open to anyone." },
-  { emoji:"🔗", label:"Invite to accelerate",desc:"Each successful referral cuts your cooldown by 30s. Max \u22124 min, floor 1 min." },
+  { emoji:"🎮", label:"Pay SOL, claim pixels",  desc:"Choose your bet: 0.01 / 0.1 / 1 SOL for 1 / 10 / 100 pixels. Paint anywhere on the 1,000×1,000 grid. No cooldowns. No waiting." },
+  { emoji:"💰", label:"Earn $CANVAS + SOL",     desc:"5 $CANVAS per pixel + 0.5/hr hold reward per pixel you own. Every bet also rolls a provably-fair SOL prize (up to 10×) and a $CANVAS strike up to 200×." },
+  { emoji:"🏛️", label:"Crack The Vault",        desc:"Every bet has a 0.5% chance to win 10% of The Vault — a jackpot that starts at 9.2M $CANVAS and grows every second from ecosystem activity." },
+  { emoji:"💎", label:"Become a Holdr",         desc:"Hold 10,000+ $CANVAS to earn a share of every withdrawal tax in the game — passive income from all players, forever." },
 ];
 
 const TOKENOMICS = [
@@ -87,7 +87,7 @@ export default function Home() {
             Claim territory. Earn tokens. Survive the chaos.
           </p>
           <p style={{ fontSize:13, color:"#475569", marginBottom:32, maxWidth:420, lineHeight:1.7 }}>
-            1,000 x 1,000 grid. Real-time PVP. Fair launch.
+            1,000 × 1,000 grid. Real-time PVP. Every pixel has a price.
           </p>
           <div style={{ display:"flex", gap:12 }}>
             <Link href="/play" style={{
@@ -132,7 +132,7 @@ export default function Home() {
       <section style={{ maxWidth:1100, margin:"0 auto", padding:"0 32px 60px" }}>
         <div style={{ background:"#0d1117", border:"1px solid #0e3a4f", borderRadius:16, padding:32 }}>
           <div style={{ fontSize:11, color:"#22d3ee", letterSpacing:3, textTransform:"uppercase", marginBottom:8 }}>Bonus Strikes</div>
-          <p style={{ color:"#94a3b8", marginBottom:24, fontSize:13 }}>Every pixel placement is a provably-fair roll on Pyth Entropy.</p>
+          <p style={{ color:"#94a3b8", marginBottom:24, fontSize:13 }}>Every bet triggers a provably-fair $CANVAS strike roll on Pyth Entropy — on top of your SOL prize roll.</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
             {[
               { tier:"Common",   chance:"5%",   mult:"5x",  color:"#64748b", glow:"rgba(100,116,139,0.3)" },
@@ -188,9 +188,9 @@ export default function Home() {
             </p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
               {[
-                { label:"Active player (100 pixels)", val:"~5 days to Holdr" },
-                { label:"Casual player (50 pixels)",  val:"~11 days to Holdr" },
-                { label:"Withdrawal tax",             val:"10% to Holdrs" },
+                { label:"Own 100 pixels (hold rewards)", val:"~8 days to Holdr" },
+                { label:"Own 50 pixels (hold rewards)",  val:"~17 days to Holdr" },
+                { label:"Withdrawal tax",                val:"10% to Holdrs" },
               ].map(r => (
                 <div key={r.label} style={{ padding:"10px 14px", background:"rgba(124,58,237,0.1)", borderRadius:8 }}>
                   <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{r.label}</div>
