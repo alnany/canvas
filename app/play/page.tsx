@@ -522,7 +522,7 @@ export default function Play() {
       ? `+${netSOL.toFixed(4)} SOL net`
       : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
     const logMsg = bestTier !== "none"
-      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${px},${py}`
+      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`
       : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${px},${py}`;
     setLog(l => [logMsg, ...l.slice(0,11)]);
   },[betIdx, color, sol]);
