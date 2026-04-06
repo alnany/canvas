@@ -77,6 +77,70 @@ const BOTS = ["0x7a3…b9f","0xaf1…c32","0x99d…441","0xb82…71a","0x55e…f
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
 const WALLET = "YOU (Demo_7f4…a9c)";
 
+interface UserProfile {
+  displayName: string;
+  handle:      string;     // wallet short
+  avatar:      string;     // emoji
+  bio:         string;
+  xUrl?:       string;
+  homepage?:   string;
+  joinedSlot:  number;     // canvas pixels held (simulated)
+}
+
+const PROFILES: Record<string, UserProfile> = {
+  "0x7a3…b9f": {
+    displayName: "CryptoWalrus",
+    handle:      "0x7a3…b9f",
+    avatar:      "🦭",
+    bio:         "Full-time pixel artist on Solana. Founding member of Canvas.",
+    xUrl:        "https://x.com/cryptowalrus_sol",
+    homepage:    "https://walrus.art",
+    joinedSlot:  1240,
+  },
+  "0xaf1…c32": {
+    displayName: "SolMaxi88",
+    handle:      "0xaf1…c32",
+    avatar:      "⚡",
+    bio:         "SOL or nothing. Placing pixels since block 0.",
+    xUrl:        "https://x.com/solmaxi88",
+    joinedSlot:  874,
+  },
+  "0x99d…441": {
+    displayName: "PixelHunter",
+    handle:      "0x99d…441",
+    avatar:      "🎯",
+    bio:         "Hunting legendary strikes every day. 12× personal best.",
+    xUrl:        "https://x.com/pixelhunter_nft",
+    homepage:    "https://pixelhunter.xyz",
+    joinedSlot:  3601,
+  },
+  "0xb82…71a": {
+    displayName: "DogeFather",
+    handle:      "0xb82…71a",
+    avatar:      "🐕",
+    bio:         "Such pixel. Very CANVAS. Wow.",
+    xUrl:        "https://x.com/dogefather_sol",
+    joinedSlot:  511,
+  },
+  "0x55e…f90": {
+    displayName: "MoonBoi",
+    handle:      "0x55e…f90",
+    avatar:      "🌙",
+    bio:         "Staking pixels, stacking $CANVAS. LFG.",
+    xUrl:        "https://x.com/moonboi_sol",
+    homepage:    "https://moonboi.io",
+    joinedSlot:  2288,
+  },
+  "0xcc4…d18": {
+    displayName: "CZ_Army",
+    handle:      "0xcc4…d18",
+    avatar:      "🔶",
+    bio:         "BNB zone defender. Cross-chain pixel warrior.",
+    xUrl:        "https://x.com/czarmy_official",
+    joinedSlot:  999,
+  },
+};
+
 // ─── Pixel Art Seeding ────────────────────────────────────────────────────────
 
 function px(g: (PxData|null)[], x: number, y: number, color: string, owner = "art") {
@@ -268,6 +332,8 @@ export default function Play() {
   const [placed,    setPlaced]    = useState(0);
   const [strike,    setStrike]    = useState<{tier:StrikeTier;earn:number}|null>(null);
   const [hovered,   setHovered]   = useState<{x:number;y:number;d:PxData|null}|null>(null);
+  const [profilePopup, setProfilePopup] = useState<{x:number;y:number;owner:string;canvasX:number;canvasY:number}|null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const [log,       setLog]       = useState<string[]>(["[CANVAS] Click any pixel to place."]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -548,7 +614,19 @@ export default function Play() {
     const gx = Math.floor((e.clientX-rect2.left)/PX);
     const gy = Math.floor((e.clientY-rect2.top)/PX);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) { setHovered(null); return; }
-    setHovered({x:gx, y:gy, d:gridRef.current[gy*GRID+gx]});
+    const cell = gridRef.current[gy*GRID+gx];
+    setHovered({x:gx, y:gy, d:cell});
+    // Clear previous 3s timer on every move
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setProfilePopup(null);
+    // Only show profile popup for owned (non-art) pixels
+    if (cell && cell.owner !== "art") {
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      hoverTimerRef.current = setTimeout(() => {
+        setProfilePopup({ x: clientX, y: clientY, owner: cell.owner, canvasX: gx, canvasY: gy });
+      }, 3000);
+    }
   },[]);
 
 
@@ -908,7 +986,11 @@ export default function Play() {
               height={GRID*PX}
               onClick={handleClick}
               onMouseMove={handleMove}
-              onMouseLeave={() => setHovered(null)}
+              onMouseLeave={() => {
+                setHovered(null);
+                setProfilePopup(null);
+                if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+              }}
               style={{
                 cursor: "crosshair",
                 display:"block",
@@ -919,7 +1001,8 @@ export default function Play() {
               }}
             />
 
-            {hovered && (
+            {/* Coordinate mini-tooltip (always on hover) */}
+            {hovered && !profilePopup && (
               <div style={{
                 position:"absolute",
                 left: Math.min(hovered.x*PX+14, GRID*PX-170),
@@ -938,8 +1021,133 @@ export default function Play() {
                     background:hovered.d.color,borderRadius:2,verticalAlign:"middle",
                   }}/>
                 )}
+                {hovered.d && hovered.d.owner !== "art" && (
+                  <span style={{marginLeft:6,color:"#64748b",fontSize:9}}>hold 3s for profile</span>
+                )}
               </div>
             )}
+
+            {/* Profile popup (fires after 3s hover) */}
+            {profilePopup && (() => {
+              const canvasEl = canvasRef.current;
+              if (!canvasEl) return null;
+              const rect3 = canvasEl.getBoundingClientRect();
+              const px3 = profilePopup.canvasX * PX;
+              const py3 = profilePopup.canvasY * PX;
+              const popW = 240;
+              const popH = 180;
+              const leftPos = px3 + popW + 20 > GRID * PX ? px3 - popW - 10 : px3 + 14;
+              const topPos  = Math.max(4, Math.min(py3 - 20, GRID * PX - popH - 4));
+              const prof = PROFILES[profilePopup.owner] ?? null;
+              const isYou = profilePopup.owner === WALLET;
+              return (
+                <div
+                  style={{
+                    position:"absolute", left:leftPos, top:topPos,
+                    width:popW, background:"#0a0a18",
+                    border:"1px solid #7c3aed", borderRadius:10,
+                    padding:14, zIndex:20, pointerEvents:"auto",
+                    boxShadow:"0 0 24px rgba(124,58,237,0.5)",
+                    fontFamily:"inherit",
+                  }}
+                  onMouseEnter={() => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }}
+                  onMouseLeave={() => setProfilePopup(null)}
+                >
+                  {/* Close */}
+                  <div
+                    onClick={() => setProfilePopup(null)}
+                    style={{position:"absolute",top:8,right:10,cursor:"pointer",fontSize:12,color:"#64748b",lineHeight:1}}
+                  >x</div>
+
+                  {isYou ? (
+                    <div style={{textAlign:"center",paddingTop:8}}>
+                      <div style={{fontSize:28,marginBottom:6}}>🎮</div>
+                      <div style={{color:"#a78bfa",fontSize:11,fontWeight:"bold"}}>You</div>
+                      <div style={{color:"#64748b",fontSize:10,marginTop:4}}>This is your pixel</div>
+                      <div style={{color:"#475569",fontSize:9,marginTop:6}}>({profilePopup.canvasX}, {profilePopup.canvasY})</div>
+                    </div>
+                  ) : prof ? (
+                    <>
+                      {/* Avatar + name */}
+                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                        <div style={{
+                          width:40,height:40,borderRadius:"50%",
+                          background:"#1e1b4b",border:"2px solid #7c3aed",
+                          display:"flex",alignItems:"center",justifyContent:"center",
+                          fontSize:20,flexShrink:0,
+                        }}>{prof.avatar}</div>
+                        <div>
+                          <div style={{color:"#e2e8f0",fontSize:12,fontWeight:"bold"}}>{prof.displayName}</div>
+                          <div style={{color:"#64748b",fontSize:9,marginTop:2}}>{prof.handle}</div>
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      <div style={{color:"#94a3b8",fontSize:10,lineHeight:1.5,marginBottom:10,wordBreak:"break-word"}}>
+                        {prof.bio}
+                      </div>
+
+                      {/* Stats */}
+                      <div style={{display:"flex",gap:12,marginBottom:10}}>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#a78bfa",fontSize:11,fontWeight:"bold"}}>{prof.joinedSlot}</div>
+                          <div style={{color:"#475569",fontSize:9}}>pixels</div>
+                        </div>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#22d3ee",fontSize:11,fontWeight:"bold"}}>
+                            ({profilePopup.canvasX},{profilePopup.canvasY})
+                          </div>
+                          <div style={{color:"#475569",fontSize:9}}>this pixel</div>
+                        </div>
+                      </div>
+
+                      {/* Links */}
+                      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                        {prof.xUrl && (
+                          <a
+                            href={prof.xUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display:"inline-flex",alignItems:"center",gap:4,
+                              background:"#18181b",border:"1px solid #3f3f46",
+                              borderRadius:6,padding:"4px 8px",
+                              color:"#e2e8f0",fontSize:10,textDecoration:"none",
+                            }}
+                          >
+                            <span style={{fontSize:12}}>𝕏</span> Twitter
+                          </a>
+                        )}
+                        {prof.homepage && (
+                          <a
+                            href={prof.homepage}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display:"inline-flex",alignItems:"center",gap:4,
+                              background:"#18181b",border:"1px solid #3f3f46",
+                              borderRadius:6,padding:"4px 8px",
+                              color:"#a78bfa",fontSize:10,textDecoration:"none",
+                            }}
+                          >
+                            🔗 Site
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    /* Unknown wallet */
+                    <div style={{textAlign:"center",paddingTop:8}}>
+                      <div style={{fontSize:28,marginBottom:6}}>👤</div>
+                      <div style={{color:"#94a3b8",fontSize:11}}>{profilePopup.owner}</div>
+                      <div style={{color:"#475569",fontSize:9,marginTop:6}}>
+                        ({profilePopup.canvasX}, {profilePopup.canvasY}) · no public profile
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
