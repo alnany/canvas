@@ -40,16 +40,16 @@ function MiniCanvas() {
 }
 
 const STEPS = [
-  { emoji:"🎨", label:"Place a pixel",      desc:"Click any cell on the 1000\u00d71000 grid. 5-min cooldown. Cut it with referrals or $CANVAS burns." },
-  { emoji:"💰", label:"Earn $CANVAS",       desc:"5 per placement + 0.5/hr per pixel you hold + provably-fair strike bonuses up to 200\u00d7." },
+  { emoji:"🎨", label:"Place a pixel",      desc:"Click any cell on the 1000x1000 grid. 5-min cooldown. Cut it with referrals or $CANVAS burns." },
+  { emoji:"💰", label:"Earn $CANVAS",       desc:"5 per placement + 0.5/hr per pixel you hold + provably-fair strike bonuses up to 200x." },
   { emoji:"\ud83d\udee1\ufe0f", label:"Spend to dominate",  desc:"Burn $CANVAS to shield your pixels for 8 hours. Unshielded pixels are open to anyone." },
   { emoji:"🔗", label:"Invite to accelerate",desc:"Each successful referral cuts your cooldown by 30s. Max \u22124 min, floor 1 min." },
 ];
 
 const TOKENOMICS = [
-  { label:"Gameplay Emissions", pct:75, color:"#a855f7", sub:"7.5B \u2014 placement rewards, hold rewards, strikes" },
-  { label:"Raydium LP (burned)", pct:15, color:"#22d3ee", sub:"1.5B \u2014 paired with SOL, LP tokens burned" },
-  { label:"DAO Reserve",        pct:10, color:"#f59e0b", sub:"1B \u2014 community events, prizes, bounties" },
+  { label:"Gameplay Emissions", pct:75, color:"#a855f7", sub:"7.5B - placement rewards, hold rewards, strikes" },
+  { label:"Raydium LP (burned)", pct:15, color:"#22d3ee", sub:"1.5B - paired with SOL, LP tokens burned" },
+  { label:"DAO Reserve",        pct:10, color:"#f59e0b", sub:"1B - community events, prizes, bounties" },
 ];
 
 export default function Home() {
@@ -68,7 +68,7 @@ export default function Home() {
           <a href="#mechanics" style={{ color:"#94a3b8", textDecoration:"none" }}>Mechanics</a>
           <a href="#tokenomics" style={{ color:"#94a3b8", textDecoration:"none" }}>Tokenomics</a>
           <Link href="/play" style={{ padding:"8px 20px", background:"#7c3aed", color:"#fff", borderRadius:6, textDecoration:"none", fontWeight:"bold", fontSize:13 }}>
-            \u25b6 Play Demo
+            Play Demo
           </Link>
         </div>
       </nav>
@@ -87,7 +87,7 @@ export default function Home() {
             Claim territory. Earn tokens. Survive the chaos.
           </p>
           <p style={{ fontSize:13, color:"#475569", marginBottom:32, maxWidth:420, lineHeight:1.7 }}>
-            1,000 \u00d7 1,000 grid. Real-time PVP. Fair launch \u2014 0% team, 0% VC.
+            1,000 x 1,000 grid. Real-time PVP. Fair launch - 0% team, 0% VC.
             Inspired by r/place. Built for crypto.
           </p>
           <div style={{ display:"flex", gap:12 }}>
@@ -95,11 +95,11 @@ export default function Home() {
               padding:"14px 28px", background:"linear-gradient(135deg,#7c3aed,#a855f7)",
               color:"#fff", borderRadius:8, textDecoration:"none", fontWeight:"bold", fontSize:14,
               boxShadow:"0 0 24px rgba(168,85,247,0.45)"
-            }}>\u25b6 Try the Demo</Link>
+            }}>Try the Demo</Link>
             <a href="#mechanics" style={{
               padding:"14px 28px", border:"1px solid #4c1d95",
               color:"#a855f7", borderRadius:8, textDecoration:"none", fontSize:14
-            }}>How it works \u2192</a>
+            }}>How it works</a>
           </div>
           <div style={{ marginTop:24, fontSize:12, color:"#475569", display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ width:8, height:8, background:"#22c55e", borderRadius:"50%", display:"inline-block", animation:"pulse 2s infinite" }} />
@@ -136,9 +136,9 @@ export default function Home() {
           <p style={{ color:"#94a3b8", marginBottom:24, fontSize:13 }}>Every pixel placement is a provably-fair roll on Pyth Entropy.</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
             {[
-              { tier:"Common",   chance:"5%",   mult:"5\u00d7",  color:"#64748b", glow:"rgba(100,116,139,0.3)" },
-              { tier:"Rare",     chance:"1%",   mult:"25\u00d7", color:"#22d3ee", glow:"rgba(34,211,238,0.3)" },
-              { tier:"Legendary",chance:"0.1%", mult:"200\u00d7",color:"#f59e0b", glow:"rgba(245,158,11,0.5)" },
+              { tier:"Common",   chance:"5%",   mult:"5x",  color:"#64748b", glow:"rgba(100,116,139,0.3)" },
+              { tier:"Rare",     chance:"1%",   mult:"25x", color:"#22d3ee", glow:"rgba(34,211,238,0.3)" },
+              { tier:"Legendary",chance:"0.1%", mult:"200x",color:"#f59e0b", glow:"rgba(245,158,11,0.5)" },
             ].map(t => (
               <div key={t.tier} style={{ padding:20, borderRadius:12, textAlign:"center",
                 border:`1px solid ${t.color}50`, boxShadow:`0 0 16px ${t.glow}` }}>
@@ -149,7 +149,7 @@ export default function Home() {
             ))}
           </div>
           <p style={{ fontSize:11, color:"#475569", marginTop:16 }}>
-            Expected multiplier across all placements: ~1.64\u00d7 \u2014 on-chain verifiable, no admin key.
+            Expected multiplier across all placements: ~1.64x - on-chain verifiable, no admin key.
           </p>
         </div>
       </section>
@@ -158,7 +158,7 @@ export default function Home() {
       <section id="tokenomics" style={{ maxWidth:1100, margin:"0 auto", padding:"0 32px 60px" }}>
         <div style={{ textAlign:"center", marginBottom:48 }}>
           <div style={{ fontSize:11, color:"#a855f7", letterSpacing:3, textTransform:"uppercase", marginBottom:8 }}>Tokenomics</div>
-          <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:18 }}>$CANVAS \u2014 10B Supply</div>
+          <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:18 }}>$CANVAS - 10B Supply</div>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:16 }}>
           {TOKENOMICS.map(t => (
@@ -184,14 +184,14 @@ export default function Home() {
           <div>
             <h3 style={{ color:"#c084fc", fontWeight:"bold", fontSize:18, marginBottom:8 }}>Holdr Class</h3>
             <p style={{ color:"#cbd5e1", fontSize:13, lineHeight:1.7, marginBottom:16, maxWidth:600 }}>
-              Hold \u226510,000 $CANVAS in your in-game balance to qualify. Every time anyone withdraws,
-              10% is taxed and redistributed to Holdrs \u2014 weighted by how much above 10K you hold.
+              Hold 10,000+ $CANVAS in your in-game balance to qualify. Every time anyone withdraws,
+              10% is taxed and redistributed to Holdrs, weighted by how much above 10K you hold.
             </p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
               {[
                 { label:"Active player (100 pixels)", val:"~5 days to Holdr" },
                 { label:"Casual player (50 pixels)",  val:"~11 days to Holdr" },
-                { label:"Withdrawal tax",             val:"10% \u2192 Holdrs" },
+                { label:"Withdrawal tax",             val:"10% to Holdrs" },
               ].map(r => (
                 <div key={r.label} style={{ padding:"10px 14px", background:"rgba(124,58,237,0.1)", borderRadius:8 }}>
                   <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{r.label}</div>
@@ -208,18 +208,18 @@ export default function Home() {
         <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:"clamp(18px,3vw,28px)", marginBottom:16 }}>
           Ready to claim your territory?
         </div>
-        <p style={{ color:"#475569", fontSize:13, marginBottom:28 }}>The demo runs in your browser \u2014 no wallet needed.</p>
+        <p style={{ color:"#475569", fontSize:13, marginBottom:28 }}>The demo runs in your browser - no wallet needed.</p>
         <Link href="/play" style={{
           display:"inline-block", padding:"16px 48px", fontFamily:"'Press Start 2P',monospace", fontSize:12,
           background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", borderRadius:10,
           textDecoration:"none", boxShadow:"0 0 48px rgba(168,85,247,0.55)"
-        }}>\u25b6 PLAY NOW</Link>
+        }}>PLAY NOW</Link>
       </section>
 
       {/* FOOTER */}
       <footer style={{ borderTop:"1px solid #1e1e3f", padding:"24px 32px", textAlign:"center", fontSize:11, color:"#475569" }}>
         <span style={{ fontFamily:"'Press Start 2P',monospace", fontSize:10 }}>CANVAS</span>
-        {" "} Built on Solana  /  Fair launch  /  Demo only \u2014 not financial advice
+        {" "} Built on Solana  /  Fair launch  /  Demo only - not financial advice
       </footer>
     </div>
   );
