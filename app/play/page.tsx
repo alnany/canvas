@@ -769,6 +769,31 @@ export default function Play() {
       </div>
 
 
+      {/* ── MOBILE STATS STRIP (hidden on desktop) ──────────────────────── */}
+      {isMobile && (
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 12px",borderBottom:"1px solid #1e1e3f",background:"#070710",flexShrink:0}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>PLAYERS</span>
+            <span style={{fontSize:9.5,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
+          </div>
+          <div style={{width:1,height:20,background:"#1e1e3f"}}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>PIXELS</span>
+            <span style={{fontSize:9.5,color:"#22d3ee",fontWeight:"bold"}}>{fmtCompact(pixelsTotal)}</span>
+          </div>
+          <div style={{width:1,height:20,background:"#1e1e3f"}}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>SOL EARNED</span>
+            <span style={{fontSize:9.5,color:"#a3e635",fontWeight:"bold"}}>{fmtCompact(Math.floor(solEarned))}</span>
+          </div>
+          <div style={{width:1,height:20,background:"#1e1e3f"}}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>$CANVAS MINED</span>
+            <span style={{fontSize:9.5,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
+          </div>
+        </div>
+      )}
+
       {/* ── MOBILE CONTROLS STRIP (hidden on desktop) ─────────────────── */}
       {isMobile && (
         <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 10px",borderBottom:"1px solid #1e1e3f",flexShrink:0,background:"#070710"}}>
@@ -792,11 +817,14 @@ export default function Play() {
           })}
           <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:9,color:"#94a3b8"}}>{sol.toFixed(3)} SOL</span>
-            <span style={{fontSize:9,color:"#7c3aed"}}>{Math.floor(balance)} $C</span>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:0}}>
+              <span style={{fontSize:7.5,color:"#6d28d9",letterSpacing:0.5}}>$CANVAS</span>
+              <span style={{fontSize:10,color:"#a855f7",fontWeight:"bold",letterSpacing:0.5}}>{Math.floor(balance).toLocaleString()}</span>
+            </div>
           </div>
         </div>
       )}
-      <div style={{display:"flex",height:isMobile?"calc(100vh - 326px)":"calc(100vh - 46px)"}}>
+      <div style={{display:"flex",height:isMobile?"calc(100vh - 352px)":"calc(100vh - 46px)"}}>
         {/* LEFT PANEL */}
         <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
           {/* ── THE VAULT (jackpot) ─────────────────────────────────────── */}
