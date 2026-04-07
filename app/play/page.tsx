@@ -834,7 +834,7 @@ export default function Play() {
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>USDT</span>
+            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>WINNINGS</span>
             <span style={{fontSize:11,color:"#a3e635",fontWeight:"bold"}}>${fmtCompact(Math.floor(usdtEarned))}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
