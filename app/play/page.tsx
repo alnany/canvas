@@ -366,6 +366,16 @@ export default function Play() {
   const [log,       setLog]       = useState<string[]>(["[CANVAS] Click any pixel to place."]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [isMobile,  setIsMobile]  = useState(false);
+  const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'log'>('color');
+
+  // Mobile detection
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const draw = useCallback(() => {
     const c = canvasRef.current; if(!c) return;
@@ -497,7 +507,7 @@ export default function Play() {
   const holdrProgress = Math.min(100, (owned * 12 / 10000) * 100);
 
   return (
-    <div style={{background:"#070710",minHeight:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
+    <div style={{background:"#070710",height:"100vh",overflow:"hidden",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
@@ -522,9 +532,9 @@ export default function Play() {
         </div>
       </div>
 
-      <div style={{display:"flex",height:"calc(100vh - 46px)"}}>
+      <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"calc(100vh - 46px)",overflow:"hidden"}}>
         {/* LEFT PANEL */}
-        <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
+        <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
             <div style={{fontSize:9,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
@@ -614,8 +624,50 @@ export default function Play() {
           </div>
         </div>
 
+        {/* MOBILE CONTROLS STRIP */}
+        {isMobile && (
+          <div style={{flexShrink:0,borderBottom:"1px solid #1e1e3f",padding:"8px 10px",background:"#070710",display:"flex",gap:8,alignItems:"center"}}>
+            {/* Color swatch */}
+            <div style={{width:32,height:32,borderRadius:6,background:color,border:"2px solid #4c1d95",flexShrink:0,boxShadow:"0 0 8px rgba(168,85,247,0.4)"}}
+              onClick={() => (document.getElementById('m-color-pick') as HTMLInputElement)?.click()}/>
+            <input id="m-color-pick" type="color" value={color} onChange={e => setColor(e.target.value)}
+              style={{position:"absolute",opacity:0,pointerEvents:"none"}}/>
+            {/* Cooldown / balance */}
+            <div style={{flex:1,lineHeight:1.6}}>
+              <div style={{fontSize:10,color:"#a855f7",fontWeight:"bold"}}>{Math.floor(balance).toLocaleString()} $CANVAS</div>
+              {cooldown > 0
+                ? <div style={{fontSize:10,color:"#f59e0b"}}>⏳ {cooldown}s cooldown</div>
+                : <div style={{fontSize:10,color:"#22c55e"}}>✓ Ready to place</div>
+              }
+            </div>
+            {/* Shield button compact */}
+            {owned > 0 && (() => {
+              const shieldCost = owned * 5;
+              const canShield = !shield && !shieldT && balance >= shieldCost;
+              return (
+                <button onClick={() => {
+                  if (!canShield) return;
+                  const sc = owned * 5;
+                  setBalance(b => b - sc);
+                  setShield(true);
+                  setShieldT(COOLDOWN_SEC * 3);
+                  setLog(l => [`[SHIELD] Active for ${COOLDOWN_SEC*3}s`, ...l.slice(0,11)]);
+                }} style={{
+                  padding:"5px 8px",borderRadius:5,fontSize:9,fontFamily:"inherit",cursor:canShield?"pointer":"default",
+                  background:shield?"#1a0a2e":canShield?"#2d1b69":"#0a0a14",
+                  color:shield?"#a855f7":canShield?"#c4b5fd":"#334155",
+                  border:`1px solid ${shield?"#7c3aed":canShield?"#4c1d95":"#1e1e3f"}`,
+                  flexShrink:0,
+                }}>
+                  {shield ? "🛡️ ON" : "🛡️"}
+                </button>
+              );
+            })()}
+          </div>
+        )}
+
         {/* CANVAS CENTER */}
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+        <div style={{flex:1,minHeight:0,display:"flex",alignItems:"flex-start",justifyContent:"flex-start",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
           {/* Strike popup */}
           {strike && (() => {
@@ -701,8 +753,149 @@ export default function Play() {
           </div>
         </div>
 
+        {/* MOBILE BOTTOM TABS */}
+        {isMobile && (
+          <div style={{height:240,flexShrink:0,borderTop:"1px solid #1e1e3f",background:"#070710",display:"flex",flexDirection:"column"}}>
+            {/* Tab nav */}
+            <div style={{display:"flex",flexShrink:0,borderBottom:"1px solid #1e1e3f"}}>
+              {([
+                {id:"color", label:"🎨 Color"},
+                {id:"game",  label:"⚡ Game"},
+                {id:"stats", label:"👥 Stats"},
+                {id:"log",   label:"📋 Log"},
+              ] as {id:'color'|'game'|'stats'|'log';label:string}[]).map(t => (
+                <button key={t.id} onClick={() => setMobileTab(t.id)} style={{
+                  flex:1,padding:"7px 2px",fontSize:9,fontFamily:"inherit",
+                  background:mobileTab===t.id?"#12121a":"transparent",
+                  color:mobileTab===t.id?"#a855f7":"#475569",
+                  border:"none",
+                  borderBottom:mobileTab===t.id?"2px solid #a855f7":"2px solid transparent",
+                  cursor:"pointer",
+                }}>{t.label}</button>
+              ))}
+            </div>
+            {/* Tab content */}
+            <div style={{flex:1,overflowY:"auto",padding:"8px 10px"}}>
+
+              {mobileTab === "color" && (
+                <div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:4,marginBottom:10}}>
+                    {PALETTE.map(c => (
+                      <button key={c} onClick={() => setColor(c)} style={{
+                        aspectRatio:"1",borderRadius:3,background:c,border:"none",cursor:"pointer",padding:0,
+                        outline:color===c?"2px solid #fff":"2px solid transparent",outlineOffset:1,
+                      }}/>
+                    ))}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,fontSize:10}}>
+                    <div style={{width:20,height:20,borderRadius:4,background:color,border:"1px solid #2d1b69",flexShrink:0}}/>
+                    <span style={{color:"#475569"}}>{color}</span>
+                    <label style={{marginLeft:"auto",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+                      <span style={{fontSize:9,color:"#64748b"}}>Custom</span>
+                      <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{width:22,height:22,borderRadius:3,border:"none",cursor:"pointer",padding:0}}/>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {mobileTab === "game" && (() => {
+                const shieldCost = owned * 5;
+                const canShield = !shield && !shieldT && balance >= shieldCost;
+                return (
+                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                    <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px"}}>
+                      <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>STATUS</div>
+                      <div style={{fontSize:12,color:"#a855f7",fontWeight:"bold",marginBottom:4}}>{Math.floor(balance).toLocaleString()} $CANVAS</div>
+                      {owned > 0 && <div style={{fontSize:9,color:"#6d28d9"}}>+{(owned*HOLD_REWARD_RATE*60).toFixed(3)}/min hold</div>}
+                      {cooldown > 0
+                        ? <div style={{marginTop:6,fontSize:10,color:"#f59e0b"}}>⏳ {cooldown}s cooldown</div>
+                        : <div style={{marginTop:6,fontSize:10,color:"#22c55e"}}>✓ Ready to place</div>
+                      }
+                      <div style={{marginTop:6,fontSize:9,color:"#475569"}}>Pixels owned: <span style={{color:"#22d3ee"}}>{owned}</span> · Placed: <span style={{color:"#22d3ee"}}>{placed}</span></div>
+                    </div>
+                    {owned > 0 && (
+                      <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px"}}>
+                        <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>SHIELD</div>
+                        <div style={{fontSize:9,color:"#334155",marginBottom:6,lineHeight:1.6}}>
+                          Cost: {owned * 5} $CANVAS · Protects for {COOLDOWN_SEC*3}s
+                          {isHoldr && " · 50% discount (Holdr)"}
+                        </div>
+                        <button onClick={() => {
+                          if (!canShield) return;
+                          setBalance(b => b - shieldCost);
+                          setShield(true);
+                          setShieldT(COOLDOWN_SEC * 3);
+                          setLog(l => [`[SHIELD] Active for ${COOLDOWN_SEC*3}s`, ...l.slice(0,11)]);
+                        }} style={{
+                          width:"100%",padding:"8px",borderRadius:6,fontSize:10,fontFamily:"inherit",
+                          background:shield?"linear-gradient(135deg,#2d1b69,#4c1d95)":canShield?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
+                          color:shield?"#a855f7":canShield?"#c4b5fd":"#334155",
+                          border:`1px solid ${shield?"#7c3aed":canShield?"#4c1d95":"#1e1e3f"}`,
+                          cursor:canShield?"pointer":"default",
+                        }}>
+                          {shield ? "🛡️ Shield Active" : owned===0 ? "Place pixels first" : balance<shieldCost ? `Need ${(shieldCost-balance).toFixed(0)} more` : "🛡️ Activate Shield"}
+                        </button>
+                      </div>
+                    )}
+                    <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:"8px 10px"}}>
+                      <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>STRIKE ODDS</div>
+                      {[
+                        {tier:"Common",  chance:"5%",   mult:"5×",   color:"#64748b"},
+                        {tier:"Rare",    chance:"1%",   mult:"25×",  color:"#22d3ee"},
+                        {tier:"Legendary",chance:"0.1%",mult:"200×", color:"#f59e0b"},
+                      ].map(s => (
+                        <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10}}>
+                          <span style={{color:s.color}}>{s.tier}</span>
+                          <span style={{color:"#334155"}}>{s.chance}</span>
+                          <span style={{color:s.color,fontWeight:"bold"}}>{s.mult}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {mobileTab === "stats" && (
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px"}}>
+                    <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>TOP PLAYERS</div>
+                    {[
+                      {addr:"0xaf1…c32", px:1284, isYou:false},
+                      {addr:"0x7a3…b9f", px:963,  isYou:false},
+                      {addr:WALLET,      px:owned, isYou:true},
+                      {addr:"0x99d…441", px:312,  isYou:false},
+                      {addr:"0xb82…71a", px:148,  isYou:false},
+                    ].sort((a,b)=>b.px-a.px).slice(0,5).map((p,i) => (
+                      <div key={p.addr} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10,color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569"}}>
+                        <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:160}}>{i+1}. {p.addr}</span>
+                        <span style={{flexShrink:0,marginLeft:4}}>{p.px}px</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px",fontSize:10}}>
+                    <div style={{color:"#64748b",marginBottom:6,fontSize:9,letterSpacing:1}}>HOLDR STATUS</div>
+                    <div style={{height:4,background:"#12121a",borderRadius:2,marginBottom:4}}>
+                      <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.5s"}}/>
+                    </div>
+                    <div style={{fontSize:9,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}% — need ${Math.max(0,Math.ceil((10000/12)-owned))} more px`}</div>
+                  </div>
+                </div>
+              )}
+
+              {mobileTab === "log" && (
+                <div style={{fontSize:10,lineHeight:2}}>
+                  {log.slice(0,12).map((l,i) => (
+                    <div key={i} style={{color:i===0?"#a855f7":"#334155",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l}</div>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
         {/* RIGHT PANEL */}
-        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
+        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
           {/* Color picker */}
           <div>
             <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
