@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { Lang, getLang, t } from '../i18n/translations';
 import LangSwitcher from '../components/LangSwitcher';
+import { CanvasLogo } from '../components/CanvasLogo';
 
 const GRID = 1000;
 const PX   = 1;
@@ -724,7 +725,7 @@ export default function Play() {
     <div style={{background:"#070710",height:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
-        <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
+        <Link href="/" style={{textDecoration:"none"}}><CanvasLogo size="sm" backArrow /></Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           {/* $CANVAS price → dexscreener */}
           <a

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Lang, getLang, t } from './i18n/translations';
 import LangSwitcher from './components/LangSwitcher';
+import { CanvasLogo } from './components/CanvasLogo';
 
 const PALETTE = [
   "#ef4444","#f97316","#f59e0b","#22c55e",
@@ -73,7 +74,7 @@ export default function Home() {
     <div style={{ background:"#0a0a0f", color:"#e2e8f0", fontFamily:"'Share Tech Mono','Courier New',monospace", minHeight:"100vh" }}>
       {/* NAV */}
       <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 32px", borderBottom:"1px solid #1e1e3f" }}>
-        <span style={{ color:"#a855f7", fontFamily:"'Press Start 2P',monospace", fontSize:13, letterSpacing:2 }}>CANVAS</span>
+        <CanvasLogo size="sm" />
         <div style={{ display:"flex", gap:16, alignItems:"center", fontSize:13 }}>
           <a href="#mechanics" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_mechanics')}</a>
           <a href="#tokenomics" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_tokenomics')}</a>
@@ -90,9 +91,9 @@ export default function Home() {
           <div style={{ fontSize:11, color:"#22d3ee", marginBottom:12, letterSpacing:3, textTransform:"uppercase" }}>
             {T('hero_tag')}
           </div>
-          <h1 style={{ fontFamily:"'Press Start 2P',monospace", fontSize:"clamp(32px,5vw,60px)", color:"#a855f7", margin:"0 0 16px", lineHeight:1.3 }}>
-            CANVAS
-          </h1>
+          <div style={{ marginBottom: 20 }}>
+            <CanvasLogo size="lg" />
+          </div>
           <p style={{ fontSize:18, color:"#cbd5e1", marginBottom:8, maxWidth:480, lineHeight:1.6 }}>
             <span style={{ color:"#a855f7" }}>{T('hero_sub1')}</span><br />
             {T('hero_sub2')}
@@ -225,7 +226,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={{ borderTop:"1px solid #1e1e3f", padding:"24px 32px", textAlign:"center", fontSize:11, color:"#475569" }}>
-        <span style={{ fontFamily:"'Press Start 2P',monospace", fontSize:10 }}>CANVAS</span>
+        <CanvasLogo size="sm" />
         {" · "}{T('footer_built')}
       </footer>
     </div>
