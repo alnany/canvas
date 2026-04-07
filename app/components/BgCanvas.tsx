@@ -10,9 +10,10 @@ interface BgCanvasProps {
   opacity?: number;
   /** Speed multiplier: 1 = default, <1 = slower */
   speedScale?: number;
+  zIndex?: number;
 }
 
-export function BgCanvas({ opacity = 0.15, speedScale = 1 }: BgCanvasProps) {
+export function BgCanvas({ opacity = 0.15, speedScale = 1, zIndex = 0 }: BgCanvasProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const cv = ref.current; if (!cv) return;
@@ -69,5 +70,5 @@ export function BgCanvas({ opacity = 0.15, speedScale = 1 }: BgCanvasProps) {
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, [speedScale]);
 
-  return <canvas ref={ref} style={{ position:"fixed", top:0, left:0, width:"100%", height:"100%", zIndex:0, opacity, pointerEvents:"none" }} />;
+  return <canvas ref={ref} style={{ position:"fixed", top:0, left:0, width:"100%", height:"100%", zIndex, opacity, pointerEvents:"none" }} />;
 }
