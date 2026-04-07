@@ -155,6 +155,28 @@ export const translations = {
 
     // Holdr progress
     holdr_check:        '✓ HOLDR',
+    // Vault panel
+    vault_title:        '🏛️ THE VAULT',
+    vault_odds:         '0.5% chance per pixel',
+    vault_win:          'Win 10% of The Vault',
+
+    // Vault popup
+    vault_cracked:      '🏛️ VAULT CRACKED',
+    vault_subtitle:     '$CANVAS · 10% of The Vault',
+
+    // SOL win popup
+    sol_win_label:      '◎ SOL WIN',
+    sol_returned:       'SOL returned to wallet',
+
+    // Earnings popup (no strike)
+    earn_token:         '$CANVAS',
+
+    // Strike popup
+    strike_label:       '{tier} STRIKE',
+    strike_base:        '{mult}× base · $CANVAS',
+
+    // Log
+    log_vault:          '[🏛️ VAULT HIT] You won {n} $CANVAS from The Vault!',
   },
 
   zh: {
@@ -272,6 +294,28 @@ export const translations = {
     hover_empty:        '空白 — 点击占领',
     hover_your:         '你的像素',
     holdr_check:        '✓ HOLDR',
+    // Vault panel
+    vault_title:        '🏛️ 金库',
+    vault_odds:         '每像素 0.5% 概率',
+    vault_win:          '赢取金库 10%',
+
+    // Vault popup
+    vault_cracked:      '🏛️ 金库爆破',
+    vault_subtitle:     '$CANVAS · 金库的 10%',
+
+    // SOL win popup
+    sol_win_label:      '◎ SOL 大奖',
+    sol_returned:       'SOL 已返还钱包',
+
+    // Earnings popup (no strike)
+    earn_token:         '$CANVAS',
+
+    // Strike popup
+    strike_label:       '{tier} 连击',
+    strike_base:        '{mult}× 倍率 · $CANVAS',
+
+    // Log
+    log_vault:          '[🏛️ 金库爆破] 您从金库赢得 {n} $CANVAS！',
   },
 
   ko: {
@@ -389,6 +433,28 @@ export const translations = {
     hover_empty:        '빈 칸 — 클릭하여 점령',
     hover_your:         '내 픽셀',
     holdr_check:        '✓ HOLDR',
+    // Vault panel
+    vault_title:        '🏛️ 금고',
+    vault_odds:         '픽셀당 0.5% 확률',
+    vault_win:          '금고의 10% 획득',
+
+    // Vault popup
+    vault_cracked:      '🏛️ 금고 파괴',
+    vault_subtitle:     '$CANVAS · 금고의 10%',
+
+    // SOL win popup
+    sol_win_label:      '◎ SOL 당첨',
+    sol_returned:       'SOL이 지갑으로 반환됨',
+
+    // Earnings popup (no strike)
+    earn_token:         '$CANVAS',
+
+    // Strike popup
+    strike_label:       '{tier} 스트라이크',
+    strike_base:        '{mult}× 배수 · $CANVAS',
+
+    // Log
+    log_vault:          '[🏛️ 금고 파괴] 금고에서 {n} $CANVAS를 획득했습니다!',
   },
 
   ja: {
@@ -506,6 +572,28 @@ export const translations = {
     hover_empty:        '空白 — クリックして占領',
     hover_your:         'あなたのピクセル',
     holdr_check:        '✓ HOLDR',
+    // Vault panel
+    vault_title:        '🏛️ ヴォールト',
+    vault_odds:         'ピクセルごとに0.5%の確率',
+    vault_win:          'ヴォールトの10%を獲得',
+
+    // Vault popup
+    vault_cracked:      '🏛️ ヴォールト解放',
+    vault_subtitle:     '$CANVAS · ヴォールトの10%',
+
+    // SOL win popup
+    sol_win_label:      '◎ SOL 当選',
+    sol_returned:       'SOLがウォレットに返還されました',
+
+    // Earnings popup (no strike)
+    earn_token:         '$CANVAS',
+
+    // Strike popup
+    strike_label:       '{tier} ストライク',
+    strike_base:        '{mult}× 倍率 · $CANVAS',
+
+    // Log
+    log_vault:          '[🏛️ ヴォールト解放] ヴォールトから {n} $CANVAS を獲得しました！',
   },
 
   ru: {
@@ -623,6 +711,28 @@ export const translations = {
     hover_empty:        'пусто — кликни для захвата',
     hover_your:         'ВАШ ПИКСЕЛЬ',
     holdr_check:        '✓ HOLDR',
+    // Vault panel
+    vault_title:        '🏛️ ХРАНИЛИЩЕ',
+    vault_odds:         '0.5% шанс за пиксель',
+    vault_win:          'Выиграй 10% Хранилища',
+
+    // Vault popup
+    vault_cracked:      '🏛️ ХРАНИЛИЩЕ ВЗЛОМАНО',
+    vault_subtitle:     '$CANVAS · 10% Хранилища',
+
+    // SOL win popup
+    sol_win_label:      '◎ SOL ВЫИГРЫШ',
+    sol_returned:       'SOL возвращён в кошелёк',
+
+    // Earnings popup (no strike)
+    earn_token:         '$CANVAS',
+
+    // Strike popup
+    strike_label:       '{tier} УДАР',
+    strike_base:        '{mult}× множитель · $CANVAS',
+
+    // Log
+    log_vault:          '[🏛️ ХРАНИЛИЩЕ] Вы выиграли {n} $CANVAS из Хранилища!',
   },
 
   id: {
@@ -740,6 +850,28 @@ export const translations = {
     hover_empty:        'kosong — klik untuk klaim',
     hover_your:         'PIKSEL KAMU',
     holdr_check:        '✓ HOLDR',
+    // Vault panel
+    vault_title:        '🏛️ VAULT',
+    vault_odds:         '0,5% peluang per piksel',
+    vault_win:          'Menangkan 10% Vault',
+
+    // Vault popup
+    vault_cracked:      '🏛️ VAULT JEBOL',
+    vault_subtitle:     '$CANVAS · 10% dari Vault',
+
+    // SOL win popup
+    sol_win_label:      '◎ SOL MENANG',
+    sol_returned:       'SOL dikembalikan ke dompet',
+
+    // Earnings popup (no strike)
+    earn_token:         '$CANVAS',
+
+    // Strike popup
+    strike_label:       '{tier} STRIKE',
+    strike_base:        '{mult}× lipat · $CANVAS',
+
+    // Log
+    log_vault:          '[🏛️ VAULT JEBOL] Anda memenangkan {n} $CANVAS dari Vault!',
   },
 } as const;
 

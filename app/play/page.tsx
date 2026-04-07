@@ -548,7 +548,7 @@ export default function Play() {
         const jackpot = Math.floor(newBk * BUCKET_WIN_PCT);
         setBucketWin(jackpot);
         setTimeout(() => setBucketWin(null), 5000);
-        setLog(l => [`[🏛️ VAULT HIT] You won ${jackpot} $CANVAS from The Vault!`, ...l.slice(0,11)]);
+        setLog(l => [T('log_vault', {n: String(jackpot)}), ...l.slice(0,11)]);
         setBalance(b => b + jackpot);
         return newBk - jackpot;
       }
@@ -873,7 +873,7 @@ export default function Play() {
                 100% { transform:scale(1); }
               }
             `}</style>
-            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>🏛️ THE VAULT</div>
+            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>{T('vault_title')}</div>
             <div style={{
               fontSize:14,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",letterSpacing:0,wordBreak:"break-all",
@@ -882,7 +882,7 @@ export default function Play() {
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
             </div>
             <div style={{fontSize:10,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
-              0.5% chance per pixel<br/>Win 10% of The Vault
+              {T('vault_odds')}<br/>{T('vault_win')}
             </div>
           </div>
 
@@ -1080,10 +1080,10 @@ export default function Play() {
                     boxShadow:"0 0 160px rgba(245,158,11,1),0 0 60px rgba(251,191,36,0.9),inset 0 0 40px rgba(245,158,11,0.15)",
                     fontFamily:"'Press Start 2P',monospace",
                   }}>
-                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4}}>🏛️ VAULT CRACKED</div>
+                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4}}>{T('vault_cracked')}</div>
                     <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1,
                       textShadow:"0 0 30px rgba(251,191,36,1),0 0 60px rgba(245,158,11,0.8)"}}>+{String(bucketWin)}</div>
-                    <div style={{fontSize:10,color:"#92400e",marginTop:8}}>$CANVAS · 10% of The Vault</div>
+                    <div style={{fontSize:10,color:"#92400e",marginTop:8}}>{T('vault_subtitle')}</div>
                   </div>
                 </div>
               </>
@@ -1112,9 +1112,9 @@ export default function Play() {
                 fontFamily:"'Press Start 2P',monospace",
                 animation:"solWinIn 2.5s ease-out forwards",
               }}>
-                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2}}>◎ SOL WIN {solWin.label}</div>
+                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2}}>{T('sol_win_label')} {solWin.label}</div>
                 <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold"}}>+{solWin.amount.toFixed(4)}</div>
-                <div style={{fontSize:10,color:"#166534",marginTop:4}}>SOL returned to wallet</div>
+                <div style={{fontSize:10,color:"#166534",marginTop:4}}>{T('sol_returned')}</div>
               </div>
             </div>
           )}
@@ -1140,7 +1140,7 @@ export default function Play() {
                     animation:"earnIn 1.5s ease-out forwards",
                   }}>
                     <div style={{fontSize:12,color:"#94a3b8",fontWeight:"bold"}}>+{strike.earn}</div>
-                    <div style={{fontSize:8,color:"#475569",marginTop:2}}>$CANVAS</div>
+                    <div style={{fontSize:8,color:"#475569",marginTop:2}}>{T('earn_token')}</div>
                   </div>
                 </div>
               );
@@ -1168,10 +1168,10 @@ export default function Play() {
                   animation:"strikeIn 3s ease-out forwards",
                 }}>
                   <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2}}>
-                    {strike.tier.toUpperCase()} STRIKE
+                    {T('strike_label', {tier: strike.tier.toUpperCase()})}
                   </div>
                   <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold"}}>+{strike.earn}</div>
-                  <div style={{fontSize:10,color:sc.text,marginTop:4}}>{strikeBonus(strike.tier)}× base · $CANVAS</div>
+                  <div style={{fontSize:10,color:sc.text,marginTop:4}}>{T('strike_base', {mult: String(strikeBonus(strike.tier))})}</div>
                 </div>
               </div>
             );
@@ -1542,9 +1542,9 @@ export default function Play() {
             {mobileTab==="game" && (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 <div style={{background:"#0a0718",border:"1px solid #4c1d95",borderRadius:8,padding:10}}>
-                  <div style={{fontSize:9,color:"#7c3aed",letterSpacing:1,marginBottom:4}}>🏛️ THE VAULT</div>
+                  <div style={{fontSize:9,color:"#7c3aed",letterSpacing:1,marginBottom:4}}>{T('vault_title')}</div>
                   <div style={{fontSize:16,color:"#a855f7",fontWeight:"bold",letterSpacing:1}}>{bucket.toLocaleString()}</div>
-                  <div style={{fontSize:9,color:"#6d28d9",marginTop:2}}>$CANVAS jackpot · 0.5% hit → 10% win</div>
+                  <div style={{fontSize:9,color:"#6d28d9",marginTop:2}}>{T('vault_odds')} · {T('vault_win')}</div>
                 </div>
                 <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
                   <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>{T('strike_odds')}</div>
