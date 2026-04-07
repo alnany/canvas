@@ -16,8 +16,8 @@ const SPECTRUM = [
   { ch: "S", color: "#a855f7", glow: "rgba(168,85,247,0.75)" },
 ];
 
-const FONT_SIZE: Record<Size, number> = { sm: 10, md: 13, lg: 17, hero: 30 };
-const LETTER_GAP: Record<Size, number> = { sm: 2, md: 2, lg: 3, hero: 5 };
+const FONT_SIZE: Record<Size, number> = { sm: 20, md: 26, lg: 34, hero: 60 };
+const LETTER_GAP: Record<Size, number> = { sm: 4, md: 4, lg: 6, hero: 10 };
 
 interface CanvasLogoProps {
   size?: Size;

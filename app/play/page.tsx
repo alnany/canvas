@@ -725,7 +725,7 @@ export default function Play() {
     <div style={{background:"#070710",height:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
-        <Link href="/" style={{textDecoration:"none"}}><CanvasLogo size="sm" backArrow /></Link>
+        <Link href="/" style={{textDecoration:"none"}}><CanvasLogo size="sm" /></Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           {/* $CANVAS price → dexscreener */}
           <a
