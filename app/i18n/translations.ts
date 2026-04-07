@@ -28,14 +28,14 @@ export const translations = {
     // Nav
     nav_mechanics:      'Mechanics',
     nav_tokenomics:     'Tokenomics',
-    nav_play_demo:      '▶ Play Now',
+    nav_play_demo:      'Play Now',
 
     // Hero
     hero_tag:           'Fair Launch · Solana · 10B $CANVAS',
     hero_sub1:          'A pixel war game on Solana.',
     hero_sub2:          'Claim territory. Earn tokens. Survive the chaos.',
     hero_desc:          '1,000 × 1,000 grid. Real-time PVP. Fair launch — 0% team, 0% VC. Inspired by r/place. Built for crypto.',
-    hero_cta_play:      '▶ Play Now',
+    hero_cta_play:      'Play Now',
     hero_cta_how:       'How it works →',
     hero_pixels_placed: 'pixels placed in demo',
 
@@ -182,13 +182,13 @@ export const translations = {
   zh: {
     nav_mechanics:      '玩法',
     nav_tokenomics:     '代币经济',
-    nav_play_demo:      '▶ Play Now',
+    nav_play_demo:      'Play Now',
 
     hero_tag:           '公平发射 · Solana · 100亿 $CANVAS',
     hero_sub1:          '一款基于 Solana 的像素战争游戏。',
     hero_sub2:          '占领领土，赚取代币，在混战中生存。',
     hero_desc:          '1000×1000 网格。实时 PVP。公平发射 — 零团队/零 VC 份额。灵感来自 r/place，为加密玩家打造。',
-    hero_cta_play:      '▶ Play Now',
+    hero_cta_play:      'Play Now',
     hero_cta_how:       '如何玩 →',
     hero_pixels_placed: '演示中已放置的像素',
 
@@ -321,13 +321,13 @@ export const translations = {
   ko: {
     nav_mechanics:      '게임 방식',
     nav_tokenomics:     '토크노믹스',
-    nav_play_demo:      '▶ Play Now',
+    nav_play_demo:      'Play Now',
 
     hero_tag:           '공정 출시 · Solana · 100억 $CANVAS',
     hero_sub1:          'Solana 기반 픽셀 전쟁 게임.',
     hero_sub2:          '영역을 점령하고, 토큰을 획득하고, 혼란 속에서 살아남으세요.',
     hero_desc:          '1,000×1,000 그리드. 실시간 PVP. 공정 출시 — 팀/VC 배정 0%. r/place에서 영감받아 크립토를 위해 제작.',
-    hero_cta_play:      '▶ Play Now',
+    hero_cta_play:      'Play Now',
     hero_cta_how:       '게임 방법 →',
     hero_pixels_placed: '데모에서 배치된 픽셀',
 
@@ -460,13 +460,13 @@ export const translations = {
   ja: {
     nav_mechanics:      'ゲームの仕組み',
     nav_tokenomics:     'トークノミクス',
-    nav_play_demo:      '▶ Play Now',
+    nav_play_demo:      'Play Now',
 
     hero_tag:           'フェアローンチ · Solana · 100億 $CANVAS',
     hero_sub1:          'Solana上のピクセル戦争ゲーム。',
     hero_sub2:          '領土を占領し、トークンを獲得し、混沌の中で生き残れ。',
     hero_desc:          '1,000×1,000グリッド。リアルタイムPVP。フェアローンチ — チーム/VC配分0%。r/placeにインスパイアされ、クリプト向けに構築。',
-    hero_cta_play:      '▶ Play Now',
+    hero_cta_play:      'Play Now',
     hero_cta_how:       '遊び方 →',
     hero_pixels_placed: 'デモで配置されたピクセル数',
 
@@ -599,13 +599,13 @@ export const translations = {
   ru: {
     nav_mechanics:      'Механика',
     nav_tokenomics:     'Токеномика',
-    nav_play_demo:      '▶ Play Now',
+    nav_play_demo:      'Play Now',
 
     hero_tag:           'Честный запуск · Solana · 10 млрд $CANVAS',
     hero_sub1:          'Пиксельная война на Solana.',
     hero_sub2:          'Захватывай территории. Зарабатывай токены. Выживи в хаосе.',
     hero_desc:          'Сетка 1000×1000. PVP в реальном времени. Честный запуск — 0% команде, 0% VC. Вдохновлено r/place. Создано для крипты.',
-    hero_cta_play:      '▶ Play Now',
+    hero_cta_play:      'Play Now',
     hero_cta_how:       'Как играть →',
     hero_pixels_placed: 'пикселей размещено в демо',
 
@@ -738,13 +738,13 @@ export const translations = {
   id: {
     nav_mechanics:      'Mekanisme',
     nav_tokenomics:     'Tokenomik',
-    nav_play_demo:      '▶ Play Now',
+    nav_play_demo:      'Play Now',
 
     hero_tag:           'Fair Launch · Solana · 10 M $CANVAS',
     hero_sub1:          'Game perang piksel di Solana.',
     hero_sub2:          'Klaim wilayah. Kumpulkan token. Bertahan dalam kekacauan.',
     hero_desc:          'Grid 1.000×1.000. PVP real-time. Fair launch — 0% tim, 0% VC. Terinspirasi r/place. Dibangun untuk kripto.',
-    hero_cta_play:      '▶ Play Now',
+    hero_cta_play:      'Play Now',
     hero_cta_how:       'Cara bermain →',
     hero_pixels_placed: 'piksel sudah ditempatkan di demo',
 
