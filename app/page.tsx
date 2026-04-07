@@ -175,7 +175,7 @@ export default function Home() {
           <div className="lp-nav-links" style={{ fontSize:16 }}>
             <LangSwitcher lang={lang} onChange={setLang_} />
             <Link href="/play" style={{ padding:"8px 20px", background:"#7c3aed", color:"#fff", borderRadius:6, textDecoration:"none", fontWeight:"bold", fontSize:16, display:"inline-flex", alignItems:"center", gap:6 }}>
-              <span style={{fontSize:"0.72em", lineHeight:1, marginTop:1}}>▶</span><span>{T('nav_play_demo')}</span>
+              <span style={{fontSize:"0.72em", lineHeight:1, marginTop:1}}>▶</span><span style={{position:"relative",top:3}}>{T('nav_play_demo')}</span>
             </Link>
           </div>
         </nav>
@@ -201,7 +201,7 @@ export default function Home() {
                 padding:"14px 28px", background:"linear-gradient(135deg,#7c3aed,#a855f7)",
                 color:"#fff", borderRadius:8, textDecoration:"none", fontWeight:"bold", fontSize:17,
                 boxShadow:"0 0 24px rgba(168,85,247,0.45)", display:"inline-flex", alignItems:"center", gap:8
-              }}><span style={{fontSize:"0.72em", lineHeight:1, marginTop:1}}>▶</span><span>{T('hero_cta_play')}</span></Link>
+              }}><span style={{fontSize:"0.72em", lineHeight:1, marginTop:1}}>▶</span><span style={{position:"relative",top:3}}>{T('hero_cta_play')}</span></Link>
               <a href="#mechanics" style={{
                 padding:"14px 28px", border:"1px solid #4c1d95",
                 color:"#a855f7", borderRadius:8, textDecoration:"none", fontSize:14
