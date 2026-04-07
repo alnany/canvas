@@ -673,10 +673,18 @@ export default function Play() {
   };
 
   const isHoldr = owned * 12 >= 10000;
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'log'>('color');
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const holdrProgress = Math.min(100, (owned * 12 / 10000) * 100);
 
   return (
-    <div style={{background:"#070710",minHeight:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
+    <div style={{background:"#070710",height:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
@@ -692,7 +700,7 @@ export default function Play() {
             <span style={{fontSize:8,color:"#4c1d95"}}>↗</span>
           </a>
           {/* Global stats — inline next to price */}
-          <div style={{display:"flex",alignItems:"center",gap:10,borderLeft:"1px solid #1e1e3f",paddingLeft:12}}>
+          <div style={{display:isMobile?"none":"flex",alignItems:"center",gap:10,borderLeft:"1px solid #1e1e3f",paddingLeft:12}}>
             <div style={{display:"flex",alignItems:"center",gap:4}}>
               <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PLAYERS</span>
               <span style={{fontSize:10,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
@@ -717,7 +725,7 @@ export default function Play() {
             </div>
           </div>
           {/* Social links */}
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{display:isMobile?"none":"flex",alignItems:"center",gap:12}}>
             <a href="https://x.com/canvas_game" target="_blank" rel="noopener noreferrer" title="X / Twitter"
                style={{color:"#94a3b8",display:"flex",alignItems:"center",transition:"color 0.15s"}}
                onMouseEnter={e=>(e.currentTarget.style.color="#e2e8f0")}
@@ -760,9 +768,37 @@ export default function Play() {
         </div>
       </div>
 
-      <div style={{display:"flex",height:"calc(100vh - 46px)"}}>
+
+      {/* ── MOBILE CONTROLS STRIP (hidden on desktop) ─────────────────── */}
+      {isMobile && (
+        <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 10px",borderBottom:"1px solid #1e1e3f",flexShrink:0,background:"#070710"}}>
+          {/* Color swatch — tap to open native color picker */}
+          <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Color">
+            <div style={{width:22,height:22,borderRadius:4,background:color,border:"2px solid #4c1d95",boxSizing:"border-box"}}/>
+            <input type="color" value={color} onChange={e=>setColor(e.target.value)}
+              style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}} />
+          </label>
+          {/* Bet tier buttons */}
+          {BET_TIERS.map((bet,i) => {
+            const active = betIdx === i;
+            return (
+              <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
+                padding:"4px 7px",borderRadius:4,fontSize:9,cursor:"pointer",
+                border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
+                background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
+                color:active?"#a855f7":"#475569",letterSpacing:0.5
+              }}>{bet.sol} SOL</button>
+            );
+          })}
+          <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:9,color:"#94a3b8"}}>{sol.toFixed(3)} SOL</span>
+            <span style={{fontSize:9,color:"#7c3aed"}}>{Math.floor(balance)} $C</span>
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex",height:isMobile?"calc(100vh - 326px)":"calc(100vh - 46px)"}}>
         {/* LEFT PANEL */}
-        <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
+        <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
           {/* ── THE VAULT (jackpot) ─────────────────────────────────────── */}
           <div style={{
             background:"linear-gradient(135deg,#1c0900,#120800)",
@@ -883,7 +919,7 @@ export default function Play() {
         </div>
 
         {/* CANVAS CENTER */}
-        <div ref={canvasWrapRef} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+        <div ref={canvasWrapRef} style={{flex:1,display:"flex",alignItems:isMobile?"flex-start":"center",justifyContent:isMobile?"flex-start":"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
           {/* Vault jackpot popup */}
           {bucketWin !== null && (() => {
@@ -1222,7 +1258,7 @@ export default function Play() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
+        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
           {/* Color picker */}
           <div>
             <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
@@ -1336,6 +1372,154 @@ export default function Play() {
           </div>
         </div>
       </div>
+
+      {/* ── MOBILE BOTTOM TABS (hidden on desktop) ────────────────────── */}
+      {isMobile && (
+        <div style={{height:240,flexShrink:0,borderTop:"1px solid #1e1e3f",background:"#070710",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          {/* Tab bar */}
+          <div style={{display:"flex",borderBottom:"1px solid #1e1e3f",flexShrink:0}}>
+            {(["color","game","stats","log"] as const).map(tab => {
+              const labels:{[k:string]:string} = {color:"🎨 Color",game:"⚡ Game",stats:"👥 Stats",log:"📋 Log"};
+              return (
+                <button key={tab} onClick={()=>setMobileTab(tab)} style={{
+                  flex:1,padding:"7px 0",border:"none",background:"transparent",
+                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:9,cursor:"pointer",
+                  borderBottom:mobileTab===tab?"2px solid #7c3aed":"2px solid transparent",
+                  letterSpacing:0.5
+                }}>{labels[tab]}</button>
+              );
+            })}
+          </div>
+          {/* Tab content */}
+          <div style={{flex:1,overflow:"auto",padding:10}}>
+            {/* ── COLOR TAB ── */}
+            {mobileTab==="color" && (
+              <div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:3,marginBottom:8}}>
+                  {PALETTE.map(c => (
+                    <button key={c} onClick={()=>setColor(c)} style={{
+                      width:22,height:22,borderRadius:3,background:c,border:"none",cursor:"pointer",padding:0,
+                      outline:color===c?"2px solid #fff":"2px solid transparent",outlineOffset:1
+                    }}/>
+                  ))}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <label style={{position:"relative",cursor:"pointer",flexShrink:0}}>
+                    <div style={{width:26,height:26,borderRadius:4,background:"conic-gradient(red,yellow,lime,cyan,blue,magenta,red)",border:!PALETTE.includes(color)?"2px solid #fff":"2px solid #334155"}}/>
+                    <input type="color" value={color} onChange={e=>setColor(e.target.value)}
+                      style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}}/>
+                  </label>
+                  <div style={{width:16,height:16,borderRadius:3,background:color,border:"1px solid #2d1b69"}}/>
+                  <span style={{color:"#475569",fontSize:10}}>{color}</span>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  {BET_TIERS.map((bet,i) => {
+                    const active = betIdx === i;
+                    return (
+                      <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
+                        display:"flex",justifyContent:"space-between",alignItems:"center",
+                        padding:"6px 10px",borderRadius:6,border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
+                        background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",cursor:"pointer"
+                      }}>
+                        <span style={{fontSize:10,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>{bet.sol} SOL</span>
+                        <span style={{fontSize:10,color:active?"#7c3aed":"#334155",background:"#12121a",padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>{bet.pixels}px</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {/* ── GAME TAB ── */}
+            {mobileTab==="game" && (
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{background:"#0a0718",border:"1px solid #4c1d95",borderRadius:8,padding:10}}>
+                  <div style={{fontSize:9,color:"#7c3aed",letterSpacing:1,marginBottom:4}}>🏛️ THE VAULT</div>
+                  <div style={{fontSize:16,color:"#a855f7",fontWeight:"bold",letterSpacing:1}}>{bucket.toLocaleString()}</div>
+                  <div style={{fontSize:9,color:"#6d28d9",marginTop:2}}>$CANVAS jackpot · 0.5% hit → 10% win</div>
+                </div>
+                <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
+                  <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>STRIKE ODDS</div>
+                  {[
+                    {tier:"Common",  chance:"5%",  mult:"5×",  col:"#64748b"},
+                    {tier:"Rare",    chance:"1%",  mult:"25×", col:"#22d3ee"},
+                    {tier:"Legendary",chance:"0.1%",mult:"200×",col:"#f59e0b"},
+                  ].map(s => (
+                    <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10}}>
+                      <span style={{color:s.col}}>{s.tier}</span>
+                      <span style={{color:"#334155"}}>{s.chance}</span>
+                      <span style={{color:s.col,fontWeight:"bold"}}>{s.mult}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{fontSize:9,color:"#475569",lineHeight:1.8}}>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><span>Balance</span><span style={{color:"#94a3b8"}}>{Math.floor(balance)} $CANVAS</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><span>Pixels owned</span><span style={{color:"#94a3b8"}}>{owned}</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><span>Holdr</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span></div>
+                </div>
+              </div>
+            )}
+            {/* ── STATS TAB ── */}
+            {mobileTab==="stats" && (
+              <div>
+                <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>TOP PLAYERS</div>
+                {[
+                  {addr:"0xaf1…c32",px:1284,earn:24680,isYou:false},
+                  {addr:"0x7a3…b9f",px:963, earn:18420,isYou:false},
+                  {addr:WALLET,     px:owned,earn:Math.floor(balance),isYou:true},
+                  {addr:"0x99d…441",px:312, earn:6180, isYou:false},
+                  {addr:"0xb82…71a",px:148, earn:2860, isYou:false},
+                ]
+                .sort((a,b)=>b.px-a.px).slice(0,5)
+                .map((p,i) => (
+                  <div key={p.addr}
+                    onClick={e=>setProfilePopup({x:e.clientX,y:e.clientY,owner:p.addr,canvasX:0,canvasY:0})}
+                    style={{display:"flex",justifyContent:"space-between",marginBottom:6,fontSize:10,
+                      color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",cursor:"pointer",
+                      borderRadius:4,padding:"2px 4px",margin:"-2px -4px 4px",transition:"background 0.15s"}}
+                    onMouseEnter={e=>(e.currentTarget.style.background="rgba(168,85,247,0.08)")}
+                    onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
+                    <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:130}}>
+                      {i+1}. {p.addr}
+                    </span>
+                    <span style={{flexShrink:0,marginLeft:4}}>{p.px}px</span>
+                  </div>
+                ))}
+                <div style={{marginTop:8,background:"#0d0d1a",borderRadius:6,padding:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:9,color:"#64748b",letterSpacing:1}}><span>HOLDR PROGRESS</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓":""+Math.floor(holdrProgress)+"%"}</span></div>
+                  <div style={{width:"100%",height:4,background:"#1e1e3f",borderRadius:2,overflow:"hidden"}}>
+                    <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* ── LOG TAB ── */}
+            {mobileTab==="log" && (
+              <div style={{fontSize:10,lineHeight:2}}>
+                {log.slice(0,10).map((l,i) => {
+                  const logParts = l.split('|');
+                  const dispText = logParts[0];
+                  const coordStr = logParts.length > 1 ? logParts[1] : '';
+                  const hasCoords = coordStr.includes(',');
+                  const lx = hasCoords ? parseInt(coordStr.split(',')[0],10) : -1;
+                  const ly = hasCoords ? parseInt(coordStr.split(',')[1],10) : -1;
+                  return (
+                    <div key={i}
+                      onClick={()=>{
+                        if (!hasCoords) return;
+                        spawnAnim(lx,ly,'#a855f7','rare');
+                        canvasWrapRef.current?.scrollTo({left:Math.max(0,lx-150),top:Math.max(0,ly-150),behavior:'smooth'});
+                      }}
+                      style={{color:i===0?"#a855f7":hasCoords?"#4a3060":"#334155",cursor:hasCoords?"pointer":"default",
+                        whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}
+                      title={hasCoords?"Tap to highlight pixel":undefined}>{dispText}</div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
