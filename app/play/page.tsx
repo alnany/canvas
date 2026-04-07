@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import { Lang, getLang, t } from '../i18n/translations';
+import LangSwitcher from '../components/LangSwitcher';
 
 const GRID = 1000;
 const PX   = 1;
@@ -354,6 +356,13 @@ export default function Play() {
   const gridRef     = useRef<(PxData|null)[]>(Array(GRID*GRID).fill(null));
   const ownedRef    = useRef(0);
 
+  const [lang,      setLang_]     = useState<Lang>('en');
+
+  const T = useCallback((key: Parameters<typeof t>[1], vars?: Parameters<typeof t>[2]) =>
+    t(lang, key, vars), [lang]);
+
+  useEffect(() => { setLang_(getLang()); }, []);
+
   const [color,     setColor]     = useState(PALETTE[6]);
   const [balance,   setBalance]   = useState(0);
   const [owned,     setOwned]     = useState(0);
@@ -363,7 +372,7 @@ export default function Play() {
   const [profilePopup, setProfilePopup] = useState<{x:number;y:number;owner:string;canvasX:number;canvasY:number}|null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
-  const [log,       setLog]       = useState<string[]>(["[CANVAS] Click any pixel to place."]);
+  const [log,       setLog]       = useState<string[]>([T('log_welcome')]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [topUpOpen,  setTopUpOpen]  = useState(false);
@@ -454,7 +463,7 @@ export default function Play() {
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const bet = BET_TIERS[betIdx];
     if (sol < bet.sol) {
-      setLog(l => [`[BROKE] Need ${bet.sol} SOL  —  top up wallet`, ...l.slice(0,11)]);
+      setLog(l => [T('log_broke', {n: bet.sol}), ...l.slice(0,11)]);
       return;
     }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
@@ -551,8 +560,8 @@ export default function Play() {
       ? `+${netSOL.toFixed(4)} SOL net`
       : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
     const logMsg = bestTier !== "none"
-      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`
-      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`;
+      ? T('log_strike',{tier:bestTier.toUpperCase(),n:totalEarn,x:gx,y:gy})
+      : T('log_place',{x:gx,y:gy,n:totalEarn});
     setLog(l => [logMsg, ...l.slice(0,11)]);
   },[betIdx, color, sol]);
 
@@ -677,7 +686,7 @@ export default function Play() {
     setTopUpOpen(false);
     setTopUpFlash(true);
     setTimeout(() => setTopUpFlash(false), 1200);
-    setLog(l => [`[TOP UP] +${label} · demo purchase`, ...l.slice(0,11)]);
+    setLog(l => [T('log_topup', {label}), ...l.slice(0,11)]);
   };
 
   const handleConnect = () => {
@@ -685,7 +694,7 @@ export default function Play() {
     setTimeout(() => {
       setConnecting(false);
       setWalletConnected(true);
-      setLog(l => ["[WALLET] Demo_7f4…a9c connected · 0 SOL", ...l.slice(0,11)]);
+      setLog(l => [T('log_wallet'), ...l.slice(0,11)]);
     }, 1200);
   };
 
@@ -779,9 +788,10 @@ export default function Play() {
               background:connecting?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#a855f7)",
               color:"#fff",border:"none",
             }}>
-              {connecting ? "Connecting…" : "🔗 Connect Wallet"}
+              {connecting ? T('play_connecting') : T('play_connect')}
             </button>
           )}
+          <LangSwitcher lang={lang} onChange={setLang_} />
         </div>
       </div>
 
@@ -885,10 +895,10 @@ export default function Play() {
             transition:"border-color 0.4s,box-shadow 0.4s",
           }}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-              <div style={{fontSize:10,color:"#166534",letterSpacing:1}}>◎ SOL BALANCE</div>
+              <div style={{fontSize:10,color:"#166534",letterSpacing:1}}>{T('sol_balance')}</div>
               {sol < 0.5 && !topUpOpen && (
                 <div style={{fontSize:8,color:"#ef4444",letterSpacing:1,animation:"pulse 1.5s infinite"}}>
-                  LOW
+                  {T('sol_low')}
                   <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
                 </div>
               )}
@@ -909,7 +919,7 @@ export default function Play() {
               border:`1px solid ${topUpOpen?"#1e2e1e":"#166534"}`,
               cursor:"pointer",
             }}>
-              {topUpOpen ? "▲ CLOSE" : "＋ ADD SOL"}
+              {topUpOpen ? T('close') : T('add_sol')}
             </button>
 
             {topUpOpen && (
@@ -925,7 +935,7 @@ export default function Play() {
                     }}>
                     {pack.popular && (
                       <span style={{position:"absolute",top:-7,right:6,fontSize:7,background:"#166534",color:"#bbf7d0",padding:"1px 5px",borderRadius:3,letterSpacing:1}}>
-                        POPULAR
+                        {T('pack_popular')}
                       </span>
                     )}
                     <span style={{color:"#22c55e",fontWeight:"bold"}}>{pack.label}</span>
@@ -933,7 +943,7 @@ export default function Play() {
                   </button>
                 ))}
                 <div style={{fontSize:8,color:"#14532d",textAlign:"center",marginTop:2}}>
-                  demo only · simulated purchase
+                  {T('top_up_demo')}
                 </div>
               </div>
             )}
@@ -941,18 +951,18 @@ export default function Play() {
 
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:4,letterSpacing:1}}>{T('canvas_balance')}</div>
             <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{String(Math.floor(balance))}</div>
             {owned > 0 && (
               <div style={{fontSize:10,color:"#6d28d9",marginTop:3}}>
-                +{(owned*HOLD_REWARD_RATE*60).toFixed(3)}/min hold
+                +{(owned*HOLD_REWARD_RATE*60).toFixed(3)}{T('per_min_hold')}
               </div>
             )}
           </div>
 
           {/* Brush Size */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>BRUSH SIZE</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('brush_size')}</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
                 const active = betIdx === i;
@@ -984,10 +994,10 @@ export default function Play() {
 
           {/* Stats */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:12,fontSize:11}}>
-            <div style={{color:"#64748b",marginBottom:8,fontSize:10,letterSpacing:1}}>YOUR STATS</div>
+            <div style={{color:"#64748b",marginBottom:8,fontSize:10,letterSpacing:1}}>{T('your_stats')}</div>
             {([
-              ["Pixels owned", owned],
-              ["Total placed", placed],
+              [T('pixels_owned'), owned],
+              [T('total_placed'), placed],
             ] as [string,number][]).map(([k,v]) => (
               <div key={k} style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
                 <span style={{color:"#475569"}}>{k}</span>
@@ -996,24 +1006,24 @@ export default function Play() {
             ))}
             <div style={{marginTop:8}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontSize:10,color:"#475569"}}>Holdr status</span>
-                <span style={{fontSize:10,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span>
+                <span style={{fontSize:10,color:"#475569"}}>{T('holdr_status')}</span>
+                <span style={{fontSize:10,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?T('holdr_check'):`${Math.floor(holdrProgress)}%`}</span>
               </div>
               <div style={{height:3,background:"#1e1e2e",borderRadius:2}}>
                 <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
               </div>
               {!isHoldr && (
-                <div style={{fontSize:10,color:"#334155",marginTop:3}}>need {String(10000-Math.floor(owned*12))} more $C</div>
+                <div style={{fontSize:10,color:"#334155",marginTop:3}}>{T('holdr_need')} {String(10000-Math.floor(owned*12))} {T('holdr_more')}</div>
               )}
             </div>
           </div>
 
           {/* Withdraw info */}
           <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:10,color:"#334155",lineHeight:1.8}}>
-            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:10}}>WITHDRAW</div>
-            Withdraw anytime to wallet.<br/>
-            10% tax → <span style={{color:"#6d28d9"}}>Holdr pool</span><br/>
-            Holdrs earn passively from<br/>all ecosystem withdrawals.
+            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:10}}>{T('withdraw_title')}</div>
+            {T('withdraw_desc')}<br/>
+            {T('withdraw_tax')} <span style={{color:"#6d28d9"}}>{T('withdraw_holdr')}</span><br/>
+            {T('withdraw_passive')}
           </div>
         </div>
 
@@ -1213,8 +1223,8 @@ export default function Play() {
               }}>
                 ({hovered.x},{hovered.y}) ·{" "}
                 {hovered.d
-                  ? `${hovered.d.owner===WALLET?"YOUR PIXEL":hovered.d.owner}`
-                  : "empty — click to claim"}
+                  ? `${hovered.d.owner===WALLET?T('hover_your'):hovered.d.owner}`
+                  : T('hover_empty')}
                 {hovered.d && (
                   <span style={{
                     marginLeft:6,display:"inline-block",width:8,height:8,
@@ -1360,7 +1370,7 @@ export default function Play() {
         <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
           {/* Color picker */}
           <div>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('color_label')}</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:2}}>
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{
@@ -1392,11 +1402,11 @@ export default function Play() {
 
           {/* Strike tiers */}
           <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>STRIKE ODDS</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('strike_odds')}</div>
             {[
-              {tier:"Common",  chance:"5%",   mult:"5×",   color:"#64748b"},
-              {tier:"Rare",    chance:"1%",   mult:"25×",  color:"#22d3ee"},
-              {tier:"Legendary",chance:"0.1%",mult:"200×", color:"#f59e0b"},
+              {tier:T('strike_common'),  chance:"5%",   mult:"5×",   color:"#64748b"},
+              {tier:T('strike_rare'),    chance:"1%",   mult:"25×",  color:"#22d3ee"},
+              {tier:T('strike_legendary'),chance:"0.1%",mult:"200×", color:"#f59e0b"},
             ].map(s => (
               <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:10}}>
                 <span style={{color:s.color}}>{s.tier}</span>
@@ -1405,13 +1415,13 @@ export default function Play() {
               </div>
             ))}
             <div style={{marginTop:6,fontSize:10,color:"#1e3a4f",lineHeight:1.6}}>
-              Pyth Entropy RNG · on-chain verifiable
+              {T('strike_rng')}
             </div>
           </div>
 
           {/* Activity log */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('activity_label')}</div>
             <div style={{fontSize:10,lineHeight:2,overflow:"hidden"}}>
               {log.slice(0,8).map((l,i) => {
                 const logParts = l.split('|');
@@ -1439,7 +1449,7 @@ export default function Play() {
 
           {/* Leaderboard */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:10,letterSpacing:1}}>TOP PLAYERS</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:10,letterSpacing:1}}>{T('top_players')}</div>
             {[
               {addr:"0xaf1…c32", px:1284, earn:24680, isYou:false},
               {addr:"0x7a3…b9f", px:963,  earn:18420, isYou:false},
@@ -1537,11 +1547,11 @@ export default function Play() {
                   <div style={{fontSize:9,color:"#6d28d9",marginTop:2}}>$CANVAS jackpot · 0.5% hit → 10% win</div>
                 </div>
                 <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
-                  <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>STRIKE ODDS</div>
+                  <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>{T('strike_odds')}</div>
                   {[
-                    {tier:"Common",  chance:"5%",  mult:"5×",  col:"#64748b"},
-                    {tier:"Rare",    chance:"1%",  mult:"25×", col:"#22d3ee"},
-                    {tier:"Legendary",chance:"0.1%",mult:"200×",col:"#f59e0b"},
+                    {tier:T('strike_common'),  chance:"5%",  mult:"5×",  col:"#64748b"},
+                    {tier:T('strike_rare'),    chance:"1%",  mult:"25×", col:"#22d3ee"},
+                    {tier:T('strike_legendary'),chance:"0.1%",mult:"200×",col:"#f59e0b"},
                   ].map(s => (
                     <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10}}>
                       <span style={{color:s.col}}>{s.tier}</span>
@@ -1553,14 +1563,14 @@ export default function Play() {
                 <div style={{fontSize:9,color:"#475569",lineHeight:1.8}}>
                   <div style={{display:"flex",justifyContent:"space-between"}}><span>Balance</span><span style={{color:"#94a3b8"}}>{Math.floor(balance)} $CANVAS</span></div>
                   <div style={{display:"flex",justifyContent:"space-between"}}><span>Pixels owned</span><span style={{color:"#94a3b8"}}>{owned}</span></div>
-                  <div style={{display:"flex",justifyContent:"space-between"}}><span>Holdr</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><span>Holdr</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?T('holdr_check'):`${Math.floor(holdrProgress)}%`}</span></div>
                 </div>
               </div>
             )}
             {/* ── STATS TAB ── */}
             {mobileTab==="stats" && (
               <div>
-                <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>TOP PLAYERS</div>
+                <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('top_players')}</div>
                 {[
                   {addr:"0xaf1…c32",px:1284,earn:24680,isYou:false},
                   {addr:"0x7a3…b9f",px:963, earn:18420,isYou:false},
