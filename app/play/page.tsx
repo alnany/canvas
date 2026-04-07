@@ -361,6 +361,17 @@ export default function Play() {
   const T = useCallback((key: Parameters<typeof t>[1], vars?: Parameters<typeof t>[2]) =>
     t(lang, key, vars), [lang]);
 
+  // Wrap non-Latin characters (CJK, Cyrillic, Korean, Japanese…) in a span
+  // shifted up by `px` pixels to correct for baseline mismatch vs Press Start 2P.
+  const shiftNonLatin = useCallback((text: string, px = -2): React.ReactNode => {
+    const parts = text.split(/([^\u0000-\u024F\u2600-\u26FF\u2700-\u27BF]+)/);
+    return parts.map((part, i) =>
+      /[^\u0000-\u024F\u2600-\u26FF\u2700-\u27BF]/.test(part)
+        ? <span key={i} style={{position:"relative",top:`${px}px`}}>{part}</span>
+        : part
+    );
+  }, []);
+
   useEffect(() => { setLang_(getLang()); }, []);
 
   const [color,     setColor]     = useState(PALETTE[6]);
@@ -1084,10 +1095,10 @@ export default function Play() {
                     maxWidth:"min(90vw, 420px)",
                     display:"flex",flexDirection:"column",alignItems:"center",gap:0,
                   }}>
-                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4,lineHeight:1.4,textAlign:"center"}}>{T('vault_cracked')}</div>
+                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('vault_cracked'))}</div>
                     <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1.2,textAlign:"center",
                       textShadow:"0 0 30px rgba(251,191,36,1),0 0 60px rgba(245,158,11,0.8)"}}>+{String(bucketWin)}</div>
-                    <div style={{fontSize:10,color:"#92400e",marginTop:8,lineHeight:1.4,textAlign:"center"}}>{T('vault_subtitle')}</div>
+                    <div style={{fontSize:10,color:"#92400e",marginTop:8,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('vault_subtitle'))}</div>
                   </div>
                 </div>
               </>
@@ -1120,9 +1131,9 @@ export default function Play() {
                 maxWidth:"min(90vw, 380px)",
                 display:"flex",flexDirection:"column",alignItems:"center",gap:0,
               }}>
-                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{T('sol_win_label')} {solWin.label}</div>
+                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(`${T('sol_win_label')} ${solWin.label}`)}</div>
                 <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{solWin.amount.toFixed(4)}</div>
-                <div style={{fontSize:10,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{T('sol_returned')}</div>
+                <div style={{fontSize:10,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('sol_returned'))}</div>
               </div>
             </div>
           )}
@@ -1180,10 +1191,10 @@ export default function Play() {
                   display:"flex",flexDirection:"column",alignItems:"center",gap:0,
                 }}>
                   <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>
-                    {T('strike_label', {tier: strike.tier.toUpperCase()})}
+                    {shiftNonLatin(T('strike_label', {tier: strike.tier.toUpperCase()}))}
                   </div>
                   <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{strike.earn}</div>
-                  <div style={{fontSize:10,color:sc.text,marginTop:4,lineHeight:1.4,textAlign:"center"}}>{T('strike_base', {mult: String(strikeBonus(strike.tier))})}</div>
+                  <div style={{fontSize:10,color:sc.text,marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('strike_base', {mult: String(strikeBonus(strike.tier))}))}</div>
                 </div>
               </div>
             );
