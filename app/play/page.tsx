@@ -14,7 +14,7 @@ const HOLD_REWARD_RATE = 0.5 / 3600;
 
 // ── USDT Economy ─────────────────────────────────────────────────────────────
 const PIXEL_COST_USDT = 1;               // USDT per placement
-const USDT_START      = 200;             // demo starting balance
+const USDT_START      = 1000;             // demo starting balance
 // Prize table — 97% RTP (EV = 0.97 USDT per 1 USDT bet)
 const USDT_PRIZES = [
   { mult: 0,   label: "—",     prob: 0.380 },  // 38% loss
@@ -899,7 +899,7 @@ export default function Play() {
               )}
             </div>
             <div style={{fontSize:27.5,fontWeight:"bold",color:topUpFlash?"#a3e635":"#22c55e",lineHeight:1,transition:"color 0.4s"}}>
-              {usdt.toFixed(2)}
+              {Math.round(usdt)}
             </div>
             <div style={{fontSize:12.5,color:"#166534",marginTop:3}}>
               {BET_TIERS[betIdx].usdt} USDT → {BET_TIERS[betIdx].pixels}px
@@ -1116,7 +1116,7 @@ export default function Play() {
                 display:"flex",flexDirection:"column",alignItems:"center",gap:0,
               }}>
                 <div style={{fontSize:12.5,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(`${T('sol_win_label')} ${usdtWin.label}`)}</div>
-                <div style={{fontSize:30,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{usdtWin.amount.toFixed(4)}</div>
+                <div style={{fontSize:30,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{Math.round(usdtWin.amount)}</div>
                 <div style={{fontSize:12.5,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('sol_returned'))}</div>
               </div>
             </div>
@@ -1517,7 +1517,7 @@ export default function Play() {
             <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"center"}}>
               <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:1}}>
                 <span style={{fontSize:9,color:"#64748b",letterSpacing:0.5}}>USDT</span>
-                <span style={{fontSize:13,color:"#22d3ee",fontWeight:"bold",lineHeight:1}}>${usdt.toFixed(2)}</span>
+                <span style={{fontSize:13,color:"#22d3ee",fontWeight:"bold",lineHeight:1}}>${Math.round(usdt)}</span>
               </div>
               <div style={{width:1,height:28,background:"#1e1e3f"}}/>
               <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:1}}>
