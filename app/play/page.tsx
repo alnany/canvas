@@ -400,7 +400,7 @@ export default function Play() {
   const [miningPct, setMiningPct] = useState(12.32);
   const [usdtWin,   setUsdtWin]   = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
-  const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=1, 1=10, 2=100 USDT
+  const [betIdx,    setBetIdx]    = useState<BetIdx>(2);   // 0=1, 1=10, 2=100 USDT
 
   // ── Pixel-placement animation overlay ─────────────────────────────────────
   type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
