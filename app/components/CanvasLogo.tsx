@@ -5,7 +5,7 @@ import React from "react";
 // No icon — each letter a different game-palette color with neon glow.
 // Each call-site that was using the old Grid logo now renders Spectrum.
 
-type Size = "sm" | "md" | "lg" | "hero";
+type Size = "xs" | "sm" | "md" | "lg" | "hero";
 
 const SPECTRUM = [
   { ch: "C", color: "#ef4444", glow: "rgba(239,68,68,0.75)" },
@@ -16,8 +16,8 @@ const SPECTRUM = [
   { ch: "S", color: "#a855f7", glow: "rgba(168,85,247,0.75)" },
 ];
 
-const FONT_SIZE: Record<Size, number> = { sm: 20, md: 26, lg: 34, hero: 60 };
-const LETTER_GAP: Record<Size, number> = { sm: 4, md: 4, lg: 6, hero: 10 };
+const FONT_SIZE: Record<Size, number> = { xs: 13, sm: 20, md: 26, lg: 34, hero: 60 };
+const LETTER_GAP: Record<Size, number> = { xs: 2, sm: 4, md: 4, lg: 6, hero: 10 };
 
 interface CanvasLogoProps {
   size?: Size;

@@ -727,15 +727,16 @@ export default function Play() {
     <>
     <MouseTrail />
     <BgCanvas opacity={0.18} speedScale={0.12} zIndex={150} />
-    <div style={{background:"transparent",height:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
+    <div style={{background:"transparent",height:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden",display:"flex",flexDirection:"column"}}>
       {/* Top bar */}
-      <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
-        <Link href="/" style={{textDecoration:"none"}}><CanvasLogo size="sm" /></Link>
-        <div style={{display:"flex",alignItems:"center",gap:16}}>
+      <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)",flexShrink:0}}>
+        <Link href="/" style={{textDecoration:"none"}}><span className="logo-sm-hide"><CanvasLogo size="sm" /></span><span className="logo-xs-show"><CanvasLogo size="xs" /></span></Link>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
           {/* $CANVAS price → dexscreener */}
           <a
             href="https://dexscreener.com/base/0xdb2de6074f335ddd307336c303dec329514d5265"
             target="_blank" rel="noopener noreferrer"
+            className="nav-price-hide"
             style={{display:"flex",alignItems:"center",gap:6,background:"#0d0a18",border:"1px solid #4c1d95",borderRadius:6,padding:"5px 12px",textDecoration:"none"}}
           >
             <span style={{fontSize:11,color:"#7c3aed",letterSpacing:1}}>$CANVAS</span>
@@ -815,60 +816,37 @@ export default function Play() {
 
       {/* ── MOBILE STATS STRIP (hidden on desktop) ──────────────────────── */}
       {isMobile && (
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 12px",borderBottom:"1px solid #1e1e3f",background:"#070710",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 10px",borderBottom:"1px solid #1e1e3f",background:"#070710",flexShrink:0}}>
+          <a href="https://dexscreener.com/base/0xdb2de6074f335ddd307336c303dec329514d5265" target="_blank" rel="noopener noreferrer"
+            style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1,textDecoration:"none"}}>
+            <span style={{fontSize:9,color:"#7c3aed",letterSpacing:0.5}}>$CANVAS</span>
+            <span style={{fontSize:11,color:"#a78bfa",fontWeight:"bold"}}>${canvasPrice.toFixed(5)}</span>
+          </a>
+          <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>PLAYERS</span>
-            <span style={{fontSize:12,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
+            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>PLAYERS</span>
+            <span style={{fontSize:11,color:"#38bdf8",fontWeight:"bold"}}>{fmtCompact(players)}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>PIXELS</span>
-            <span style={{fontSize:12,color:"#22d3ee",fontWeight:"bold"}}>{fmtCompact(pixelsTotal)}</span>
+            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>PIXELS</span>
+            <span style={{fontSize:11,color:"#22d3ee",fontWeight:"bold"}}>{fmtCompact(pixelsTotal)}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>SOL EARNED</span>
-            <span style={{fontSize:12,color:"#a3e635",fontWeight:"bold"}}>{fmtCompact(Math.floor(solEarned))}</span>
+            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>SOL</span>
+            <span style={{fontSize:11,color:"#a3e635",fontWeight:"bold"}}>◎{fmtCompact(Math.floor(solEarned))}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>$CANVAS MINED</span>
-            <span style={{fontSize:12,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
+            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>MINED</span>
+            <span style={{fontSize:11,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(1)}%</span>
           </div>
         </div>
       )}
 
-      {/* ── MOBILE CONTROLS STRIP (hidden on desktop) ─────────────────── */}
-      {isMobile && (
-        <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 10px",borderBottom:"1px solid #1e1e3f",flexShrink:0,background:"#070710"}}>
-          {/* Color swatch — tap to open native color picker */}
-          <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Color">
-            <div style={{width:22,height:22,borderRadius:4,background:color,border:"2px solid #4c1d95",boxSizing:"border-box"}}/>
-            <input type="color" value={color} onChange={e=>setColor(e.target.value)}
-              style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}} />
-          </label>
-          {/* Bet tier buttons */}
-          {BET_TIERS.map((bet,i) => {
-            const active = betIdx === i;
-            return (
-              <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
-                padding:"4px 7px",borderRadius:4,fontSize:11,cursor:"pointer",
-                border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
-                background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
-                color:active?"#a855f7":"#475569",letterSpacing:0.5
-              }}>{bet.sol} SOL</button>
-            );
-          })}
-          <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:11,color:"#94a3b8"}}>{sol.toFixed(3)} SOL</span>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:0}}>
-              <span style={{fontSize:9.5,color:"#6d28d9",letterSpacing:0.5}}>$CANVAS</span>
-              <span style={{fontSize:12.5,color:"#a855f7",fontWeight:"bold",letterSpacing:0.5}}>{Math.floor(balance).toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      )}
-      <div style={{display:"flex",height:isMobile?"calc(100vh - 352px)":"calc(100vh - 46px)"}}>
+      {/* Controls consolidated into bottom color tab */}
+      <div style={{display:"flex",flex:1,minHeight:0}}>
         {/* LEFT PANEL */}
         <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
           {/* ── THE VAULT (jackpot) ─────────────────────────────────────── */}
@@ -1513,15 +1491,40 @@ export default function Play() {
 
       {/* ── MOBILE BOTTOM TABS (hidden on desktop) ────────────────────── */}
       {isMobile && (
-        <div style={{height:240,flexShrink:0,borderTop:"1px solid #1e1e3f",background:"#070710",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{flexShrink:0,borderTop:"1px solid #1e1e3f",background:"#070710",display:"flex",flexDirection:"column",overflow:"hidden",height:290}}>
+          {/* Quick-access bar: color swatch + active bet + balances */}
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",borderBottom:"1px solid #0d0d1a",flexShrink:0,background:"#09090f"}}>
+            <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Color">
+              <div style={{width:24,height:24,borderRadius:4,background:color,border:"2px solid #4c1d95",boxSizing:"border-box"}}/>
+              <input type="color" value={color} onChange={e=>setColor(e.target.value)}
+                style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}} />
+            </label>
+            <div style={{display:"flex",gap:4,flex:1,overflow:"hidden"}}>
+              {BET_TIERS.map((bet,i) => {
+                const active = betIdx === i;
+                return (
+                  <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
+                    flex:1,padding:"4px 0",borderRadius:4,fontSize:10,cursor:"pointer",
+                    border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
+                    background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
+                    color:active?"#a855f7":"#475569",letterSpacing:0.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
+                  }}>{bet.sol} SOL</button>
+                );
+              })}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:0,flexShrink:0}}>
+              <span style={{fontSize:9,color:"#64748b"}}>◎ {sol.toFixed(2)}</span>
+              <span style={{fontSize:11,color:"#a855f7",fontWeight:"bold"}}>{fmtCompact(Math.floor(balance))} $C</span>
+            </div>
+          </div>
           {/* Tab bar */}
           <div style={{display:"flex",borderBottom:"1px solid #1e1e3f",flexShrink:0}}>
             {(["color","game","stats","log"] as const).map(tab => {
               const labels:{[k:string]:string} = {color:"🎨 Color",game:"⚡ Game",stats:"👥 Stats",log:"📋 Log"};
               return (
                 <button key={tab} onClick={()=>setMobileTab(tab)} style={{
-                  flex:1,padding:"7px 0",border:"none",background:"transparent",
-                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:11,cursor:"pointer",
+                  flex:1,padding:"6px 0",border:"none",background:"transparent",
+                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:10,cursor:"pointer",
                   borderBottom:mobileTab===tab?"2px solid #7c3aed":"2px solid transparent",
                   letterSpacing:0.5
                 }}>{labels[tab]}</button>

@@ -63,3 +63,14 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   .lp-grid-3-sm { grid-template-columns:1fr; }
   .lp-holdr-row { flex-direction:column; }
 }
+
+/* ── Game page mobile ───────────────────────────────────────────────────────── */
+.logo-xs-show { display: none; }
+.logo-sm-hide { display: inline; }
+.nav-price-hide { display: flex; }
+
+@media (max-width: 768px) {
+  .logo-xs-show { display: inline; }
+  .logo-sm-hide { display: none; }
+  .nav-price-hide { display: none !important; }
+}
