@@ -12,11 +12,11 @@ const PX   = 1;
 const BASE_EARN = 5;
 const HOLD_REWARD_RATE = 0.5 / 3600;
 
-// ── SOL Economy ──────────────────────────────────────────────────────────────
-const PIXEL_COST_SOL  = 0.001;          // SOL per placement
-const SOL_START       = 20;             // demo starting balance
-// Prize table — 97% RTP (EV = 0.00097 SOL per 0.001 SOL bet)
-const SOL_PRIZES = [
+// ── USDT Economy ─────────────────────────────────────────────────────────────
+const PIXEL_COST_USDT = 1;               // USDT per placement
+const USDT_START      = 200;             // demo starting balance
+// Prize table — 97% RTP (EV = 0.97 USDT per 1 USDT bet)
+const USDT_PRIZES = [
   { mult: 0,   label: "—",     prob: 0.380 },  // 38% loss
   { mult: 0.5, label: "0.5×",  prob: 0.250 },  // 25% tiny
   { mult: 1.0, label: "1×",    prob: 0.190 },  // 19% break-even
@@ -30,17 +30,17 @@ const BUCKET_WIN_PCT    = 0.10;         // win 10% of bucket
 const BUCKET_FEED_PCT   = 0.01;         // 1% of CANVAS earn → bucket
 
 const BET_TIERS = [
-  { sol: 0.01, pixels: 1,   label: "0.01 SOL",  tag: "×1"  },
-  { sol: 0.1,  pixels: 10,  label: "0.1 SOL",   tag: "×10" },
-  { sol: 1.0,  pixels: 100, label: "1 SOL",      tag: "×100"},
+  { usdt: 1,   pixels: 1,   label: "1 USDT",    tag: "×1"  },
+  { usdt: 10,  pixels: 10,  label: "10 USDT",   tag: "×10" },
+  { usdt: 100, pixels: 100, label: "100 USDT",  tag: "×100"},
 ] as const;
 type BetIdx = 0 | 1 | 2;
 
 // Top-up packs (SOL)
 const TOP_UP_PACKS = [
-  { sol: 1,  label: "1 SOL",  tag: "Starter",  popular: false },
-  { sol: 5,  label: "5 SOL",  tag: "Most Popular", popular: true  },
-  { sol: 20, label: "20 SOL", tag: "Whale",     popular: false },
+  { usdt: 10,  label: "10 USDT",  tag: "Starter",     popular: false },
+  { usdt: 50,  label: "50 USDT",  tag: "Most Popular", popular: true  },
+  { usdt: 200, label: "200 USDT", tag: "Whale",        popular: false },
 ] as const;
 
 function fmtCompact(n: number): string {
@@ -49,13 +49,13 @@ function fmtCompact(n: number): string {
   return String(Math.floor(n));
 }
 
-function rollSolPrize(): { mult: number; label: string } {
+function rollUsdtPrize(): { mult: number; label: string } {
   let r = Math.random();
-  for (const p of SOL_PRIZES) {
+  for (const p of USDT_PRIZES) {
     r -= p.prob;
     if (r <= 0) return p;
   }
-  return SOL_PRIZES[0];
+  return USDT_PRIZES[0];
 }
 
 const PALETTE = [
@@ -391,16 +391,16 @@ export default function Play() {
   const [connecting, setConnecting] = useState(false);
   const [topUpOpen,  setTopUpOpen]  = useState(false);
   const [topUpFlash, setTopUpFlash] = useState(false);
-  const [sol,       setSol]       = useState(SOL_START);
+  const [usdt,      setUsdt]      = useState(USDT_START);
   const [canvasPrice, setCanvasPrice] = useState(0.01423);
   const [bucket,    setBucket]    = useState(9221732);       // $CANVAS jackpot
   const [players,   setPlayers]   = useState(1247);
   const [pixelsTotal, setPixelsTotal] = useState(834920);
-  const [solEarned, setSolEarned] = useState(12847.382);
+  const [usdtEarned, setUsdtEarned] = useState(12847.38);
   const [miningPct, setMiningPct] = useState(12.32);
-  const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
+  const [usdtWin,   setUsdtWin]   = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
-  const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=0.01, 1=0.1, 2=1 SOL
+  const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=1, 1=10, 2=100 USDT
 
   // ── Pixel-placement animation overlay ─────────────────────────────────────
   type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
@@ -441,14 +441,14 @@ export default function Play() {
   useEffect(() => {
     const t = setInterval(() => {
       setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
-      setBucket(bk => bk + 0.5);
+      setBucket(bk => bk + 5);
       // Simulate small price tick
       setCanvasPrice(p => Math.max(0.001, p + (Math.random() - 0.498) * 0.00008));
       // Global stats tickers
       if (Math.random() < 0.12) setPlayers(p => p + 1);
       setPixelsTotal(pp => pp + Math.floor(40 + Math.random() * 120));
       setMiningPct(m => Math.min(100, m + 0.00006));
-      setSolEarned(s => s + 0.3 + Math.random() * 0.5);
+      setUsdtEarned(s => s + 0.3 + Math.random() * 0.5);
     }, 1000);
     return () => clearInterval(t);
   },[]);
@@ -476,8 +476,8 @@ export default function Play() {
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const bet = BET_TIERS[betIdx];
-    if (sol < bet.sol) {
-      setLog(l => [T('log_broke', {n: bet.sol}), ...l.slice(0,11)]);
+    if (usdt < bet.usdt) {
+      setLog(l => [T('log_broke', {n: bet.usdt}), ...l.slice(0,11)]);
       return;
     }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
@@ -489,7 +489,7 @@ export default function Play() {
     const ctx = c.getContext("2d")!;
 
     // Deduct full bet cost upfront
-    setSol(s => s - bet.sol);
+    setUsdt(s => s - bet.usdt);
 
     let totalEarn = 0;
     let newOwned = 0;
@@ -498,8 +498,8 @@ export default function Play() {
     let bucketFeed = 0;
 
     // Single SOL prize roll for the entire bet
-    const betPrize = rollSolPrize();
-    const totalSolReturn = betPrize.mult * bet.sol;
+    const betPrize = rollUsdtPrize();
+    const totalUsdtReturn = betPrize.mult * bet.usdt;
 
     // Place bet.pixels pixels in a circle around (gx, gy)
     const circleR = bet.pixels === 1 ? 0 : Math.ceil(Math.sqrt(bet.pixels / Math.PI)) + 1;
@@ -545,11 +545,11 @@ export default function Play() {
     setPlaced(p => p + placed2);
     setBalance(b => b + totalEarn);
 
-    if (totalSolReturn > 0) {
-      setSol(s => s + totalSolReturn);
+    if (totalUsdtReturn > 0) {
+      setUsdt(s => s + totalUsdtReturn);
       if (betPrize.mult >= 2) {
-        setSolWin({ mult: betPrize.mult, label: betPrize.label, amount: totalSolReturn });
-        setTimeout(() => setSolWin(null), betPrize.mult >= 5 ? 4000 : 2500);
+        setUsdtWin({ mult: betPrize.mult, label: betPrize.label, amount: totalUsdtReturn });
+        setTimeout(() => setUsdtWin(null), betPrize.mult >= 5 ? 4000 : 2500);
       }
     }
 
@@ -569,15 +569,15 @@ export default function Play() {
       return newBk;
     });
 
-    const netSOL = totalSolReturn - bet.sol;
-    const solTag = netSOL > 0
-      ? `+${netSOL.toFixed(4)} SOL net`
-      : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
+    const netUSDT = totalUsdtReturn - bet.usdt;
+    const usdtTag = netUSDT > 0
+      ? `+${netUSDT.toFixed(2)} USDT net`
+      : netUSDT === 0 ? "break-even" : `${netUSDT.toFixed(2)} USDT`;
     const logMsg = bestTier !== "none"
       ? T('log_strike',{tier:bestTier.toUpperCase(),n:totalEarn,x:gx,y:gy})
       : T('log_place',{x:gx,y:gy,n:totalEarn});
     setLog(l => [logMsg, ...l.slice(0,11)]);
-  },[betIdx, color, sol]);
+  },[betIdx, color, usdt]);
 
   // Animation tick (overlay canvas)
   const tickAnims = useCallback(() => {
@@ -695,8 +695,8 @@ export default function Play() {
   },[]);
 
 
-  const handleTopUp = (sol: number, label: string) => {
-    setSol(s => s + sol);
+  const handleTopUp = (amount: number, label: string) => {
+    setUsdt(s => s + amount);
     setTopUpOpen(false);
     setTopUpFlash(true);
     setTimeout(() => setTopUpFlash(false), 1200);
@@ -756,8 +756,8 @@ export default function Play() {
             </div>
             <div style={{width:1,height:10,background:"#1e1e3f"}}/>
             <div style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{fontSize:11,color:"#475569",letterSpacing:1}}>SOL EARNED</span>
-              <span style={{fontSize:12.5,color:"#22c55e",fontWeight:"bold"}}>◎ {solEarned.toFixed(1)}</span>
+              <span style={{fontSize:11,color:"#475569",letterSpacing:1}}>USDT EARNED</span>
+              <span style={{fontSize:12.5,color:"#22c55e",fontWeight:"bold"}}>$ {usdtEarned.toFixed(1)}</span>
             </div>
             <div style={{width:1,height:10,background:"#1e1e3f"}}/>
             <div style={{display:"flex",alignItems:"center",gap:5}}>
@@ -834,8 +834,8 @@ export default function Play() {
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>SOL</span>
-            <span style={{fontSize:11,color:"#a3e635",fontWeight:"bold"}}>◎{fmtCompact(Math.floor(solEarned))}</span>
+            <span style={{fontSize:9,color:"#475569",letterSpacing:0.5}}>USDT</span>
+            <span style={{fontSize:11,color:"#a3e635",fontWeight:"bold"}}>${fmtCompact(Math.floor(usdtEarned))}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
@@ -884,14 +884,14 @@ export default function Play() {
           {/* SOL Balance + Top Up */}
           <div style={{
             background:"#0a120a",
-            border:`1px solid ${topUpFlash?"#a3e635":sol<0.5?"#7f1d1d":"#166534"}`,
+            border:`1px solid ${topUpFlash?"#a3e635":usdt<5?"#7f1d1d":"#166534"}`,
             borderRadius:8,padding:12,
-            boxShadow:topUpFlash?"0 0 16px rgba(163,230,53,0.5)":sol<0.5?"0 0 8px rgba(239,68,68,0.2)":"none",
+            boxShadow:topUpFlash?"0 0 16px rgba(163,230,53,0.5)":usdt<5?"0 0 8px rgba(239,68,68,0.2)":"none",
             transition:"border-color 0.4s,box-shadow 0.4s",
           }}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
               <div style={{fontSize:12.5,color:"#166534",letterSpacing:1}}>{T('sol_balance')}</div>
-              {sol < 0.5 && !topUpOpen && (
+              {usdt < 5 && !topUpOpen && (
                 <div style={{fontSize:10,color:"#ef4444",letterSpacing:1,animation:"pulse 1.5s infinite"}}>
                   {T('sol_low')}
                   <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
@@ -899,10 +899,10 @@ export default function Play() {
               )}
             </div>
             <div style={{fontSize:27.5,fontWeight:"bold",color:topUpFlash?"#a3e635":"#22c55e",lineHeight:1,transition:"color 0.4s"}}>
-              {sol.toFixed(4)}
+              {usdt.toFixed(2)}
             </div>
             <div style={{fontSize:12.5,color:"#166534",marginTop:3}}>
-              {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px
+              {BET_TIERS[betIdx].usdt} USDT → {BET_TIERS[betIdx].pixels}px
             </div>
 
             {/* Top Up toggle */}
@@ -920,7 +920,7 @@ export default function Play() {
             {topUpOpen && (
               <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>
                 {TOP_UP_PACKS.map(pack => (
-                  <button key={pack.sol} onClick={()=>handleTopUp(pack.sol, pack.label)}
+                  <button key={pack.usdt} onClick={()=>handleTopUp(pack.usdt, pack.label)}
                     style={{
                       position:"relative",display:"flex",justifyContent:"space-between",alignItems:"center",
                       padding:"7px 9px",borderRadius:6,fontFamily:"inherit",cursor:"pointer",fontSize:11,
@@ -961,7 +961,7 @@ export default function Play() {
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
                 const active = betIdx === i;
-                const canAfford = sol >= tier.sol;
+                const canAfford = usdt >= tier.usdt;
                 return (
                   <button key={i} onClick={() => setBetIdx(i as BetIdx)} style={{
                     display:"flex",justifyContent:"space-between",alignItems:"center",
@@ -982,7 +982,7 @@ export default function Play() {
               })}
             </div>
             <div style={{marginTop:8,fontSize:12.5,color:"#334155",lineHeight:1.6}}>
-              <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
+              <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].usdt} USDT</span>
               {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
             </div>
           </div>
@@ -1090,7 +1090,7 @@ export default function Play() {
           })()}
 
           {/* SOL Win popup */}
-          {solWin !== null && solWin.mult >= 2 && (
+          {usdtWin !== null && usdtWin.mult >= 2 && (
             <div style={{
               position:"absolute",bottom:"20%",left:"50%",
               transform:"translate(-50%,0)",
@@ -1106,8 +1106,8 @@ export default function Play() {
               `}</style>
               <div style={{
                 padding:"14px 30px",borderRadius:12,
-                background:"#0a150a",border:`2px solid ${solWin.mult>=10?"#22c55e":"#4ade80"}`,
-                boxShadow:`0 0 ${solWin.mult>=10?"80px":"40px"} rgba(34,197,94,${solWin.mult>=10?0.8:0.4})`,
+                background:"#0a150a",border:`2px solid ${usdtWin.mult>=10?"#22c55e":"#4ade80"}`,
+                boxShadow:`0 0 ${usdtWin.mult>=10?"80px":"40px"} rgba(34,197,94,${usdtWin.mult>=10?0.8:0.4})`,
                 fontFamily:"'Press Start 2P','Noto Sans SC','Noto Sans KR','Noto Sans JP',monospace",
                 animation:"solWinIn 2.5s ease-out forwards",
                 whiteSpace:"nowrap",
@@ -1115,8 +1115,8 @@ export default function Play() {
                 maxWidth:"min(90vw, 380px)",
                 display:"flex",flexDirection:"column",alignItems:"center",gap:0,
               }}>
-                <div style={{fontSize:12.5,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(`${T('sol_win_label')} ${solWin.label}`)}</div>
-                <div style={{fontSize:30,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{solWin.amount.toFixed(4)}</div>
+                <div style={{fontSize:12.5,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(`${T('sol_win_label')} ${usdtWin.label}`)}</div>
+                <div style={{fontSize:30,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{usdtWin.amount.toFixed(4)}</div>
                 <div style={{fontSize:12.5,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('sol_returned'))}</div>
               </div>
             </div>
@@ -1508,12 +1508,12 @@ export default function Play() {
                     border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
                     background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
                     color:active?"#a855f7":"#475569",letterSpacing:0.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
-                  }}>{bet.sol} SOL</button>
+                  }}>{bet.usdt} USDT</button>
                 );
               })}
             </div>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:0,flexShrink:0}}>
-              <span style={{fontSize:9,color:"#64748b"}}>◎ {sol.toFixed(2)}</span>
+              <span style={{fontSize:9,color:"#64748b"}}>◎ {usdt.toFixed(2)}</span>
               <span style={{fontSize:11,color:"#a855f7",fontWeight:"bold"}}>{fmtCompact(Math.floor(balance))} $C</span>
             </div>
           </div>
@@ -1562,7 +1562,7 @@ export default function Play() {
                         padding:"6px 10px",borderRadius:6,border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
                         background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",cursor:"pointer"
                       }}>
-                        <span style={{fontSize:12.5,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>{bet.sol} SOL</span>
+                        <span style={{fontSize:12.5,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>{bet.usdt} USDT</span>
                         <span style={{fontSize:12.5,color:active?"#7c3aed":"#334155",background:"#12121a",padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>{bet.pixels}px</span>
                       </button>
                     );

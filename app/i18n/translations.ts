@@ -95,9 +95,9 @@ export const translations = {
     play_connecting:    'Connecting…',
 
     // Play — left panel
-    sol_balance:        '◎ SOL BALANCE',
+    sol_balance:        '$ USDT BALANCE',
     sol_low:            'LOW',
-    add_sol:            '＋ ADD SOL',
+    add_sol:            '＋ ADD USDT',
     close:              '▲ CLOSE',
     top_up_demo:        'demo only · simulated purchase',
     canvas_balance:     '$CANVAS BALANCE',
@@ -140,8 +140,8 @@ export const translations = {
 
     // Log messages
     log_welcome:        '[CANVAS] Click any pixel to place.',
-    log_wallet:         '[WALLET] Demo_7f4…a9c connected · 0 SOL',
-    log_broke:          '[BROKE] Need {n} SOL  —  top up wallet',
+    log_wallet:         '[WALLET] Demo_7f4…a9c connected · 0 USDT',
+    log_broke:          '[BROKE] Need {n} USDT  —  top up wallet',
     log_place:          '[PLACE] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[STRIKE] {tier}! +{n} $CANVAS @ ({x},{y})',
     log_topup:          '[TOP UP] +{label} · demo purchase',
@@ -165,8 +165,8 @@ export const translations = {
     vault_subtitle:     '$CANVAS · 10% of The Vault',
 
     // SOL win popup
-    sol_win_label:      '◎ SOL WIN',
-    sol_returned:       'SOL returned to wallet',
+    sol_win_label:      '$ USDT WIN',
+    sol_returned:       'USDT returned to wallet',
 
     // Earnings popup (no strike)
     earn_token:         '$CANVAS',
@@ -240,9 +240,9 @@ export const translations = {
     play_connect:       '🔗 连接钱包',
     play_connecting:    '连接中…',
 
-    sol_balance:        '◎ SOL 余额',
+    sol_balance:        '$ USDT 余额',
     sol_low:            '不足',
-    add_sol:            '＋ 充值 SOL',
+    add_sol:            '＋ 充值 USDT',
     close:              '▲ 关闭',
     top_up_demo:        '仅供演示 · 模拟购买',
     canvas_balance:     '$CANVAS 余额',
@@ -282,8 +282,8 @@ export const translations = {
     pack_whale:         '大户',
 
     log_welcome:        '[CANVAS] 点击任意像素开始放置。',
-    log_wallet:         '[钱包] Demo_7f4…a9c 已连接 · 0 SOL',
-    log_broke:          '[余额不足] 需要 {n} SOL — 请充值',
+    log_wallet:         '[钱包] Demo_7f4…a9c 已连接 · 0 USDT',
+    log_broke:          '[余额不足] 需要 {n} USDT — 请充值',
     log_place:          '[放置] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[连击] {tier}! +{n} $CANVAS @ ({x},{y})',
     log_topup:          '[充值] +{label} · 演示购买',
@@ -304,8 +304,8 @@ export const translations = {
     vault_subtitle:     '$CANVAS · 金库的 10%',
 
     // SOL win popup
-    sol_win_label:      '◎ SOL 大奖',
-    sol_returned:       'SOL 已返还钱包',
+    sol_win_label:      '$ USDT 大奖',
+    sol_returned:       'USDT 已返还钱包',
 
     // Earnings popup (no strike)
     earn_token:         '$CANVAS',
@@ -379,9 +379,9 @@ export const translations = {
     play_connect:       '🔗 지갑 연결',
     play_connecting:    '연결 중…',
 
-    sol_balance:        '◎ SOL 잔액',
+    sol_balance:        '$ USDT 잔액',
     sol_low:            '부족',
-    add_sol:            '＋ SOL 충전',
+    add_sol:            '＋ USDT 충전',
     close:              '▲ 닫기',
     top_up_demo:        '데모 전용 · 시뮬레이션 구매',
     canvas_balance:     '$CANVAS 잔액',
@@ -421,8 +421,8 @@ export const translations = {
     pack_whale:         '고래',
 
     log_welcome:        '[CANVAS] 픽셀을 클릭해 배치하세요.',
-    log_wallet:         '[지갑] Demo_7f4…a9c 연결됨 · 0 SOL',
-    log_broke:          '[잔액 부족] {n} SOL 필요 — 충전하세요',
+    log_wallet:         '[지갑] Demo_7f4…a9c 연결됨 · 0 USDT',
+    log_broke:          '[잔액 부족] {n} USDT 필요 — 충전하세요',
     log_place:          '[배치] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[스트라이크] {tier}! +{n} $CANVAS @ ({x},{y})',
     log_topup:          '[충전] +{label} · 데모 구매',
@@ -443,8 +443,8 @@ export const translations = {
     vault_subtitle:     '$CANVAS · 금고의 10%',
 
     // SOL win popup
-    sol_win_label:      '◎ SOL 당첨',
-    sol_returned:       'SOL이 지갑으로 반환됨',
+    sol_win_label:      '$ USDT 당첨',
+    sol_returned:       'USDT가 지갑으로 반환됨',
 
     // Earnings popup (no strike)
     earn_token:         '$CANVAS',
@@ -518,9 +518,9 @@ export const translations = {
     play_connect:       '🔗 ウォレット接続',
     play_connecting:    '接続中…',
 
-    sol_balance:        '◎ SOL残高',
+    sol_balance:        '$ USDT残高',
     sol_low:            '残高不足',
-    add_sol:            '＋ SOL追加',
+    add_sol:            '＋ USDT追加',
     close:              '▲ 閉じる',
     top_up_demo:        'デモのみ · 模擬購入',
     canvas_balance:     '$CANVAS残高',
@@ -560,8 +560,8 @@ export const translations = {
     pack_whale:         'ホエール',
 
     log_welcome:        '[CANVAS] ピクセルをクリックして配置しましょう。',
-    log_wallet:         '[ウォレット] Demo_7f4…a9c 接続済み · 0 SOL',
-    log_broke:          '[残高不足] {n} SOL必要 — チャージしてください',
+    log_wallet:         '[ウォレット] Demo_7f4…a9c 接続済み · 0 USDT',
+    log_broke:          '[残高不足] {n} USDT必要 — チャージしてください',
     log_place:          '[配置] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[ストライク] {tier}! +{n} $CANVAS @ ({x},{y})',
     log_topup:          '[チャージ] +{label} · デモ購入',
@@ -582,8 +582,8 @@ export const translations = {
     vault_subtitle:     '$CANVAS · ヴォールトの10%',
 
     // SOL win popup
-    sol_win_label:      '◎ SOL 当選',
-    sol_returned:       'SOLがウォレットに返還されました',
+    sol_win_label:      '$ USDT 当選',
+    sol_returned:       'USDTがウォレットに返還されました',
 
     // Earnings popup (no strike)
     earn_token:         '$CANVAS',
@@ -657,9 +657,9 @@ export const translations = {
     play_connect:       '🔗 Подключить кошелёк',
     play_connecting:    'Подключение…',
 
-    sol_balance:        '◎ БАЛАНС SOL',
+    sol_balance:        '$ БАЛАНС USDT',
     sol_low:            'МАЛО',
-    add_sol:            '＋ ПОПОЛНИТЬ SOL',
+    add_sol:            '＋ ПОПОЛНИТЬ USDT',
     close:              '▲ ЗАКРЫТЬ',
     top_up_demo:        'только демо · симулированная покупка',
     canvas_balance:     'БАЛАНС $CANVAS',
@@ -699,8 +699,8 @@ export const translations = {
     pack_whale:         'Кит',
 
     log_welcome:        '[CANVAS] Кликни на пиксель для размещения.',
-    log_wallet:         '[КОШЕЛЁК] Demo_7f4…a9c подключён · 0 SOL',
-    log_broke:          '[МАЛО СРЕДСТВ] Нужно {n} SOL — пополни кошелёк',
+    log_wallet:         '[КОШЕЛЁК] Demo_7f4…a9c подключён · 0 USDT',
+    log_broke:          '[МАЛО СРЕДСТВ] Нужно {n} USDT — пополни кошелёк',
     log_place:          '[РАЗМЕЩЕНИЕ] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[СТРАЙК] {tier}! +{n} $CANVAS @ ({x},{y})',
     log_topup:          '[ПОПОЛНЕНИЕ] +{label} · демо покупка',
@@ -721,8 +721,8 @@ export const translations = {
     vault_subtitle:     '$CANVAS · 10% Хранилища',
 
     // SOL win popup
-    sol_win_label:      '◎ SOL ВЫИГРЫШ',
-    sol_returned:       'SOL возвращён в кошелёк',
+    sol_win_label:      '$ USDT ВЫИГРЫШ',
+    sol_returned:       'USDT возвращён в кошелёк',
 
     // Earnings popup (no strike)
     earn_token:         '$CANVAS',
@@ -796,9 +796,9 @@ export const translations = {
     play_connect:       '🔗 Hubungkan Dompet',
     play_connecting:    'Menghubungkan…',
 
-    sol_balance:        '◎ SALDO SOL',
+    sol_balance:        '$ SALDO USDT',
     sol_low:            'RENDAH',
-    add_sol:            '＋ ISI SOL',
+    add_sol:            '＋ ISI USDT',
     close:              '▲ TUTUP',
     top_up_demo:        'demo saja · pembelian simulasi',
     canvas_balance:     'SALDO $CANVAS',
@@ -838,8 +838,8 @@ export const translations = {
     pack_whale:         'Whale',
 
     log_welcome:        '[CANVAS] Klik piksel mana saja untuk menempatkan.',
-    log_wallet:         '[DOMPET] Demo_7f4…a9c terhubung · 0 SOL',
-    log_broke:          '[SALDO KURANG] Butuh {n} SOL — isi dompet',
+    log_wallet:         '[DOMPET] Demo_7f4…a9c terhubung · 0 USDT',
+    log_broke:          '[SALDO KURANG] Butuh {n} USDT — isi dompet',
     log_place:          '[TEMPATKAN] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[STRIKE] {tier}! +{n} $CANVAS @ ({x},{y})',
     log_topup:          '[ISI ULANG] +{label} · pembelian demo',
@@ -860,8 +860,8 @@ export const translations = {
     vault_subtitle:     '$CANVAS · 10% dari Vault',
 
     // SOL win popup
-    sol_win_label:      '◎ SOL MENANG',
-    sol_returned:       'SOL dikembalikan ke dompet',
+    sol_win_label:      '$ USDT MENANG',
+    sol_returned:       'USDT dikembalikan ke dompet',
 
     // Earnings popup (no strike)
     earn_token:         '$CANVAS',
