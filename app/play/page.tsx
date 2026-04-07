@@ -2,17 +2,58 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 
-const GRID = 100;
-const PX   = 10;
-const COOLDOWN_SEC = 10;
+const GRID = 1000;
+const PX   = 1;
 const BASE_EARN = 5;
 const HOLD_REWARD_RATE = 0.5 / 3600;
 
+// ── SOL Economy ──────────────────────────────────────────────────────────────
+const PIXEL_COST_SOL  = 0.001;          // SOL per placement
+const SOL_START       = 20;             // demo starting balance
+// Prize table — 97% RTP (EV = 0.00097 SOL per 0.001 SOL bet)
+const SOL_PRIZES = [
+  { mult: 0,   label: "—",     prob: 0.380 },  // 38% loss
+  { mult: 0.5, label: "0.5×",  prob: 0.250 },  // 25% tiny
+  { mult: 1.0, label: "1×",    prob: 0.190 },  // 19% break-even
+  { mult: 2.0, label: "2×",    prob: 0.110 },  // 11% double
+  { mult: 5.0, label: "5×",    prob: 0.055 },  // 5.5% big
+  { mult: 10.0,label: "10×",   prob: 0.015 },  // 1.5% max
+] as const;
+// Vault jackpot
+const BUCKET_WIN_CHANCE = 0.005;        // 0.5% per placement
+const BUCKET_WIN_PCT    = 0.10;         // win 10% of bucket
+const BUCKET_FEED_PCT   = 0.01;         // 1% of CANVAS earn → bucket
+
+const BET_TIERS = [
+  { sol: 0.01, pixels: 1,   label: "0.01 SOL",  tag: "×1"  },
+  { sol: 0.1,  pixels: 10,  label: "0.1 SOL",   tag: "×10" },
+  { sol: 1.0,  pixels: 100, label: "1 SOL",      tag: "×100"},
+] as const;
+type BetIdx = 0 | 1 | 2;
+
+function fmtCompact(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2).replace(/\.?0+$/, "") + "M";
+  if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.?0+$/, "") + "K";
+  return String(Math.floor(n));
+}
+
+function rollSolPrize(): { mult: number; label: string } {
+  let r = Math.random();
+  for (const p of SOL_PRIZES) {
+    r -= p.prob;
+    if (r <= 0) return p;
+  }
+  return SOL_PRIZES[0];
+}
+
 const PALETTE = [
-  "#ef4444","#f97316","#f59e0b","#84cc16",
-  "#22c55e","#06b6d4","#3b82f6","#6366f1",
-  "#8b5cf6","#ec4899","#f43f5e","#ffffff",
-  "#e2e8f0","#94a3b8","#475569","#1e293b",
+  // vivid
+  "#ef4444","#f97316","#f59e0b","#eab308","#84cc16","#22c55e","#10b981","#06b6d4",
+  "#3b82f6","#6366f1","#8b5cf6","#a855f7","#ec4899","#f43f5e","#be123c","#7f1d1d",
+  // pastel
+  "#fca5a5","#fed7aa","#fef08a","#bbf7d0","#bfdbfe","#ddd6fe","#fbcfe8","#e0f2fe",
+  // neutral
+  "#ffffff","#e2e8f0","#94a3b8","#64748b","#475569","#334155","#1e293b","#000000",
 ];
 
 type StrikeTier = "none"|"common"|"rare"|"legendary";
@@ -32,9 +73,58 @@ function strikeStyle(t: StrikeTier): {bg:string;border:string;text:string;shadow
   return                      {bg:"#12121a",border:"#64748b",text:"#94a3b8",shadow:"rgba(100,116,139,0.4)"};
 }
 
-const BOTS = ["0x7a3…b9f","0xaf1…c32","0x99d…441","0xb82…71a","0x55e…f90","0xcc4…d18"];
+const BOTS = [
+  "0x7a3…b9f","0xaf1…c32","0x99d…441","0xb82…71a","0x55e…f90","0xcc4…d18",
+  "0x31f…e77","0x0c8…a12","0xfe2…b56","0x8d4…c90","0x12b…d33","0x77a…f01",
+  "0xab9…e45","0x66c…918","0x29e…772","0xd1a…b84","0x4f7…c61","0x93b…d20",
+  "0xe5c…a37","0x18d…f94","0x2a6…b15","0xbc3…e88","0x5e1…a49","0x07f…c73",
+  "0xd9b…142","0x44e…f60","0x6c2…a91","0xf3a…b28","0xa1d…e56","0x88c…703",
+];
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
 const WALLET = "YOU (Demo_7f4…a9c)";
+
+interface UserProfile {
+  displayName: string;
+  handle:      string;     // wallet short
+  avatar:      string;     // emoji
+  bio:         string;
+  xUrl?:       string;
+  homepage?:   string;
+  joinedSlot:  number;     // canvas pixels held (simulated)
+}
+
+const PROFILES: Record<string, UserProfile> = {
+  "0x7a3…b9f": { displayName:"CryptoWalrus",  handle:"0x7a3…b9f", avatar:"🦭", bio:"Full-time pixel artist on Solana. Founding member of Canvas.", xUrl:"https://x.com/cryptowalrus_sol", homepage:"https://walrus.art", joinedSlot:1240 },
+  "0xaf1…c32": { displayName:"SolMaxi88",      handle:"0xaf1…c32", avatar:"⚡", bio:"SOL or nothing. Placing pixels since block 0.", xUrl:"https://x.com/solmaxi88", joinedSlot:874 },
+  "0x99d…441": { displayName:"PixelHunter",    handle:"0x99d…441", avatar:"🎯", bio:"Hunting legendary strikes every day. 12× personal best.", xUrl:"https://x.com/pixelhunter_nft", homepage:"https://pixelhunter.xyz", joinedSlot:3601 },
+  "0xb82…71a": { displayName:"DogeFather",     handle:"0xb82…71a", avatar:"🐕", bio:"Such pixel. Very CANVAS. Wow.", xUrl:"https://x.com/dogefather_sol", joinedSlot:511 },
+  "0x55e…f90": { displayName:"MoonBoi",        handle:"0x55e…f90", avatar:"🌙", bio:"Staking pixels, stacking $CANVAS. LFG.", xUrl:"https://x.com/moonboi_sol", homepage:"https://moonboi.io", joinedSlot:2288 },
+  "0xcc4…d18": { displayName:"CZ_Army",        handle:"0xcc4…d18", avatar:"🔶", bio:"BNB zone defender. Cross-chain pixel warrior.", xUrl:"https://x.com/czarmy_official", joinedSlot:999 },
+  "0x31f…e77": { displayName:"NakamotoKid",    handle:"0x31f…e77", avatar:"₿",  bio:"The original pixel territory belongs to BTC. Always.", xUrl:"https://x.com/nakamotokid", homepage:"https://nakamotokid.com", joinedSlot:7842 },
+  "0x0c8…a12": { displayName:"ETH_Queen",      handle:"0x0c8…a12", avatar:"💎", bio:"Ethereum forever. Smart contracts, smarter pixels.", xUrl:"https://x.com/eth_queen_nft", joinedSlot:4320 },
+  "0xfe2…b56": { displayName:"GigaBrain",      handle:"0xfe2…b56", avatar:"🧠", bio:"Algorithmic pixel placement. I wrote a bot. No I won't share it.", xUrl:"https://x.com/gigabrain_xyz", homepage:"https://gigabrain.xyz", joinedSlot:18920 },
+  "0x8d4…c90": { displayName:"PepeArmy",       handle:"0x8d4…c90", avatar:"🐸", bio:"Defending the Pepe zone one pixel at a time. WAGMI.", xUrl:"https://x.com/pepearmy_sol", joinedSlot:6610 },
+  "0x12b…d33": { displayName:"SatoshiGhost",   handle:"0x12b…d33", avatar:"👻", bio:"Anonymous. Always watching. Pixels don't lie.", joinedSlot:2930 },
+  "0x77a…f01": { displayName:"VaultBreaker",   handle:"0x77a…f01", avatar:"🏛️", bio:"Hit the Vault 3 times. Lucky streak or skill? You decide.", xUrl:"https://x.com/vaultbreaker_sol", joinedSlot:1105 },
+  "0xab9…e45": { displayName:"TrumpZone",      handle:"0xab9…e45", avatar:"🇺🇸", bio:"MAGA canvas. The best pixels, believe me.", xUrl:"https://x.com/trumpzone_canvas", joinedSlot:3377 },
+  "0x66c…918": { displayName:"MarsOrBust",     handle:"0x66c…918", avatar:"🚀", bio:"SpaceX fan, Elon pixel collector. See you on Mars.", xUrl:"https://x.com/marsorbus_t", homepage:"https://marsorbus.io", joinedSlot:5512 },
+  "0x29e…772": { displayName:"DegenKing",      handle:"0x29e…772", avatar:"👑", bio:"Full degen. 100 SOL bets every morning. Not financial advice.", xUrl:"https://x.com/degenking_sol", joinedSlot:44100 },
+  "0xd1a…b84": { displayName:"PixelMonk",      handle:"0xd1a…b84", avatar:"🧘", bio:"Patience is the strategy. I place one pixel per day, perfectly.", joinedSlot:365 },
+  "0x4f7…c61": { displayName:"W3B_Witch",      handle:"0x4f7…c61", avatar:"🔮", bio:"On-chain pixel divination. The canvas reveals all truths.", xUrl:"https://x.com/w3b_witch", homepage:"https://w3bwitch.art", joinedSlot:2218 },
+  "0x93b…d20": { displayName:"Solfluencer",    handle:"0x93b…d20", avatar:"📸", bio:"Documenting every legendary strike since launch.", xUrl:"https://x.com/solfluencer", joinedSlot:8830 },
+  "0xe5c…a37": { displayName:"NightOwlNFT",    handle:"0xe5c…a37", avatar:"🦉", bio:"Only places pixels after midnight. 0 sleep = max alpha.", xUrl:"https://x.com/nightowlnft", joinedSlot:3140 },
+  "0x18d…f94": { displayName:"CanvasDAO",      handle:"0x18d…f94", avatar:"🏛️", bio:"Community-run pixel holding. 47 wallets, one vision.", xUrl:"https://x.com/canvasdao_sol", homepage:"https://canvasdao.xyz", joinedSlot:92400 },
+  "0x2a6…b15": { displayName:"HashRateHero",   handle:"0x2a6…b15", avatar:"⛏️", bio:"Mined BTC since 2011. Now I mine pixels.", joinedSlot:1790 },
+  "0xbc3…e88": { displayName:"FloorSweepr",    handle:"0xbc3…e88", avatar:"🧹", bio:"Sweeping the canvas floor. Every unclaimed pixel is mine.", xUrl:"https://x.com/floorsweepr", joinedSlot:71300 },
+  "0x5e1…a49": { displayName:"KoreanWhale",    handle:"0x5e1…a49", avatar:"🐋", bio:"Seoul-based pixel whale. I own the K-zone and I'm not selling.", xUrl:"https://x.com/koreanwhale_px", joinedSlot:28850 },
+  "0x07f…c73": { displayName:"ChinaDragon",    handle:"0x07f…c73", avatar:"🐉", bio:"Great Canvas of the blockchain. Pixel sovereignty.", xUrl:"https://x.com/chinadragon_sol", joinedSlot:15670 },
+  "0xd9b…142": { displayName:"Lambo2025",      handle:"0xd9b…142", avatar:"🏎️", bio:"If this doesn't buy me a Lambo I'm suing Satoshi.", xUrl:"https://x.com/lambo2025_real", joinedSlot:4440 },
+  "0x44e…f60": { displayName:"PixelSensei",    handle:"0x44e…f60", avatar:"⛩️", bio:"Teaching pixel strategy on X. DM for lessons.", xUrl:"https://x.com/pixelsensei_sol", homepage:"https://pixelsensei.xyz", joinedSlot:6600 },
+  "0x6c2…a91": { displayName:"OnChainAnna",    handle:"0x6c2…a91", avatar:"🌸", bio:"Artist turned pixel warlord. The canvas is my gallery.", xUrl:"https://x.com/onchainna_art", homepage:"https://onchainna.com", joinedSlot:3390 },
+  "0xf3a…b28": { displayName:"ZeroFeeMax",     handle:"0xf3a…b28", avatar:"🔥", bio:"Solana fees are nothing. I place pixels hourly.", xUrl:"https://x.com/zerofeemax", joinedSlot:12200 },
+  "0xa1d…e56": { displayName:"AlphaSignal",    handle:"0xa1d…e56", avatar:"📡", bio:"I called Canvas at mint. Told you so. Substack in bio.", xUrl:"https://x.com/alphasignal_sol", homepage:"https://alphasignal.substack.com", joinedSlot:5510 },
+  "0x88c…703": { displayName:"GoldBlockGary",  handle:"0x88c…703", avatar:"🟨", bio:"BTC maxi, pixel maxi. Gold blocks only.", xUrl:"https://x.com/goldblockgary", joinedSlot:9870 },
+};
 
 // ─── Pixel Art Seeding ────────────────────────────────────────────────────────
 
@@ -63,291 +153,194 @@ function drawPattern(
   );
 }
 
-function seedCanvas(g: (PxData|null)[]) {
-  // ── Faction territory backgrounds ─────────────────────────────────────────
-  fillRect(g,  0,  0, 37, 46, "#1e3a5f"); // navy – top-left
-  fillRect(g, 37,  0, 26, 46, "#180b35"); // dark purple – top-center
-  fillRect(g, 63,  0, 37, 46, "#7f1d1d"); // crimson – top-right
-  fillRect(g,  0, 48, 37, 32, "#14532d"); // forest green – mid-left
-  fillRect(g, 37, 48, 26, 32, "#042f2e"); // deep teal – mid-center
-  fillRect(g, 63, 48, 37, 32, "#0c4a6e"); // ocean blue – mid-right
-  fillRect(g,  0, 82, 37, 18, "#f0f0f0"); // white – bottom-left (flag)
-  fillRect(g, 37, 82, 26, 18, "#92400e"); // amber – bottom-center (text bg)
-  fillRect(g, 63, 82, 37, 18, "#3b0764"); // deep purple – bottom-right
-
-  // ── Rainbow separator band y:46–47 ────────────────────────────────────────
-  const rainbows = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#06b6d4","#3b82f6","#8b5cf6"];
-  for (let x = 0; x < GRID; x++) {
-    const ci = Math.min(Math.floor(x / (GRID / rainbows.length)), rainbows.length - 1);
-    px(g, x, 46, rainbows[ci]);
-    px(g, x, 47, rainbows[ci]);
-  }
-
-  // ── Large heart – center top (x:38, y:8) ──────────────────────────────────
-  drawPattern(g, 38, 8, [
-    ".RRR.RRR.",
-    "RRRRRRRRR",
-    "RRRRRRRRR",
-    "RRRRRRRRR",
-    ".RRRRRRR.",
-    "..RRRRR..",
-    "...RRR...",
-    "....R....",
-  ], { R: "#ef4444" });
-  // Highlight
-  drawPattern(g, 38, 8, [
-    ".PPP.PPP.",
-    "PPPPP.PPP",
-    "PP.......",
-  ], { P: "#fca5a5" });
-
-  // ── Smiley face – navy zone (x:3, y:5) ────────────────────────────────────
-  drawPattern(g, 3, 5, [
-    "...YYYYY...",
-    "..YYYYYYY..",
-    ".YYYYYYYYY.",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    "YYYYYYYYYYY",
-    ".YYYYYYYYY.",
-    "..YYYYYYY..",
-    "...YYYYY...",
-  ], { Y: "#f59e0b" });
-  // Eyes
-  drawPattern(g, 3, 5, [
-    "...........",
-    "...........",
-    "...........",
-    "..BB..BB...",
-    "..BB..BB...",
-    "...........",
-    "...........",
-    ".B.......B.",
-    ".BB.....BB.",
-    "...........",
-    "...........",
-    "...........",
-  ], { B: "#1e293b" });
-
-  // ── "PLACE" text – navy zone (x:2, y:21) ──────────────────────────────────
-  const letterP = ["WW.","W.W","WW.","W..","W.."];
-  const letterL = ["W..","W..","W..","W..","WWW"];
-  const letterA = [".W.","W.W","WWW","W.W","W.W"];
-  const letterC = [".WW","W..","W..","W..","..W",".WW"]; // unused but kept
-  const letterE = ["WWW","W..","WW.","W..","WWW"];
-  [letterP, letterL, letterA, letterC, letterE].forEach((ltr, i) => {
-    drawPattern(g, 2 + i * 4, 21, ltr.slice(0,5), { W: "#ffffff" });
-  });
-
-  // ── Sun with rays – navy zone (x:27, y:5) ─────────────────────────────────
-  // Rays
-  for (let i = 0; i < 8; i++) {
-    const angle = (i * Math.PI) / 4;
-    for (let r = 4; r <= 6; r++) {
-      const rx = Math.round(Math.cos(angle) * r);
-      const ry = Math.round(Math.sin(angle) * r);
-      px(g, 31 + rx, 9 + ry, "#fbbf24");
-    }
-  }
-  // Sun disk
-  for (let dy = -3; dy <= 3; dy++)
-    for (let dx = -3; dx <= 3; dx++)
-      if (dx * dx + dy * dy <= 10) px(g, 31 + dx, 9 + dy, "#fef08a");
-
-  // ── Among Us crewmate – crimson zone (x:67, y:3) ──────────────────────────
-  drawPattern(g, 67, 3, [
-    ".RRRRRR.",
-    "RRRRRRRRR",
-    "RBBBBBBBR",
-    "RBWBBBBBR",
-    "RBBBBBBBR",
-    "RRRRRRRRR",
-    "RRRRRRRRR",
-    ".RR..RRR.",
-    ".RR..RRR.",
-    ".RRRRRR..",
-  ], { R: "#ef4444", B: "#93c5fd", W: "#dbeafe" });
-  // Backpack
-  fillRect(g, 76, 6, 3, 4, "#dc2626");
-
-  // ── Troll face – crimson zone (x:65, y:16) ────────────────────────────────
-  drawPattern(g, 66, 17, [
-    "..WWWWWWWWW..",
-    ".WWWWWWWWWWW.",
-    "WWWWWWWWWWWWW",
-    "WW.WW.WW.WWWW",
-    "WWWWWWWWWWWWW",
-    "WWWWWWWWWWWWW",
-    "W.WWWWWWWWW.W",
-    "WW.........WW",
-    "WWWWWWWWWWWWW",
-    ".WWWWWWWWWWW.",
-    "..WWWWWWWWW..",
-  ], { W: "#fde68a" });
-  // Eyes (dots)
-  px(g, 69, 20, "#1e293b"); px(g, 70, 20, "#1e293b");
-  px(g, 74, 20, "#1e293b"); px(g, 75, 20, "#1e293b");
-  // Smile
-  px(g, 68, 25, "#1e293b"); px(g, 77, 25, "#1e293b");
-  for (let x = 69; x <= 76; x++) px(g, x, 26, "#1e293b");
-
-  // ── Pixel trees – forest zone (x:2, y:52) ─────────────────────────────────
-  // Tree 1
-  drawPattern(g, 2, 52, [
-    "....G....",
-    "...GGG...",
-    "..GGGGG..",
-    ".GGGGGGG.",
-    "GGGGGGGGG",
-    "..GGGGG..",
-    "....T....",
-    "....T....",
-    "....T....",
-  ], { G: "#22c55e", T: "#a16207" });
-  // Tree 2
-  drawPattern(g, 15, 54, [
-    "...G...",
-    "..GGG..",
-    ".GGGGG.",
-    "GGGGGGG",
-    "...T...",
-    "...T...",
-    "...T...",
-  ], { G: "#16a34a", T: "#78350f" });
-  // Tree 3 (darker)
-  drawPattern(g, 25, 56, [
-    "..D..",
-    ".DDD.",
-    "DDDDD",
-    "..T..",
-    "..T..",
-  ], { D: "#15803d", T: "#7c2d12" });
-  // Mushroom
-  drawPattern(g, 8, 64, [
-    ".RRR.",
-    "RRRRR",
-    "R.R.R",
-    "WWWWW",
-    ".WWW.",
-  ], { R: "#ef4444", W: "#f8fafc" });
-  // Star
-  drawPattern(g, 28, 63, [
-    "..S..",
-    ".SSS.",
-    "SSSSS",
-    ".SSS.",
-    "..S..",
-  ], { S: "#fef08a" });
-
-  // ── Rocket – teal zone (x:42, y:52) ───────────────────────────────────────
-  drawPattern(g, 43, 52, [
-    "..W..",
-    ".WBW.",
-    "WWWWW",
-    "RWWWR",
-    "RWWWR",
-    "RRRRR",
-    ".RRR.",
-    "Y.R.Y",
-  ], { W: "#e2e8f0", R: "#3b82f6", Y: "#f97316", B: "#dbeafe" });
-
-  // ── r/CANVAS text – amber zone (x:38, y:84) ───────────────────────────────
-  // r
-  drawPattern(g, 38, 84, [".W.","WW.","W..","W..","W.."], { W: "#fff7ed" });
-  // /
-  drawPattern(g, 42, 84, ["..W",".W.",".W.","W..","W.."], { W: "#fde68a" });
-  // C
-  drawPattern(g, 46, 84, [".WW","W..","W..","W..",".WW"], { W: "#f59e0b" });
-  // A
-  drawPattern(g, 50, 84, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
-  // N
-  drawPattern(g, 54, 84, ["W.W","WWW","WWW","W.W","W.W"], { W: "#f59e0b" });
-  // V
-  drawPattern(g, 58, 84, ["W.W","W.W","W.W",".W.",".W."], { W: "#f59e0b" });
-  // A
-  drawPattern(g, 62, 84, [".W.","W.W","WWW","W.W","W.W"], { W: "#f59e0b" });
-  // S
-  drawPattern(g, 66, 84, ["WW.","W..",".W.","..W",".WW"], { W: "#f59e0b" });
-
-  // ── Japan flag – white zone (x:1, y:84) ───────────────────────────────────
-  const jcx = 18, jcy = 91;
-  for (let dy = -5; dy <= 5; dy++)
-    for (let dx = -5; dx <= 5; dx++)
-      if (dx * dx + dy * dy <= 26) px(g, jcx + dx, jcy + dy, "#ef4444");
-
-  // ── Ocean waves + fish – ocean zone ────────────────────────────────────────
-  // Wave line
-  for (let x = 63; x < 100; x++) {
-    const wy = 50 + Math.round(Math.sin((x - 63) * 0.55) * 2);
-    px(g, x, wy, "#7dd3fc");
-    px(g, x, wy + 1, "#38bdf8");
-  }
-  // Fish 1
-  drawPattern(g, 67, 55, [
-    "..FF.",
-    "FFFFT",
-    "FFFFF",
-    "FFFFT",
-    "..FF.",
-  ], { F: "#f97316", T: "#fdba74" });
-  // Fish 2
-  drawPattern(g, 83, 62, [
-    ".FF..",
-    "TFFFF",
-    "FFFFF",
-    "TFFFF",
-    ".FF..",
-  ], { F: "#06b6d4", T: "#67e8f9" });
-  // Fish 3 small
-  drawPattern(g, 74, 69, [
-    ".F.",
-    "FFF",
-    ".F.",
-  ], { F: "#22c55e" });
-  // Bubbles
-  px(g, 72, 53, "#bfdbfe"); px(g, 73, 52, "#bfdbfe");
-  px(g, 88, 60, "#bfdbfe"); px(g, 89, 59, "#bfdbfe");
-  px(g, 78, 67, "#bfdbfe");
-
-  // ── Checkered pattern – purple zone (x:63, y:82) ──────────────────────────
-  for (let dy = 0; dy < 18; dy++)
-    for (let dx = 0; dx < 37; dx++)
-      px(g, 63 + dx, 82 + dy, (dx + dy) % 2 === 0 ? "#a855f7" : "#6d28d9");
-
-  // ── "VOID" logo – purple zone (x:70, y:85) ────────────────────────────────
-  // V
-  drawPattern(g, 70, 85, ["W.W","W.W","W.W",".W.",".W."], { W: "#f8fafc" });
-  // O
-  drawPattern(g, 74, 85, [".W.","W.W","W.W","W.W",".W."], { W: "#f8fafc" });
-  // I
-  drawPattern(g, 78, 85, ["W","W","W","W","W"], { W: "#f8fafc" });
-  // D
-  drawPattern(g, 80, 85, ["WW.","W.W","W.W","W.W","WW."], { W: "#f8fafc" });
-
-  // ── Scattered filler pixels (organic texture) ─────────────────────────────
-  // Tiny pixel clusters to add r/place organic feel
-  const scatterColors = [
-    { cx: 5,  cy: 37, color: "#3b82f6" },
-    { cx: 12, cy: 40, color: "#22c55e" },
-    { cx: 20, cy: 38, color: "#f59e0b" },
-    { cx: 30, cy: 42, color: "#ec4899" },
-    { cx: 55, cy: 28, color: "#8b5cf6" },
-    { cx: 55, cy: 35, color: "#06b6d4" },
-    { cx: 55, cy: 42, color: "#84cc16" },
-    { cx: 80, cy: 30, color: "#fbbf24" },
-    { cx: 90, cy: 35, color: "#a3e635" },
-  ];
-  scatterColors.forEach(({ cx, cy, color }) => {
-    for (let i = 0; i < 6; i++) {
-      const ox = Math.round(Math.cos(i) * 2);
-      const oy = Math.round(Math.sin(i) * 2);
-      px(g, cx + ox, cy + oy, color, "scatter_art");
-    }
-  });
+function drawScaled(
+  g: (PxData|null)[],
+  ox: number, oy: number,
+  rows: string[],
+  palette: Record<string, string>,
+  scale: number
+) {
+  rows.forEach((row, dy) =>
+    [...row].forEach((ch, dx) => {
+      const c = palette[ch];
+      if (c) fillRect(g, ox + dx * scale, oy + dy * scale, scale, scale, c);
+    })
+  );
 }
+
+
+// After seeding, assign random player owners to all pixels that still carry "art"
+function assignRandomOwners(g: (PxData|null)[]) {
+  for (let i = 0; i < g.length; i++) {
+    const cell = g[i];
+    if (cell && cell.owner === "art") {
+      g[i] = { color: cell.color, owner: rndOwner() };
+    }
+  }
+}
+function seedCanvas(g: (PxData|null)[]) {
+
+  // ZONE BACKGROUNDS
+  fillRect(g,   0,   0, 480, 490, "#1c0900");
+  fillRect(g, 520,   0, 480, 330, "#0c0018");
+  fillRect(g,   0, 520, 310, 480, "#001a04");
+  fillRect(g, 520, 520, 480, 480, "#120a00");
+  fillRect(g, 310,   0, 210, 240, "#1a0000");
+  fillRect(g, 310, 520, 210, 480, "#001018");
+  fillRect(g, 480,   0,  40, 1000, "#050505");
+  fillRect(g,   0, 480, 1000, 40, "#050505");
+  fillRect(g, 310, 240, 210, 240, "#050a05");
+
+  // 1. LARGE BITCOIN COIN (top-left)
+  drawPattern(g, 135, 135, ["................................................................................G................................................................................","....................................................................GGGGGGGGGGGGGGGGGGGGGGGGG....................................................................","...............................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG...............................................................","...........................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG...........................................................","........................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG........................................................",".....................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.....................................................","..................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG..................................................","................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGDGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG................................................","..............................................GGGGGGGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGGGGGGG..............................................","............................................GGGGGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGGGGG............................................","..........................................GGGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGGG..........................................","........................................GGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDODDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGG........................................","......................................GGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDVVVOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDDDDGGGGGGGGGGGGGGGG......................................",".....................................GGGGGGGGGGGGGGGDDDDDDDDDDDDOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDGGGGGGGGGGGGGGG.....................................","...................................GGGGGGGGGGGGGGDDDDDDDDDDDOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDGGGGGGGGGGGGGG...................................","..................................GGGGGGGGGGGGGDDDDDDDDDDOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDGGGGGGGGGGGGG..................................","................................GGGGGGGGGGGGGDDDDDDDDDDOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDGGGGGGGGGGGGG................................","...............................GGGGGGGGGGGGGDDDDDDDDOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDGGGGGGGGGGGGG...............................","..............................GGGGGGGGGGGGDDDDDDDDOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDGGGGGGGGGGGG..............................",".............................GGGGGGGGGGGDDDDDDDDOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDGGGGGGGGGGG.............................","............................GGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGG............................","..........................GGGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGGG..........................",".........................GGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGG.........................","........................GGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGG........................",".......................GGGGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGGGG.......................","......................GGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGG......................",".....................GGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGG.....................",".....................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG.....................","....................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG....................","...................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG...................","..................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG..................",".................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG.................","................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG................","................GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG................","...............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG...............","..............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG..............","..............GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG..............",".............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG.............","............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG............","............GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG............","...........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG...........","...........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG...........","..........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG..........","..........GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG..........",".........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG.........",".........GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.........","........GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG........","........GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG........",".......GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG.......",".......GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.......","......GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG......","......GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG......","......GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG......",".....GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG.....",".....GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.....",".....GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.....","....GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG....","....GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG....","....GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG....","...GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG...","...GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG...","...GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG...","...GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVVVVVVVVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG...","..GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..",".GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVVVVVVVVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.","GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVVVVVVVVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVVVVVVVVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.",".GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG..","..GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG..","...GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG...","...GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOOOOOVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG...","...GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVVVVVVVVVVVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG...","...GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOVVVVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG...","....GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOVVVVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG....","....GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG....","....GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG....",".....GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG.....",".....GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.....",".....GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG.....","......GGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGG......","......GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG......","......GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG......",".......GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.......",".......GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG.......","........GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG........","........GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG........",".........GGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGG.........",".........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG.........","..........GGGGGGGGDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDGGGGGGGG..........","..........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG..........","...........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG...........","...........GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG...........","............GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG............","............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG............",".............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG.............","..............GGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGG..............","..............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG..............","...............GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG...............","................GGGGGGGGGDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDGGGGGGGGG................","................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG................",".................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG.................","..................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG..................","...................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG...................","....................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG....................",".....................GGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGG.....................",".....................GGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGG.....................","......................GGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGG......................",".......................GGGGGGGGGGGDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDGGGGGGGGGGG.......................","........................GGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGG........................",".........................GGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGG.........................","..........................GGGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGGG..........................","............................GGGGGGGGGGGDDDDDDDOOOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDGGGGGGGGGGG............................",".............................GGGGGGGGGGGDDDDDDDDOOOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDGGGGGGGGGGG.............................","..............................GGGGGGGGGGGGDDDDDDDDOOOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDGGGGGGGGGGGG..............................","...............................GGGGGGGGGGGGGDDDDDDDDOOOOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDGGGGGGGGGGGGG...............................","................................GGGGGGGGGGGGGDDDDDDDDDDOOOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDGGGGGGGGGGGGG................................","..................................GGGGGGGGGGGGGDDDDDDDDDDOOOOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDGGGGGGGGGGGGG..................................","...................................GGGGGGGGGGGGGGDDDDDDDDDDDOOOOOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDGGGGGGGGGGGGGG...................................",".....................................GGGGGGGGGGGGGGGDDDDDDDDDDDDOOOOVVVVOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDGGGGGGGGGGGGGGG.....................................","......................................GGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDVVVOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDDDDGGGGGGGGGGGGGGGG......................................","........................................GGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDODDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGG........................................","..........................................GGGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGGG..........................................","............................................GGGGGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGGGGG............................................","..............................................GGGGGGGGGGGGGGGGGGGGGGDDDDDDDDDDDDDDDDDDDDDDDDDGGGGGGGGGGGGGGGGGGGGGG..............................................","................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGDGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG................................................","..................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG..................................................",".....................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.....................................................","........................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG........................................................","...........................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG...........................................................","...............................................................GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG...............................................................","....................................................................GGGGGGGGGGGGGGGGGGGGGGGGG....................................................................","................................................................................G................................................................................"], {"G":"#f59e0b","D":"#92400e","O":"#f97316","V":"#7c2d12"}); // BTC coin
+  drawPattern(g, 193, 308, ["BBBBB.TTTTT.CCCCC","B...B...T...C....","BBBBB...T...C....","B...B...T...C....","BBBBB.TTTTT.CCCCC"], {"B":"#f59e0b","T":"#f59e0b","C":"#f59e0b"}); // BTC label
+  drawPattern(g, 20, 430, ["H...H.OOO.DDD..LLL","HHHHH.O.O.D..D.L..","H...H.OOO.DDD..LLL"], {"H":"#f59e0b","O":"#f59e0b","D":"#f59e0b","L":"#f59e0b"}); // HODL
+  drawPattern(g, 20, 20, ["SSS.AAA.TTT.OOO.SSS.HHH.III","S...A.A..T..O.O.S...H.H..I.","SSS.AAA..T..O.O.S...HHH..I.","..S.A.A..T..O.O.S...H.H..I.","SSS.A.A..T..OOO.SSS.H.H.III"], {"S":"#f59e0b","A":"#f59e0b","T":"#f59e0b","O":"#f59e0b","H":"#f59e0b","I":"#f59e0b"}); // SATOSHI
+
+  // 2. ETH DIAMOND (top-right)
+  drawPattern(g, 725, 25, ["......................................................................","..................................LL..................................",".................................LLLL.................................","................................LLLLLL................................","...............................LLLLLLLL...............................","..............................LLLLLLLLLL..............................","............................LLLLLLLLLLLLLL............................","...........................LLLLLLLLLLLLLLLL...........................","..........................LLLLLLLLLLLLLLLLLL..........................",".........................LLLLLLLLLLLLLLLLLLLL.........................","........................LLLLLLLLLLLLLLLLLLLLLL........................",".......................LLLLLLLLLLLLLLLLLLLLLLLL.......................",".....................LLLLLLLLLLLLLLLLLLLLLLLLLLLL.....................","....................LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL....................","...................LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL...................","..................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..................",".................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.................","................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM................","..............MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..............",".............MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.............","............MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM............","...........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...........","..........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..........",".........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.........",".......MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.......","......MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM......",".....MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.....","....MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM....","...MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...","..MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..","MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",".MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.","..MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..","...MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...","....MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM....",".....MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.....",".......MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.......","........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM........",".........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.........","..........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..........","...........MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...........","............MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM............","..............MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..............","...............MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...............","................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM................",".................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.................","..................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM..................","...................MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...................",".....................MMMMMMMMMMMMMMMMMMMMMMMMMMMM.....................","......................MMMMMMMMMMMMMMMMMMMMMMMMMM......................",".......................MMMMMMMMMMMMMMMMMMMMMMMM.......................","........................MMMMMMMMMMMMMMMMMMMMMM........................",".........................MMMMMMMMMMMMMMMMMMMM.........................","..........................MMMMMMMMMMMMMMMMMM..........................","............................MMMMMMMMMMMMMM............................",".............................MMMMMMMMMMMM.............................","..............................MMMMMMMMMM..............................","...............................MMMMMMMM...............................","................................MMMMMM................................",".................................MMMM.................................","DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",".DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.","..DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD..","...DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...","....DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD....",".....DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.....",".......DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.......","........DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD........",".........DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.........","..........DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD..........","...........DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...........","............DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD............","..............DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD..............","...............DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...............","................DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD................",".................DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.................","..................DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD..................","...................DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...................",".....................DDDDDDDDDDDDDDDDDDDDDDDDDDDD.....................","......................DDDDDDDDDDDDDDDDDDDDDDDDDD......................",".......................DDDDDDDDDDDDDDDDDDDDDDDD.......................","........................DDDDDDDDDDDDDDDDDDDDDD........................",".........................DDDDDDDDDDDDDDDDDDDD.........................","..........................DDDDDDDDDDDDDDDDDD..........................","............................DDDDDDDDDDDDDD............................",".............................DDDDDDDDDDDD.............................","..............................DDDDDDDDDD..............................","...............................DDDDDDDD...............................","................................DDDDDD................................",".................................DDDD.................................","......................................................................","..................................VV..................................",".................................VVVV.................................","................................VVVVVV................................","...............................VVVVVVVV...............................","..............................VVVVVVVVVV..............................","............................VVVVVVVVVVVVVV............................","...........................VVVVVVVVVVVVVVVV...........................","..........................VVVVVVVVVVVVVVVVVV..........................",".........................VVVVVVVVVVVVVVVVVVVV.........................","........................VVVVVVVVVVVVVVVVVVVVVV........................",".......................VVVVVVVVVVVVVVVVVVVVVVVV.......................",".....................VVVVVVVVVVVVVVVVVVVVVVVVVVVV.....................","....................VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV....................","...................VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV...................","..................VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV..................",".................VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV.................","................VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV................","..............VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV..............",".............VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV.............","............VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV............","...........VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV...........","..........VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV..........",".........VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV.........",".......VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV.......","......VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV......",".....VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV.....","....VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV....","...VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV...","..VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV.."], {"L":"#c084fc","M":"#9333ea","D":"#7c3aed","V":"#4c1d95"}); // ETH diamond
+  drawPattern(g, 742, 152, ["EEE.TTT.HHH","E...TTT.H.H","EEE...T.HHH","E.....T.H.H","EEE...T.H.H"], {"E":"#9333ea","T":"#9333ea","H":"#9333ea"}); // ETH label
+  drawPattern(g, 530, 60, ["GGG.AAA.SSS..FFF.EEE.EEE.SSS","G.G.A.A.S....F...E...E...S..","GGG.AAA.SSS..FFF.EEE.EEE.SSS","G.G.A.A...S..F...E...E...S..","G.G.A.A.SSS..F...EEE.EEE.SSS"], {"G":"#7c3aed","A":"#7c3aed","S":"#7c3aed","F":"#7c3aed","E":"#7c3aed"}); // GAS FEES
+  drawPattern(g, 885, 50, ["..F.....",".FFF....","FFFFF...","FFFFFFFF",".FFFFFFF","..FFFFF.","...FFF..","....F..."], {"F":"#f97316"}); // burn flame
+
+  // 3. TRUMP PORTRAIT (MAGA zone)
+  drawPattern(g, 313, 5, ["......HHHHHHHHHHHHHHHHHHHH......","....HHHHHHHHHHHHHHHHHHHHHHHH....","...HHHHHHHHHHHHHHHHHHHHHHHHHH...","..HHHHHHHHHHHHHHHHHHHHHHHHHHHH..",".HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH.","HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH.","HHHHHSSSSSSSSSSSSSSSSSSSSSSHHHHH","HSSSSSSSSSSSSSSSSSSSSSSSSSSSSSH.",".SSSSSSBBBBBBBBSSSBBBBBBBSSSSSS.",".SSSSSBBB....BBBSBB....BBBSSSSS.",".SSSSBB..EEEE.BBSBB.EEEE.BBSSSS.",".SSSSBB..EEEE.BBSBB.EEEE.BBSSSS.",".SSSSSBB......BSSBB......BSSSSS..",".SSSSSSSBBBBBBBSSSBBBBBBSSSSSSSS.",".SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.",".SSSSSSSSS.NNNN.SSSSSSSSSSSSSSS..",".SSSSSSSSSS.NNNN.SSSSSSSSSSSSSS..",".SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.",".SSSSSSSSSSRRRRRRRRRSSSSSSSSSSSS.",".SSSSSSSSSRRRRRRRRRRRSSSSSSSSSSS.",".SSSSSSSSSSRRRRRRRRRSSSSSSSSSSSS.",".SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.","..WWWWWWWWWWWWWWWWWWWWWWWWWWWWW.","..WDDDDDDDDDDDRDDDDDDDDDDDDDDDW.","..DDDDDDDDDDRRRRRDDDDDDDDDDDDDD.","...DDDDDDDDRRRRRRRRDDDDDDDDDD...","....DDDDDDDRRRRRRRRDDDDDDDD.....",".....DDDDDDRRRRRRRRDDDDDDD......","......DDDDDRRRRRRRRDDDDDD.......",".......DDDDRRRRRRRRDDDDD........","........DDDRRRRRRRRDDDD.........",".........DDRRRRRRRRDDD..........","..........DRRRRRRRRD............"], {"H":"#f7a000","S":"#fddcb0","B":"#333","E":"#5588cc","N":"#cc9966","R":"#cc0000","W":"#f0f0f0","D":"#1a2060"}); // Trump portrait
+  drawPattern(g, 322, 200, ["MMM.AAA.GGG.AAA","M.M.A.A.G.G.A.A","MMM.AAA.GGG.AAA","M.M.A.A.G.G.A.A","M.M.A.A.GGG.A.A"], {"M":"#cc0000","A":"#cc0000","G":"#cc0000"}); // MAGA
+
+  // 4. ELON MUSK (ETH zone, right)
+  drawPattern(g, 685, 155, ["....DDDDDDDDDDDDDDDDDDDDDDDDDD..","..DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",".DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.","DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD.","DDDSSSSSSSSSSSSSSSSSSSSSSSSSDDD.",".DSSSSSSSSSSSSSSSSSSSSSSSSSSSD..","..SSSSSSBBBBBBBBSSSBBBBBBBSSSSS.","..SSSSSBB....BBBSBB....BBSSSSSS.","..SSSSSBB.EE.BBBSBB.EE.BBSSSSS.","..SSSSSBB.EE.BBBSBB.EE.BBSSSSS.","..SSSSSSBB...BBBSBB...BBSSSSSS..","..SSSSSSSBBBBBBBBSBBBBBBSSSSSSS.","..SSSSSSSSSSSSSSSSSSSSSSSSSSSS..","..SSSSSSS.NNNN.SSSSSSSSSSSSSS...","..SSSSSSSSNNNN.SSSSSSSSSSSSSSS..","..SSSSSSSSSSSSSSSSSSSSSSSSSSSS..","..SSSSSSSSMMMMMMMMSSSSSSSSSSS...","..SSSSSSSSMMMMMMMMSSSSSSSSSSS...","..SSSSSSSSSSSSSSSSSSSSSSSSSSSS..","...BBBBBBBBBBBBBBBBBBBBBBBBBB...","...BBBBBBBBBBBBBBBBBBBBBBBBBB...","....BBBBBBBBBBBBBBBBBBBBBBB.....",".....BBBBBBBBBBBBBBBBBBBBB......","......BBBBBBBBBBBBBBBBBBB......."], {"D":"#2d2020","S":"#ffdfbf","B":"#222","E":"#335577","N":"#cc9966","M":"#555"}); // Musk portrait
+  drawPattern(g, 935, 162, ["X...X","X...X",".X.X.","..X..",".X.X.","X...X","X...X"], {"X":"#ffffff"}); // X logo
+  drawPattern(g, 530, 170, ["..RRR..",".RRRRR.","RRRRRRR","RR.R.RR","RRRRRRR","RRRRRRR","RR.R.RR",".FF.FF.","FFF.FFF"], {"R":"#aaaaaa","F":"#f97316"}); // SpaceX rocket
+
+
+
+  // 5. DOGE SHIBA INU (left zone)
+  drawPattern(g, 18, 180, ["..TTTTTTTTTTTTTTTTTTTTTTTTTT..",".TTTTTTTTTTTTTTTTTTTTTTTTTTTT.","TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT","TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT","TTTSSSSSSSSSSSSSSSSSSSSSSSTTTT",".TSSSSSSSSSSSSSSSSSSSSSSSSSST.",".SSSSSSSSSSSSSSSSSSSSSSSSSSSSS",".SSSSSBBBBBBSSSSSSBBBBBBSSSSSS",".SSSSBB....BBSSSSBB....BBSSSSS",".SSSSBB.WW.BBSSSSBB.WW.BBSSSSS",".SSSSBB....BBSSSSBB....BBSSSSS",".SSSSSBBBBBBSSSSSSBBBBBBSSSSSS.",".SSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",".SSSSSSSSSSSNN.NNNSSSSSSSSSSSSS",".SSSSSSSSSSNNNNNNNNSSSSSSSSSSSS",".SSSSSSSSSSNNNNNNNNSSSSSSSSSSSS",".SSSSSSSSSSSNN.NNNSSSSSSSSSSSSS",".SSSSSSSSSSSSSSSSSSSSSSSSSSSSS.",".SWWWWWWWWWWWWWWWWWWWWWWWWWWWS",".SWWWWWWWWWWWWWWWWWWWWWWWWWWWS",".SWWWWWWRRRRRRRRRRRWWWWWWWWWWS.",".SWWWWWWRRRRRRRRRRRWWWWWWWWWWS.",".SWWWWWWWWWWWWWWWWWWWWWWWWWWWS.","..SSSSSSSSSSSSSSSSSSSSSSSSSSS..","...TTTTTTTTTTTTTTTTTTTTTTTTT...","....TTTTTTTTTTTTTTTTTTTTTTT...."], {"T":"#c8922a","S":"#f5d898","B":"#333","W":"#fff","N":"#aa6600","R":"#cc3333"}); // Doge face
+  drawPattern(g, 22, 100, ["W...W.OOO.W...W","W...W.O.O.W...W","W.W.W.O.O.W.W.W","W.W.W.O.O.W.W.W",".W.W..OOO..W.W."], {"W":"#c8922a","O":"#c8922a"}); // WOW
+  drawPattern(g, 22, 420, ["MMM.U.U.CCC.H...H","M.M.U.U.C...H.H.H","MMM.U.U.C...HHHHH","M.M.U.U.C...H...H","M.M.UUU.CCC.H...H"], {"M":"#c8922a","U":"#c8922a","C":"#c8922a","H":"#c8922a"}); // MUCH
+
+  // 6. PEPE FROG (bottom-left zone)
+  drawPattern(g, 12, 545, ["..GGGGGGGGGGGGGGGGGGGGGGGGGGGG..",".GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.","GGG.GGGGGGGGGGGGGGGGGGGGGGGG.GGG","GG.WGGGGGGGGGGGGGGGGGGGGGGWG.GGG","GG.WGGGGGGGGGGGGGGGGGGGGGGWG.GGG","G.BWWBGGGGGGGGGGGGGGGBWWBG.GGGGG","GBBB.BBGGGGGGGGGGGGGBBB.BBGGGGGG","GBBB.BBGGGGGGGGGGGGGBBB.BBGGGGGG","G.BWWBGGGGGGGGGGGGGGBWWBGGGGGGG.","GG..GGGGGGGGGGGGGGGGGGGGGGGGGGG.",".GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",".GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",".GG.NNNNN.GGGGGGGGGGNNNNNN.GGG..",".GG.NNNNN.GGGGGGGGGGNNNNNN.GGG..",".GGGGGGGGGGGGGGGGGGGGGGGGGGGGG..","..GGGGGGGGGGGGGGGGGGGGGGGGGGG...","..GLLLLLLLLLLLLLLLLLLLLLLLLLG...","..GGLLLLLLLLLLLLLLLLLLLLLLGGG...","..GGGGGGGGGGGGGGGGGGGGGGGGGGG...","..GWWWWWWWWWWWWWWWWWWWWWWWWGGG.","..GWWWWWWWWWWWWWWWWWWWWWWWWGGG.","..GWWRRRRRRRRRRRRRRRRRRRRRWWGGG.","..GWWRRRRRRRRRRRRRRRRRRRRRWWGGG.","...GWWWWWWWWWWWWWWWWWWWWWWGGGGG","....GGGGGGGGGGGGGGGGGGGGGGGGGG..",".....GGGGGGGGGGGGGGGGGGGGGGG...."], {"G":"#3d9a3d","W":"#f0f0f0","B":"#222","N":"#2d7a2d","L":"#1a5a1a","R":"#cc2200"}); // Pepe frog
+  drawPattern(g, 20, 790, ["K...K.EEE.K...K.W...W","K..K..E...K..K..W...W","KKK...EEE.KKK...W.W.W","K..K..E...K..K..W.W.W","K...K.EEE.K...K..W.W."], {"K":"#3d9a3d","E":"#3d9a3d","W":"#3d9a3d"}); // KEKW
+  drawPattern(g, 15, 900, ["NNN.GGG.MMM.III","N.N.G.G.M.M..I.","NNN.GGG.MMM..I.","N.N.G.G.M.M..I.","N.N.GGG.M.M.III"], {"N":"#3d9a3d","G":"#3d9a3d","M":"#3d9a3d","I":"#3d9a3d"}); // NGMI
+
+  // 7. CZ PORTRAIT (BNB zone, bottom-right)
+  drawPattern(g, 680, 685, [".....KKKKKKKKKKKKKKKKKKKKKK.....","...KKKKKKKKKKKKKKKKKKKKKKKKKKK..","..KKKKKKKKKKKKKKKKKKKKKKKKKKKK..",".KKKKKKKKKKKKKKKKKKKKKKKKKKKKK..","KKKKKKSSSSSSSSSSSSSSSSSSSSSSKKK.","KSSSSSSSSSSSSSSSSSSSSSSSSSSSSSK.","KSSSSSSBBBBBBBBSSSBBBBBBBSSSSSSK","KSSSSBBBB....BBBSBB....BBBBSSSSK","KSSSSBB..EE..BBBSBB..EE..BBSSSK.","KSSSSBB..EE..BBBSBB..EE..BBSSSK.","KSSSSSSBBBBBBBBSSSBBBBBBSSSSSSK.","KSSSSSSSSSSSSSSSSSSSSSSSSSSSSK..","KSSSSSSSSS.NNNN.SSSSSSSSSSSSSK..","KSSSSSSSSSSNNNN.SSSSSSSSSSSSSK..","KSSSSSSSSSSSSSSSSSSSSSSSSSSSSK..","KSSSSSSSSYYYYYYYYYYSSSSSSSSSSKK.","KSSSSSSSSYYYYYYYYYYSSSSSSSSSSKK.","KSSSSSSSSSSSSSSSSSSSSSSSSSSSSK..","KGGGGGGGGGGGGGGGGGGGGGGGGGGGK...",".KGGGGGGGGGGGGGGGGGGGGGGGGGK....","..KGGGGGGGGGGGGGGGGGGGGGGGK.....","...KGGGGGGGGGGGGGGGGGGGGGK......","....KKKKKKKKKKKKKKKKKKKKK.......",".....KKKKKKKKKKKKKKKKKKK........"], {"K":"#1a1000","S":"#ffe0c8","B":"#222","E":"#335577","N":"#bb8844","Y":"#f7c948","G":"#f3ba2f"}); // CZ portrait
+  drawPattern(g, 838, 700, [".....YYYY.....","....YYYYYY....","...YYYYYYYY...","..YYYYY.YYYYY.",".YYYY.....YYYY","YYY.........YY",".YYYY.....YYYY","..YYYYYYYYYYYY","...YYYYYYYYYY.","....YYYYYYYY..",".....YYYYYY...","......YYYY....",".......YY....."], {"Y":"#f3ba2f",".":" "}); // BNB diamond
+  drawPattern(g, 843, 825, ["BBB.NNN.BBB","B.B.N.N.B.B","BBB.NNN.BBB","B.B.N.N.B.B","BBB.NNN.BBB"], {"B":"#f3ba2f","N":"#f3ba2f"}); // BNB label
+  drawPattern(g, 695, 900, ["W...W.AAA.GGG.MMM.III","W...W.A.A.G.G.M.M..I.","W.W.W.AAA.GGG.MMM..I.","W.W.W.A.A.G.G.M.M..I.",".W.W..A.A.GGG.M.M.III"], {"W":"#f3ba2f","A":"#f3ba2f","G":"#f3ba2f","M":"#f3ba2f","I":"#f3ba2f"}); // WAGMI
+
+  // 8. SOLANA LOGO (bottom-center)
+  drawPattern(g, 330, 540, ["PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP","PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP..","............................................................................................................................................","GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG","GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG..","............................................................................................................................................","PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP","PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP.."], {"P":"#9945ff","G":"#14f195",".":" "}); // SOL bars
+  drawPattern(g, 330, 565, ["SSS.OOO.LLL.AAA.NNN.AAA","S...O.O.L...A.A.N.N.A.A","SSS.O.O.L...AAA.NNN.AAA","S...O.O.L...A.A.N.N.A.A","SSS.OOO.LLL.A.A.N.N.A.A"], {"S":"#9945ff","O":"#9945ff","L":"#9945ff","A":"#14f195","N":"#14f195"}); // SOLANA text
+
+  // 9. CENTER BATTLEFIELD
+  drawPattern(g, 340, 255, ["..DDDDD..DDDDD..",".D.....DD.....D.","D...DDD..DDD...D","D..D........D..D",".D..DDDDDDDD..D.","..DDDDDDDDDDDD..","...DDDDDDDDDD...","....DDDDDDDD....",".....DDDDDD.....","......DDDD......",".......DD......."], {"D":"#60d0f0"}); // diamond hands
+  drawPattern(g, 375, 250, ["LLL.FFF.GGG","L...F...G.G","LLL.FFF.GGG","L...F...G.G","LLL.F...GGG"], {"L":"#00ff88","F":"#00ff88","G":"#00ff88"}); // LFG
+  drawPattern(g, 350, 415, ["....MMM.....","..MMMMMMM...",".MMMMMMMMMM.","MMMM.MMMMMMM","MMM...MMMMMM","MM.....MMMMM","MMM...MMMMMM","MMMM.MMMMMMM",".MMMMMMMMMM.","..MMMMMMMMM.","....MMMMM...",".....MMM...."], {"M":"#f5f5a0"}); // moon
+  drawPattern(g, 340, 370, ["TTT.OOO..TTT.HHH.EEE..MMM.OOO.OOO.NNN","T...O.O..T...H.H.E...M.M.O.O.O.O.N.N.","T...O.O..T...HHH.EEE.M.M.O.O.O.O.NNN.","T...O.O..T...H.H.E...M.M.O.O.O.O.N.N.","T...OOO..T...H.H.EEE.M.M.OOO.OOO.N.N."], {"T":"#ffd700","O":"#ffd700","H":"#ffd700","E":"#ffd700","M":"#ffd700","N":"#ffd700"}); // TO THE MOON
+
+  // 10. ACCENT PIECES
+  drawPattern(g, 30, 450, ["NNN.FFF.AAA","N.N.F...A.A","NNN.FFF.AAA","N.N.F...A.A","N.N.F...A.A"], {"N":"#f59e0b","F":"#f59e0b","A":"#f59e0b"}); // NFA
+  drawPattern(g, 95, 450, ["DDD.Y.Y.OOO.R.R","D.D..Y..O.O.RRR","D.D..Y..O.O.R.R","D.D..Y..O.O.R.R","DDD..Y..OOO.R.R"], {"D":"#f59e0b","Y":"#f59e0b","O":"#f59e0b","R":"#f59e0b"}); // DYOR
+  drawPattern(g, 323, 65, ["RRRRR....RRRRR","RRRRR....RRRRR"], {"R":"#ff0000"}); // laser eyes
+  drawPattern(g, 545, 250, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 600, 280, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 560, 300, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 620, 240, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 580, 320, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 640, 290, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 700, 260, [".*.","*.*",".*."], {"*":"#c084fc"}); // star
+  drawPattern(g, 370, 480, ["GGG.MMM","G.G.M.M","GGG.MMM","G.G.M.M","GGG.M.M"], {"G":"#3d9a3d","M":"#3d9a3d"}); // GM Pepe
+  drawPattern(g, 330, 460, ["RRR.EEE.K.K.TTT","R.R.E...K.K..T.","RRR.EEE.KK...T.","R.R.E...K.K..T.","R.R.EEE.K.K..T."], {"R":"#ff4444","E":"#ff4444","K":"#ff4444","T":"#ff4444"}); // REKT
+  drawPattern(g, 330, 600, ["AAA.PPP.EEE..III.NNN","A.A.P.P.E....I..N.N.","AAA.PPP.EEE..I..NNN.","A.A.P...E....I..N.N.","A.A.P...EEE.III.N.N."], {"A":"#14f195","P":"#14f195","E":"#14f195","I":"#14f195","N":"#14f195"}); // APE IN
+  drawPattern(g, 530, 700, ["PPP.U.U.MMM.PPP","P.P.U.U.M.M.P.P","PPP.U.U.MMM.PPP","P...U.U.M.M.P..","P...UUU.M.M.P.."], {"P":"#f3ba2f","U":"#f3ba2f","M":"#f3ba2f"}); // PUMP
+  drawPattern(g, 415, 240, ["TTTTTTTTTTTTTTTTTTTT","T..................T","T..BB.......BB.....T","T.BBBB.....BBBB....T","T..BB.......BB.....T","T..................T","T...PPPPPPPPPP.....T","T.P.PPPPPPPPPP.P...T","T..................T","TTTTTTTTTTTTTTTTTTTT"], {"T":"#888","B":"#333","P":"#cc6666"}); // troll face
+
+  // 11. ZONE BORDERS — contested pixels
+  px(g, 499, 0, "#333"); px(g, 500, 0, "#333"); px(g, 501, 0, "#333");
+
+
+  // ── Quadrant layout: 4 x 500×500 icons ──
+  // Top-left   (0,   0): SOLANA banner
+  // Top-right  (500, 0): BINANCE logo
+  // Bottom-left(0, 500): ROCKET
+  // Bottom-right (already drawn): ELON
+
+  // Solana banner — top-left quadrant (0,0)
+  drawScaled(g, 0, 0, ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAA", "AAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAAA", "AAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAAA", "AAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAAA", "AAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAAA", "AAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPAAAAA", "AAAAAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAA", "AAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAAA", "AAAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAAA", "AAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAAA", "AAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAAA", "AAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMAAAAA", "AAAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAA", "AAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAAA", "AAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAAA", "AAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAAA", "AAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAAA", "AAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"], {"A":"#0a0718","P":"#9945FF","M":"#4488ee","T":"#14F195"}, 10);
+
+  // Binance (BNB) logo — top-right quadrant (500,0)
+  drawScaled(g, 500, 0, ["KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKYKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKYYYKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKYYYYYKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKYYYyYYYKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKYYYyyyYYYKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKYYYyyyyyYYYKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKYYYyyyYYYKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKYYYyYYYKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKYYYYYKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKYYYKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKYKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKkKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKYKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKYYYKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKYYYYYKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKYKKKKKKKKKKKYYYYYYYKKKKKKKKKKKYKKKKKKKKK", "KKKKKKKKKYYYKKKKKKKKKYYYYyYYYYKKKKKKKKKYYYKKKKKKKK", "KKKKKKKKYYYYYKKKKKKKYYYYyyyYYYYKKKKKKKYYYYYKKKKKKK", "KKKKKKKYYYyYYYKKKKKYYYYyyyyyYYYYKKKKKYYYyYYYKKKKKK", "KKKKKKYYYyyyYYYKKKYYYYyyyyyyyYYYYKKKYYYyyyYYYKKKKK", "KKKKKYYYyyyyyYYYkYYYYyyyyyyyyyYYYYkYYYyyyyyYYYKKKK", "KKKKKKYYYyyyYYYKKKYYYYyyyyyyyYYYYKKKYYYyyyYYYKKKKK", "KKKKKKKYYYyYYYKKKKKYYYYyyyyyYYYYKKKKKYYYyYYYKKKKKK", "KKKKKKKKYYYYYKKKKKKKYYYYyyyYYYYKKKKKKKYYYYYKKKKKKK", "KKKKKKKKKYYYKKKKKKKKKYYYYyYYYYKKKKKKKKKYYYKKKKKKKK", "KKKKKKKKKKYKKKKKKKKKKKYYYYYYYKKKKKKKKKKKYKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKYYYYYKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKYYYKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKYKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKkKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKYKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKYYYKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKYYYYYKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKYYYyYYYKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKYYYyyyYYYKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKYYYyyyyyYYYKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKYYYyyyYYYKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKYYYyYYYKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKYYYYYKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKYYYKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKYKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"], {"K":"#080808","Y":"#F0B90B","y":"#FED84A","k":"#3a2e00"}, 10);
+
+  // Rocket — bottom-left quadrant (0,500)
+  drawScaled(g, 0, 500, ["KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKSKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKWKKKKKKKKKKKKKKKKKKKSKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKWKKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKWWGKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKWWGKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKSKKKKKKKKKKWWWWGKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKWWWWWWGKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKWWWWWWGKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKWWWWWWWWGKKKKKKKKSKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKWWWWWWWWGKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKWWWWWWWWWWGKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKSKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGGGGGGGGGGGGGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWBWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWBBbBBWWWGKKKKKKKKKKKKKKKSKK", "KKKKKKKKKKKKKKKKKKKGWWBbbbbbBWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKSKKKKKKKKKKGWWBbbbbbBWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWBbbbbbbbBWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWBbbbbbBWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWBbbbbbBWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWBBbBBWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWBWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKSKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGGGGGGGGGGGGGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKGWWWWWWWWWWWGKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKrGWWWWWWWWWWWGrKKKKKKKKKKKKKKKSK", "KKKKKKKKKKKKKKKKKRRGWWWWWWWWWWWGRRKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKRRGWWWWWWWWWWWWWGRRKKKKKKKKKKKKKKK", "KKKKSKKKKKKKKKKrrrGWWWWWWWWWWWWWGrrrKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKRRGGGGGGGGGGGGGGGGGRRKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKrrrGGGOOOYYYYYOOOGGGrrrKKKKKKKKKKKKK", "KKKKKKKKKKKKKRRRRRRKKOOYYYYYOOKKRRRRRRKKKKKKKKKKKK", "KKKKKKKKKKKKRRRRRRRKKKOOwwwOOKKKRRRRRRRKKKKKKKKKKK", "KKKKKKKKKKKrrrrrrrrKKKKOwwwOKKKKrrrrrrrrKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKwwwKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKOOYwwwYOOKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKOOwwwOOKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKOwwwOKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKwwwKKKKKKKKKKKKKKKKKKKKKKK", "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"], {"K":"#00001a","W":"#e8eaf0","G":"#9eaab8","B":"#3b9eff","b":"#88ccff","R":"#e53030","r":"#991a1a","O":"#ff6a00","Y":"#ffe300","w":"#ffffff","S":"#cceeff"}, 10);
+  // Pepe 300x300 — centered in Solana top-left quadrant
+  drawScaled(g, 100, 100, ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","AAAAAADDDDDDDDDDDDDDDDDDAAAAAA","AAAADDDGGGGGGGGGGGGGGGGDDDAAAA","AADGGGGGGGGGGGGGGGGGGGGGGGGDAA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGGTTTTGGGGGGGGGGGGTTTTGGGDA","ADGGDWWWWWWDGGGGGGGDWWWWWWDGDA","ADGGDWWPPWWDGGGGGGGDWWPPWWDGDA","ADGGDWWppWWDGGGGGGGDWWppWWDGDA","ADGGDWWWWWWDGGGGGGGDWWWWWWDGDA","ADGGGTTTTGGGGGGGGGGGGTTTTGGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGGGGGGGNNGGGGGGGGNNGGGGGGDA","ADGGGGGGGGNNGGGGGGGGNNGGGGGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGLLLLLLLLLLLLLLLLLLLLLLGGDA","ADGLRRRRRRRRRRRRRRRRRRRRRRLGDA","ADGLIIIIIIIIIIIIIIIIIIIIIILGDA","ADGLIIIIIIIIIIIIIIIIIIIIIILGDA","ADGGLLLLLLLLLLLLLLLLLLLLLLGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","ADGGGGGGGGGGGGGGGGGGGGGGGGGGDA","AADGGGGGGGGGGGGGGGGGGGGGGGGDAA","AAAADDDGGGGGGGGGGGGGGGGDDDAAAA","AAAAAADDDDDDDDDDDDDDDDDDAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"], {"A":"#0a0718","D":"#1e5c1e","G":"#5aab5a","H":"#7fd47f","W":"#f8f8f8","P":"#080818","p":"#5555aa","L":"#7a1c1c","R":"#dd4444","I":"#ffc8c8","N":"#1a4a1a","T":"#2d7a2d"}, 10);
+
+  // Stars around rocket — bottom-left quadrant
+  drawScaled(g, 10, 510, ["KKKKKKKKKSSKKKKKKKKK","KKKKKKKKSSSSKKKKKKKK","KKKKKKKKGCCGKKKKKKKK","KKKKKKKKKCCKKKKKKKKK","SKKKKKKKCCKKKKKKKSSS","SSKKKKKKCCKKKKKKSSSS","KSSSSSSSSSSSSSSSSSSK","KKSSSSSSSSSSSSSSSSKK","KKKCCCCCCCCCCCCCCKKK","KKKCCCCCCCCCCCCCCKKK","KKSSSSSSSSSSSSSSSSKK","KSSSSSSSSSSSSSSSSSSK","SSKKKKKKCCKKKKKKSSSS","SKKKKKKKCCKKKKKKKSSS","KKKKKKKKKCCKKKKKKKKK","KKKKKKKKGCCGKKKKKKKK","KKKKKKKKSSSSKKKKKKKK","KKKKKKKKKSSKKKKKKKKK","KKKKKKKKKKKKKKKKKKKK","KKKKKKKKKKKKKKKKKKKK"], {"K":"#00001a","S":"#ffffcc","C":"#ffffff","G":"#ffee88"}, 10);
+  drawScaled(g, 270, 510, ["KKKKKKKKKSSKKKKKKKKK","KKKKKKKKSSSSKKKKKKKK","KKKKKKKKGCCGKKKKKKKK","KKKKKKKKKCCKKKKKKKKK","SKKKKKKKCCKKKKKKKSSS","SSKKKKKKCCKKKKKKSSSS","KSSSSSSSSSSSSSSSSSSK","KKSSSSSSSSSSSSSSSSKK","KKKCCCCCCCCCCCCCCKKK","KKKCCCCCCCCCCCCCCKKK","KKSSSSSSSSSSSSSSSSKK","KSSSSSSSSSSSSSSSSSSK","SSKKKKKKCCKKKKKKSSSS","SKKKKKKKCCKKKKKKKSSS","KKKKKKKKKCCKKKKKKKKK","KKKKKKKKGCCGKKKKKKKK","KKKKKKKKSSSSKKKKKKKK","KKKKKKKKKSSKKKKKKKKK","KKKKKKKKKKKKKKKKKKKK","KKKKKKKKKKKKKKKKKKKK"], {"K":"#00001a","S":"#ffffcc","C":"#ffffff","G":"#ffee88"}, 10);
+  drawScaled(g, 150, 770, ["KKKKKKKKKSSKKKKKKKKK","KKKKKKKKSSSSKKKKKKKK","KKKKKKKKGCCGKKKKKKKK","KKKKKKKKKCCKKKKKKKKK","SKKKKKKKCCKKKKKKKSSS","SSKKKKKKCCKKKKKKSSSS","KSSSSSSSSSSSSSSSSSSK","KKSSSSSSSSSSSSSSSSKK","KKKCCCCCCCCCCCCCCKKK","KKKCCCCCCCCCCCCCCKKK","KKSSSSSSSSSSSSSSSSKK","KSSSSSSSSSSSSSSSSSSK","SSKKKKKKCCKKKKKKSSSS","SKKKKKKKCCKKKKKKKSSS","KKKKKKKKKCCKKKKKKKKK","KKKKKKKKGCCGKKKKKKKK","KKKKKKKKSSSSKKKKKKKK","KKKKKKKKKSSKKKKKKKKK","KKKKKKKKKKKKKKKKKKKK","KKKKKKKKKKKKKKKKKKKK"], {"K":"#00001a","S":"#ffffcc","C":"#ffffff","G":"#ffee88"}, 10);
+
+  // BTC/ETH 400x400 — centered in Binance top-right quadrant
+  drawScaled(g, 550, 50, ["KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KOOOOOKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KOOOOOKKooooKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOKKooooooKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOKooOKKKooKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOooKKKKKKKoKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOoKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOOKKKKKKKKKoKKKKKKKKKKKKKbbKKKKKKKKK","KKKOOKKKKKKKKKKKKKKKKKKKKKKKKbbKKKKKKKKK","KKKOOKKKKKKKKKKKoKKKKKKKKKKKKbbKKKKKKKKK","KKKOOKKKKKKKKKKKoKKKKKKKKKKKbbbbKKKKKKKK","KKKOOKKKKKKKKKKKoKKKKKKKKKKKbbbbKKKKKKKK","KKKOOKKKKKKKKKKKOKKKKKKKKKKbbBBbbKKKKKKK","KKoOOKKKKKKKKKKKOoKKKKKKKKKWWWWWWKKKKKKK","KKoOOKKKKKKKKKKKOoKKKKKKKKWWWWWWWWKKKKKK","KKoOOOKKKKKKKKKOOoKKKKKKKKbbBBBBbbKKKKKK","KKoOOOKKKKKKKKKOOoKKKKKKKbbBBPPBBbbKKKKK","KKoOOOOKKKKKKKOOOoKKKKKKKbbBBPPBBbbKKKKK","KKoOOOOOOOOOOOOOOoKKKKKKWWWWWWWWWWWWKKKK","KKoOOOOOOOOOOOOOOoKKKKKKWWWWWWWWWWWWKKKK","KKoOOOOKKKKKKKOOOoKKKKKKKbbBBPPBBbbKKKKK","KKoOOOKKKKKKKKKOOoKKKKKKKbbBBPPBBbbKKKKK","KKoOOOKKKKKKKKKOOoKKKKKKKKbbBBBBbbKKKKKK","KKoOOKKKKKKKKKKKOoKKKKKKKKbbBBBBbbKKKKKK","KKoOOKKKKKKKKKKKOoKKKKKKKKKWWWWWWKKKKKKK","KKKOOKKKKKKKKKKKOKKKKKKKKKKWWWWWWKKKKKKK","KKKOOKKKKKKKKKKKoKKKKKKKKKKKbbbbKKKKKKKK","KKKOOKKKKKKKKKKKoKKKKKKKKKKKbbbbKKKKKKKK","KKKOOKKKKKKKKKKKoKKKKKKKKKKKKbbKKKKKKKKK","KKKOOKKKKKKKKKKKKKKKKKKKKKKKKbbKKKKKKKKK","KKKOOOKKKKKKKKKoKKKKKKKKKKKKKbbKKKKKKKKK","KKKOOoKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOooKKKKKKKoKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOKooOKKKooKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKOOKKooooooKKKKKKKKKKKKKKKKKKKKKKKKKKK","KOOOOOKKooooKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KOOOOOKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"], {"K":"#080808","O":"#F7931A","o":"#e07010","W":"#ffffff","B":"#627EEA","b":"#3050cc","P":"#a78bfa","G":"#F0B90B","D":"#888888"}, 10);
+
+  // Elon Musk face 500x500 — bottom-right quadrant (500,500)→(999,999)
+  drawScaled(g, 500, 500, ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHhAAAAAA", "AAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHhAAAA", "AAAAAAAAAHHhSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSHHHHAA", "AAAAAAAAHHhSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShHHAA", "AAAAAAAAAHhSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShHAA", "AAAAAAAAAHhSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShHAA", "AAAAAAAAAAhSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShAAA", "AAAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShA", "AAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSh", "AAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSh", "AAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSh", "AAAAAAAAAbBBBBbSSSSSSSSSSSSSSSSSSSSbBBBBbSSSSSShAA", "AAAAAAAAAbBBBBbSSSSSSSSSSSSSSSSSSSSbBBBBbSSSSSShAA", "AAAAAAAAADSSEEEESSSSSSSSSSSSSSSSSSSSEEEESSdSSSShAA", "AAAAAAAAADSSEpPPESSSSSSSSSSSSSSSSSSEpPPESSdSSSShAA", "AAAAAAAAADSSEpPPESSSSSSSSSSSSSSSSSSEpPPESSdSSSShAA", "AAAAAAAAADSSEEEESSSSSSSSSSSSSSSSSSSSEEEESSdSSSShAA", "AAAAAAAAADSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSdSSShAA", "AAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShAA", "AAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShAA", "AAAAAAAAASSSSSSSSSSSSNNNSSSSSSSSSSSSSSSSSSSSSSShAA", "AAAAAAAAASSSSSSSSSSSSNNNSSSSSSSSSSSSSSSSSSSSSSShAA", "AAAAAAAAASSSSSSSSSSSNNNNNSSSSSSSSSSSSSSSSSSSSSSShA", "AAAAAAAAASSSSSSSSSSSNNNNNSSSSSSSSSSSSSSSSSSSSSSShA", "AAAAAAAAASSSSSSSSSNNNNNNNNNSSSSSSSSSSSSSSSSSSSSShA", "AAAAAAAAASSSSSNSSNNNNNNNNNNNNSSNSSSSSSSSSSSSSSSShA", "AAAAAAAASSSSDSSSNNNNNNNNNNNNNSDSSSSSSSSSSSSSSSSSHA", "AAAAAAAAASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSShA", "AAAAAAAAJSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSJAA", "AAAAAAAAJSSSSMMMMMMMMMMMMMMMMMMMMMMMSSSSSSSSSSSJAA", "AAAAAAAAJSSSMTTTTTTTTTTTTTTTTTTTTTTTMSSSSSSSSSSJAA", "AAAAAAAAJSSSMMMMMMMMMMMMMMMMMMMMMMMMMSSSSSSSSSSJAA", "AAAAAAAAJJSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSJJAA", "AAAAAAAAAGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSGAAA", "AAAAAAAAAGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSGAAA", "AAAAAAAAAGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSGAAA", "AAAAAAAAAgGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSGgAAA", "AAAAAAAAAgGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSGgAAA", "AAAAAAAAAGGKSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSKGGAAA", "AAAAAAAAAGGKSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSKGGAAA", "AAAAAAAAAGGKKSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSKKGGAAA", "AAAAAAAAAAAAgGKKSSSSSSSSSSSSSSSSSSSSSSSSKKGgAAAAAA", "AAAAAAAAAAAAAGGKKSSSSSSSSSSSSSSSSSSSSSKKGGAAAAAAAA", "AAAAAAAAAAAAAAGGKSSSSSSSSSSSSSSSSSSSSKGGAAAAAAAAAA", "AAAAAAAAAAAAAAAAAGGKSSSSSSSSSSSSSSKGGAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAGGSSSSSSSSSSGGAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"], {"A":"#0c0018","S":"#d49868","L":"#e8c49a","D":"#b07848","H":"#1a0d05","h":"#2e1a08","B":"#2a1808","b":"#3d2210","E":"#e8e8e0","P":"#14141e","p":"#3a3a5e","N":"#7a4828","M":"#6a2010","T":"#f0f0e8","J":"#c07840","G":"#b86e38","K":"#4a2810","W":"#f5dfc0"}, 10);
+  px(g, 499, 10, "#555"); px(g, 500, 10, "#555"); px(g, 501, 10, "#555");
+  px(g, 499, 20, "#333"); px(g, 500, 20, "#333"); px(g, 501, 20, "#333");
+  px(g, 499, 30, "#555"); px(g, 500, 30, "#555"); px(g, 501, 30, "#555");
+  px(g, 499, 40, "#333"); px(g, 500, 40, "#333"); px(g, 501, 40, "#333");
+  px(g, 499, 50, "#555"); px(g, 500, 50, "#555"); px(g, 501, 50, "#555");
+  px(g, 499, 60, "#333"); px(g, 500, 60, "#333"); px(g, 501, 60, "#333");
+  px(g, 499, 70, "#555"); px(g, 500, 70, "#555"); px(g, 501, 70, "#555");
+  px(g, 499, 80, "#333"); px(g, 500, 80, "#333"); px(g, 501, 80, "#333");
+  px(g, 499, 90, "#555"); px(g, 500, 90, "#555"); px(g, 501, 90, "#555");
+  px(g, 499, 100, "#333"); px(g, 500, 100, "#333"); px(g, 501, 100, "#333");
+  px(g, 499, 110, "#555"); px(g, 500, 110, "#555"); px(g, 501, 110, "#555");
+  px(g, 499, 120, "#333"); px(g, 500, 120, "#333"); px(g, 501, 120, "#333");
+  px(g, 499, 130, "#555"); px(g, 500, 130, "#555"); px(g, 501, 130, "#555");
+  px(g, 499, 140, "#333"); px(g, 500, 140, "#333"); px(g, 501, 140, "#333");
+  px(g, 499, 150, "#555"); px(g, 500, 150, "#555"); px(g, 501, 150, "#555");
+  px(g, 499, 160, "#333"); px(g, 500, 160, "#333"); px(g, 501, 160, "#333");
+  px(g, 499, 170, "#555"); px(g, 500, 170, "#555"); px(g, 501, 170, "#555");
+  px(g, 499, 180, "#333"); px(g, 500, 180, "#333"); px(g, 501, 180, "#333");
+  px(g, 499, 190, "#555"); px(g, 500, 190, "#555"); px(g, 501, 190, "#555");
+  px(g, 499, 200, "#333"); px(g, 500, 200, "#333"); px(g, 501, 200, "#333");
+  px(g, 499, 210, "#555"); px(g, 500, 210, "#555"); px(g, 501, 210, "#555");
+  px(g, 499, 220, "#333"); px(g, 500, 220, "#333"); px(g, 501, 220, "#333");
+  px(g, 499, 230, "#555"); px(g, 500, 230, "#555"); px(g, 501, 230, "#555");
+  px(g, 499, 240, "#333"); px(g, 500, 240, "#333"); px(g, 501, 240, "#333");
+  px(g, 499, 250, "#555"); px(g, 500, 250, "#555"); px(g, 501, 250, "#555");
+  px(g, 499, 260, "#333"); px(g, 500, 260, "#333"); px(g, 501, 260, "#333");
+  px(g, 499, 270, "#555"); px(g, 500, 270, "#555"); px(g, 501, 270, "#555");
+  px(g, 499, 280, "#333"); px(g, 500, 280, "#333"); px(g, 501, 280, "#333");
+  px(g, 499, 290, "#555"); px(g, 500, 290, "#555"); px(g, 501, 290, "#555");
+  px(g, 499, 300, "#333"); px(g, 500, 300, "#333"); px(g, 501, 300, "#333");
+  px(g, 499, 310, "#555"); px(g, 500, 310, "#555"); px(g, 501, 310, "#555");
+  px(g, 499, 320, "#333"); px(g, 500, 320, "#333"); px(g, 501, 320, "#333");
+  px(g, 499, 330, "#555"); px(g, 500, 330, "#555"); px(g, 501, 330, "#555");
+  px(g, 499, 340, "#333"); px(g, 500, 340, "#333"); px(g, 501, 340, "#333");
+  px(g, 499, 350, "#555"); px(g, 500, 350, "#555"); px(g, 501, 350, "#555");
+  px(g, 499, 360, "#333"); px(g, 500, 360, "#333"); px(g, 501, 360, "#333");
+  px(g, 499, 370, "#555"); px(g, 500, 370, "#555"); px(g, 501, 370, "#555");
+  px(g, 499, 380, "#333"); px(g, 500, 380, "#333"); px(g, 501, 380, "#333");
+  px(g, 499, 390, "#555"); px(g, 500, 390, "#555"); px(g, 501, 390, "#555");
+  px(g, 499, 400, "#333"); px(g, 500, 400, "#333"); px(g, 501, 400, "#333");
+  px(g, 499, 410, "#555"); px(g, 500, 410, "#555"); px(g, 501, 410, "#555");
+  px(g, 499, 420, "#333"); px(g, 500, 420, "#333"); px(g, 501, 420, "#333");
+  px(g, 499, 430, "#555"); px(g, 500, 430, "#555"); px(g, 501, 430, "#555");
+  px(g, 499, 440, "#333"); px(g, 500, 440, "#333"); px(g, 501, 440, "#333");
+  px(g, 499, 450, "#555"); px(g, 500, 450, "#555"); px(g, 501, 450, "#555");
+  px(g, 499, 460, "#333"); px(g, 500, 460, "#333"); px(g, 501, 460, "#333");
+  px(g, 499, 470, "#555"); px(g, 500, 470, "#555"); px(g, 501, 470, "#555");
+
+}
+
+
+
+
 
 export default function Play() {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
@@ -356,64 +349,74 @@ export default function Play() {
 
   const [color,     setColor]     = useState(PALETTE[6]);
   const [balance,   setBalance]   = useState(0);
-  const [cooldown,  setCooldown]  = useState(0);
-  const [shield,    setShield]    = useState(false);
-  const [shieldT,   setShieldT]   = useState(0);
   const [owned,     setOwned]     = useState(0);
   const [placed,    setPlaced]    = useState(0);
   const [strike,    setStrike]    = useState<{tier:StrikeTier;earn:number}|null>(null);
   const [hovered,   setHovered]   = useState<{x:number;y:number;d:PxData|null}|null>(null);
+  const [profilePopup, setProfilePopup] = useState<{x:number;y:number;owner:string;canvasX:number;canvasY:number}|null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
   const [log,       setLog]       = useState<string[]>(["[CANVAS] Click any pixel to place."]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [isMobile,  setIsMobile]  = useState(false);
-  const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'log'>('color');
+  const [sol,       setSol]       = useState(SOL_START);
+  const [canvasPrice, setCanvasPrice] = useState(0.01423);
+  const [bucket,    setBucket]    = useState(9221732);       // $CANVAS jackpot
+  const [players,   setPlayers]   = useState(1247);
+  const [pixelsTotal, setPixelsTotal] = useState(834920);
+  const [solEarned, setSolEarned] = useState(12847.382);
+  const [miningPct, setMiningPct] = useState(12.32);
+  const [solWin,    setSolWin]    = useState<{mult:number;label:string;amount:number}|null>(null);
+  const [bucketWin, setBucketWin] = useState<number|null>(null);
+  const [betIdx,    setBetIdx]    = useState<BetIdx>(0);   // 0=0.01, 1=0.1, 2=1 SOL
 
-  // Mobile detection
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+  // ── Pixel-placement animation overlay ─────────────────────────────────────
+  type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
+  const overlayRef = useRef<HTMLCanvasElement>(null);
+  const animsRef   = useRef<AnimEntry[]>([]);
+  const rafRef     = useRef<number>(0);
 
   const draw = useCallback(() => {
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
-    for (let i=0; i<GRID*GRID; i++) {
-      const x=(i%GRID)*PX, y=Math.floor(i/GRID)*PX;
+    const img = ctx.createImageData(GRID, GRID);
+    const buf = img.data;
+    for (let i = 0; i < GRID*GRID; i++) {
       const p = gridRef.current[i];
-      ctx.fillStyle = p ? p.color : "#0f0f1e";
-      ctx.fillRect(x,y,PX,PX);
-      if (!p) {
-        ctx.strokeStyle="#1a1a30";
-        ctx.lineWidth=0.5;
-        ctx.strokeRect(x+.5,y+.5,PX-1,PX-1);
-      }
-      if (p?.owner === WALLET) {
-        ctx.strokeStyle="rgba(168,85,247,0.6)";
-        ctx.lineWidth=1;
-        ctx.strokeRect(x+.5,y+.5,PX-1,PX-1);
+      const off = i * 4;
+      if (p) {
+        const hex = p.color.replace("#","");
+        buf[off]   = parseInt(hex.slice(0,2),16);
+        buf[off+1] = parseInt(hex.slice(2,4),16);
+        buf[off+2] = parseInt(hex.slice(4,6),16);
+        buf[off+3] = 255;
+      } else {
+        buf[off]=15; buf[off+1]=15; buf[off+2]=30; buf[off+3]=255;
       }
     }
+    ctx.putImageData(img, 0, 0);
   },[]);
 
   // Seed canvas with preset artwork
   useEffect(() => {
     const g = gridRef.current;
     seedCanvas(g);
+    assignRandomOwners(g);
     draw();
   },[draw]);
 
-  // Timer: cooldown + shield + hold rewards
+  // Timer: hold rewards + bucket growth
   useEffect(() => {
     const t = setInterval(() => {
-      setCooldown(c => Math.max(0,c-1));
-      setShieldT(s => {
-        if (s <= 1) { setShield(false); return 0; }
-        return s-1;
-      });
       setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
+      setBucket(bk => bk + 0.5);
+      // Simulate small price tick
+      setCanvasPrice(p => Math.max(0.001, p + (Math.random() - 0.498) * 0.00008));
+      // Global stats tickers
+      if (Math.random() < 0.12) setPlayers(p => p + 1);
+      setPixelsTotal(pp => pp + Math.floor(40 + Math.random() * 120));
+      setMiningPct(m => Math.min(100, m + 0.00006));
+      setSolEarned(s => s + 0.3 + Math.random() * 0.5);
     }, 1000);
     return () => clearInterval(t);
   },[]);
@@ -430,69 +433,235 @@ export default function Play() {
       g[idx] = { color:newColor, owner:newOwner };
       const c = canvasRef.current; if(!c) return;
       const ctx = c.getContext("2d")!;
-      ctx.fillStyle = newColor;
-      ctx.fillRect((idx%GRID)*PX, Math.floor(idx/GRID)*PX, PX, PX);
+      const img3 = ctx.createImageData(1, 1);
+      const hex3 = newColor.replace("#","");
+      img3.data[0]=parseInt(hex3.slice(0,2),16); img3.data[1]=parseInt(hex3.slice(2,4),16);
+      img3.data[2]=parseInt(hex3.slice(4,6),16); img3.data[3]=255;
+      ctx.putImageData(img3, idx%GRID, Math.floor(idx/GRID));
     }, 300);
     return () => clearInterval(t);
   },[]);
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (cooldown > 0) return;
+    const bet = BET_TIERS[betIdx];
+    if (sol < bet.sol) {
+      setLog(l => [`[BROKE] Need ${bet.sol} SOL  —  top up wallet`, ...l.slice(0,11)]);
+      return;
+    }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
     const gx = Math.floor((e.clientX-rect2.left)/PX);
     const gy = Math.floor((e.clientY-rect2.top)/PX);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) return;
-    const idx = gy*GRID+gx;
     const g = gridRef.current;
-    const prev = g[idx];
-    const wasOwn = prev?.owner===WALLET;
-    g[idx] = {color, owner:WALLET};
-
     const c = canvasRef.current; if(!c) return;
     const ctx = c.getContext("2d")!;
-    ctx.fillStyle = color;
-    ctx.fillRect(gx*PX, gy*PX, PX, PX);
-    ctx.strokeStyle="rgba(168,85,247,0.6)";
-    ctx.lineWidth=1;
-    ctx.strokeRect(gx*PX+.5, gy*PX+.5, PX-1, PX-1);
 
-    if (!wasOwn) {
-      setOwned(o => { ownedRef.current = o+1; return o+1; });
-    }
-    setPlaced(p => p+1);
-    setCooldown(COOLDOWN_SEC);
+    // Deduct full bet cost upfront
+    setSol(s => s - bet.sol);
 
-    const tier = rollStrike();
-    const earn = BASE_EARN * strikeBonus(tier);
-    setBalance(b => b+earn);
-    if (tier !== "none") {
-      setStrike({tier, earn});
-      setTimeout(() => setStrike(null), 3000);
+    let totalEarn = 0;
+    let newOwned = 0;
+    let bestTier: StrikeTier = "none";
+    let bestEarn = 0;
+    let bucketFeed = 0;
+
+    // Single SOL prize roll for the entire bet
+    const betPrize = rollSolPrize();
+    const totalSolReturn = betPrize.mult * bet.sol;
+
+    // Place bet.pixels pixels in a circle around (gx, gy)
+    const circleR = bet.pixels === 1 ? 0 : Math.ceil(Math.sqrt(bet.pixels / Math.PI)) + 1;
+    const circleCandidates: { dist: number; px: number; py: number }[] = [];
+    for (let cdy = -circleR; cdy <= circleR; cdy++) {
+      for (let cdx = -circleR; cdx <= circleR; cdx++) {
+        if (cdx*cdx + cdy*cdy > circleR*circleR) continue;
+        const cpx = gx + cdx, cpy = gy + cdy;
+        if (cpx < 0 || cpy < 0 || cpx >= GRID || cpy >= GRID) continue;
+        circleCandidates.push({ dist: cdx*cdx + cdy*cdy, px: cpx, py: cpy });
+      }
     }
-    const msg = tier !== "none"
-      ? `[STRIKE] ${tier.toUpperCase()}! +${earn} $CANVAS @ (${gx},${gy})`
-      : `[PLACE] (${gx},${gy}) → +${BASE_EARN} $CANVAS`;
-    setLog(l => [msg, ...l.slice(0,11)]);
-  },[cooldown, color]);
+    circleCandidates.sort((a, b) => a.dist - b.dist);
+    const toPlace = circleCandidates.slice(0, bet.pixels);
+    // Single $CANVAS roll for the entire bet
+    const betTier = rollStrike();
+    bestTier = betTier;
+
+    let placed2 = 0;
+    for (const { px, py } of toPlace) {
+      const pidx = py * GRID + px;
+      const prev = g[pidx];
+      if (!prev || prev.owner !== WALLET) newOwned++;
+      g[pidx] = { color, owner: WALLET };
+
+      const img4 = ctx.createImageData(1, 1);
+      const hex4 = color.replace("#","");
+      img4.data[0]=parseInt(hex4.slice(0,2),16); img4.data[1]=parseInt(hex4.slice(2,4),16);
+      img4.data[2]=parseInt(hex4.slice(4,6),16); img4.data[3]=255;
+      ctx.putImageData(img4, px, py);
+
+      if (placed2 === 0) spawnAnim(px, py, color, betTier);
+      placed2++;
+    }
+
+    // Total $CANVAS earn = one roll result × all pixels placed
+    totalEarn = BASE_EARN * strikeBonus(betTier) * placed2;
+    bestEarn = totalEarn;
+    bucketFeed = totalEarn * BUCKET_FEED_PCT;
+
+    // Batch state updates
+    if (newOwned > 0) setOwned(o => { ownedRef.current = o + newOwned; return o + newOwned; });
+    setPlaced(p => p + placed2);
+    setBalance(b => b + totalEarn);
+
+    if (totalSolReturn > 0) {
+      setSol(s => s + totalSolReturn);
+      if (betPrize.mult >= 2) {
+        setSolWin({ mult: betPrize.mult, label: betPrize.label, amount: totalSolReturn });
+        setTimeout(() => setSolWin(null), betPrize.mult >= 5 ? 4000 : 2500);
+      }
+    }
+
+    setStrike({ tier: bestTier, earn: bestEarn });
+    setTimeout(() => setStrike(null), bestTier !== "none" ? 3000 : 1500);
+
+    setBucket(bk => {
+      const newBk = bk + bucketFeed;
+      if (Math.random() < BUCKET_WIN_CHANCE) {
+        const jackpot = Math.floor(newBk * BUCKET_WIN_PCT);
+        setBucketWin(jackpot);
+        setTimeout(() => setBucketWin(null), 5000);
+        setLog(l => [`[🏛️ VAULT HIT] You won ${jackpot} $CANVAS from The Vault!`, ...l.slice(0,11)]);
+        setBalance(b => b + jackpot);
+        return newBk - jackpot;
+      }
+      return newBk;
+    });
+
+    const netSOL = totalSolReturn - bet.sol;
+    const solTag = netSOL > 0
+      ? `+${netSOL.toFixed(4)} SOL net`
+      : netSOL === 0 ? "break-even" : `${netSOL.toFixed(4)} SOL`;
+    const logMsg = bestTier !== "none"
+      ? `[STRIKE ${bestTier.toUpperCase()}] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`
+      : `[PLACE] ${placed2}px · +${totalEarn} $CANVAS · ${solTag}|${gx},${gy}`;
+    setLog(l => [logMsg, ...l.slice(0,11)]);
+  },[betIdx, color, sol]);
+
+  // Animation tick (overlay canvas)
+  const tickAnims = useCallback(() => {
+    const ov = overlayRef.current; if (!ov) return;
+    const ctx = ov.getContext('2d')!;
+    ctx.clearRect(0, 0, ov.width, ov.height);
+    const now = performance.now();
+    animsRef.current = animsRef.current.filter(anim => {
+      const t = Math.min(1, (now - anim.start) / anim.dur);
+      if (t >= 1) return false;
+      const hex = anim.color.replace('#','');
+      const r = parseInt(hex.slice(0,2),16);
+      const g = parseInt(hex.slice(2,4),16);
+      const b = parseInt(hex.slice(4,6),16);
+      const cx = anim.x + 0.5, cy = anim.y + 0.5;
+
+      // 1. Instant white flash at pixel
+      if (t < 0.25) {
+        const ft = t / 0.25;
+        ctx.fillStyle = `rgba(255,255,255,${(1-ft)*0.95})`;
+        ctx.fillRect(anim.x - 2, anim.y - 2, 5, 5);
+      }
+
+      // 2. Expanding rings (3 for normal, +2 for rare, +4 for legendary)
+      const numRings = anim.tier==='legendary' ? 7 : anim.tier==='rare' ? 5 : 3;
+      const maxR     = anim.tier==='legendary' ? 55 : anim.tier==='rare' ? 38 : 22;
+      for (let i = 0; i < numRings; i++) {
+        const delay  = i * 0.12;
+        const ringT  = Math.max(0, (t - delay) / (1 - delay));
+        if (ringT <= 0 || ringT >= 1) continue;
+        const radius = ringT * maxR;
+        const alpha  = (1 - ringT) * 0.85;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // 3. Pixel sparks (8 directions, pixel-art squares)
+      const numSparks = anim.tier==='legendary' ? 16 : anim.tier==='rare' ? 12 : 8;
+      const sparkEnd  = 0.75;
+      if (t < sparkEnd) {
+        const sT     = t / sparkEnd;
+        const maxDst = anim.tier==='legendary' ? 30 : anim.tier==='rare' ? 22 : 14;
+        const alpha  = (1 - sT) * 0.9;
+        for (let i = 0; i < numSparks; i++) {
+          const angle = (i / numSparks) * Math.PI * 2;
+          const dist  = sT * maxDst;
+          const sz    = Math.max(0.8, 2 * (1 - sT * 0.6));
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+          ctx.fillRect(cx + Math.cos(angle)*dist - sz/2, cy + Math.sin(angle)*dist - sz/2, sz, sz);
+        }
+        // interleaved white sparks for "sparkle" feel
+        for (let i = 0; i < numSparks; i++) {
+          const angle = ((i + 0.5) / numSparks) * Math.PI * 2;
+          const dist  = sT * maxDst * 0.7;
+          const sz    = Math.max(0.5, 1.2 * (1 - sT));
+          ctx.fillStyle = `rgba(255,255,255,${alpha * 0.7})`;
+          ctx.fillRect(cx + Math.cos(angle)*dist - sz/2, cy + Math.sin(angle)*dist - sz/2, sz, sz);
+        }
+      }
+
+      // 4. Radial glow for strikes
+      if (anim.tier !== 'none' && t < 0.6) {
+        const gT    = t / 0.6;
+        const gR    = gT * 70;
+        const gA    = (1 - gT) * 0.35;
+        const goldR = anim.tier==='legendary' ? '255,215,0' : '139,92,246';
+        const grad  = ctx.createRadialGradient(cx, cy, 0, cx, cy, gR);
+        grad.addColorStop(0, `rgba(${goldR},${gA})`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, gR, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      return true;
+    });
+
+    if (animsRef.current.length > 0) {
+      rafRef.current = requestAnimationFrame(tickAnims);
+    } else {
+      overlayRef.current?.getContext('2d')?.clearRect(0,0,GRID*PX,GRID*PX);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const spawnAnim = useCallback((x:number, y:number, color:string, tier:StrikeTier|'none') => {
+    const dur = tier==='legendary' ? 1600 : tier==='rare' ? 1100 : 650;
+    animsRef.current.push({ x, y, color, tier, start: performance.now(), dur });
+    if (animsRef.current.length === 1) {
+      rafRef.current = requestAnimationFrame(tickAnims);
+    }
+  }, [tickAnims]);
 
   const handleMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
     const gx = Math.floor((e.clientX-rect2.left)/PX);
     const gy = Math.floor((e.clientY-rect2.top)/PX);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) { setHovered(null); return; }
-    setHovered({x:gx, y:gy, d:gridRef.current[gy*GRID+gx]});
+    const cell = gridRef.current[gy*GRID+gx];
+    setHovered({x:gx, y:gy, d:cell});
+    // Clear previous 3s timer on every move — but don't dismiss an open popup
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    // Only restart the profile-popup timer when no popup is currently open
+    if (cell && cell.owner !== "art") {
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      hoverTimerRef.current = setTimeout(() => {
+        setProfilePopup({ x: clientX, y: clientY, owner: cell.owner, canvasX: gx, canvasY: gy });
+      }, 3000);
+    }
   },[]);
 
-  const shieldCost = 3*owned;
-  const canShield = balance>=shieldCost && owned>0 && !shield;
-
-  const activateShield = () => {
-    if (!canShield) return;
-    setBalance(b => b-shieldCost);
-    setShield(true);
-    setShieldT(30);
-    setLog(l => [`[SHIELD] Active 30s · Cost: ${shieldCost.toFixed(0)} $CANVAS`, ...l.slice(0,11)]);
-  };
 
   const handleConnect = () => {
     setConnecting(true);
@@ -507,13 +676,72 @@ export default function Play() {
   const holdrProgress = Math.min(100, (owned * 12 / 10000) * 100);
 
   return (
-    <div style={{background:"#070710",height:"100vh",overflow:"hidden",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
+    <div style={{background:"#070710",minHeight:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
         <Link href="/" style={{color:"#a855f7",fontFamily:"'Press Start 2P',monospace",fontSize:11,textDecoration:"none",letterSpacing:2}}>← CANVAS</Link>
         <div style={{display:"flex",alignItems:"center",gap:16}}>
-          <div style={{fontSize:10,color:"#334155",background:"#0f0f1a",padding:"4px 12px",borderRadius:4,border:"1px solid #1e1e3f"}}>
-            100×100 demo · 10s cooldown (real: 5 min) · no wallet needed
+          {/* $CANVAS price → dexscreener */}
+          <a
+            href="https://dexscreener.com/base/0xdb2de6074f335ddd307336c303dec329514d5265"
+            target="_blank" rel="noopener noreferrer"
+            style={{display:"flex",alignItems:"center",gap:6,background:"#0d0a18",border:"1px solid #4c1d95",borderRadius:6,padding:"5px 12px",textDecoration:"none"}}
+          >
+            <span style={{fontSize:9,color:"#7c3aed",letterSpacing:1}}>$CANVAS</span>
+            <span style={{fontSize:11,color:"#a78bfa",fontWeight:"bold",letterSpacing:1}}>${canvasPrice.toFixed(5)}</span>
+            <span style={{fontSize:8,color:"#4c1d95"}}>↗</span>
+          </a>
+          {/* Global stats — inline next to price */}
+          <div style={{display:"flex",alignItems:"center",gap:10,borderLeft:"1px solid #1e1e3f",paddingLeft:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PLAYERS</span>
+              <span style={{fontSize:10,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
+            </div>
+            <div style={{width:1,height:10,background:"#1e1e3f"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PIXELS</span>
+              <span style={{fontSize:10,color:"#a78bfa",fontWeight:"bold"}}>{pixelsTotal.toLocaleString()}</span>
+            </div>
+            <div style={{width:1,height:10,background:"#1e1e3f"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>SOL EARNED</span>
+              <span style={{fontSize:10,color:"#22c55e",fontWeight:"bold"}}>◎ {solEarned.toFixed(1)}</span>
+            </div>
+            <div style={{width:1,height:10,background:"#1e1e3f"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>$CANVAS MINED</span>
+              <div style={{width:56,height:5,background:"#1e1e3f",borderRadius:3,overflow:"hidden"}}>
+                <div style={{width:`${miningPct}%`,height:"100%",background:"linear-gradient(90deg,#7c3aed,#a855f7)",borderRadius:3,transition:"width 1s linear"}}/>
+              </div>
+              <span style={{fontSize:10,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
+            </div>
+          </div>
+          {/* Social links */}
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <a href="https://x.com/canvas_game" target="_blank" rel="noopener noreferrer" title="X / Twitter"
+               style={{color:"#94a3b8",display:"flex",alignItems:"center",transition:"color 0.15s"}}
+               onMouseEnter={e=>(e.currentTarget.style.color="#e2e8f0")}
+               onMouseLeave={e=>(e.currentTarget.style.color="#94a3b8")}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.629L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </a>
+            <a href="https://t.me/canvas_game" target="_blank" rel="noopener noreferrer" title="Telegram"
+               style={{color:"#94a3b8",display:"flex",alignItems:"center",transition:"color 0.15s"}}
+               onMouseEnter={e=>(e.currentTarget.style.color="#e2e8f0")}
+               onMouseLeave={e=>(e.currentTarget.style.color="#94a3b8")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+            </a>
+            <a href="https://github.com/alnany/canvas-demo" target="_blank" rel="noopener noreferrer" title="GitHub"
+               style={{color:"#94a3b8",display:"flex",alignItems:"center",transition:"color 0.15s"}}
+               onMouseEnter={e=>(e.currentTarget.style.color="#e2e8f0")}
+               onMouseLeave={e=>(e.currentTarget.style.color="#94a3b8")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
+            </a>
           </div>
           {walletConnected ? (
             <div style={{fontSize:10,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
@@ -532,38 +760,96 @@ export default function Play() {
         </div>
       </div>
 
-      <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"calc(100vh - 46px)",overflow:"hidden"}}>
+      <div style={{display:"flex",height:"calc(100vh - 46px)"}}>
         {/* LEFT PANEL */}
-        <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
+        <div style={{width:188,borderRight:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,overflowY:"auto",background:"#070710"}}>
+          {/* ── THE VAULT (jackpot) ─────────────────────────────────────── */}
+          <div style={{
+            background:"linear-gradient(135deg,#1c0900,#120800)",
+            border:"2px solid #f59e0b",
+            borderRadius:10,padding:"12px 14px",
+            boxShadow:"0 0 24px rgba(245,158,11,0.35)",
+            textAlign:"center",
+          }}>
+            <style>{`
+              @keyframes vaultPulse {
+                0%,100% { box-shadow: 0 0 24px rgba(245,158,11,0.35); }
+                50%      { box-shadow: 0 0 48px rgba(245,158,11,0.70); }
+              }
+              @keyframes vaultNum {
+                0%   { transform:scale(1); }
+                30%  { transform:scale(1.12); }
+                100% { transform:scale(1); }
+              }
+            `}</style>
+            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>🏛️ THE VAULT</div>
+            <div style={{
+              fontSize:14,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
+              fontFamily:"'Press Start 2P',monospace",letterSpacing:0,wordBreak:"break-all",
+            }}>{String(Math.floor(bucket))}</div>
+            <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
+              <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
+            </div>
+            <div style={{fontSize:10,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
+              0.5% chance per pixel<br/>Win 10% of The Vault
+            </div>
+          </div>
+
+          {/* SOL Balance */}
+          <div style={{background:"#0a120a",border:"1px solid #166534",borderRadius:8,padding:12}}>
+            <div style={{fontSize:10,color:"#166534",marginBottom:4,letterSpacing:1}}>◎ SOL BALANCE</div>
+            <div style={{fontSize:22,fontWeight:"bold",color:"#22c55e",lineHeight:1}}>{sol.toFixed(4)}</div>
+            <div style={{fontSize:10,color:"#166534",marginTop:3}}>
+              {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px
+            </div>
+          </div>
+
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
-            <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{Math.floor(balance).toLocaleString()}</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:4,letterSpacing:1}}>$CANVAS BALANCE</div>
+            <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{String(Math.floor(balance))}</div>
             {owned > 0 && (
-              <div style={{fontSize:9,color:"#6d28d9",marginTop:3}}>
+              <div style={{fontSize:10,color:"#6d28d9",marginTop:3}}>
                 +{(owned*HOLD_REWARD_RATE*60).toFixed(3)}/min hold
               </div>
             )}
           </div>
 
-          {/* Cooldown */}
-          <div style={{background:"#0d0d1a",border:`1px solid ${cooldown>0?"#7c3aed":"#166534"}`,borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>COOLDOWN</div>
-            {cooldown > 0 ? (
-              <>
-                <div style={{fontSize:22,fontWeight:"bold",color:"#f59e0b"}}>{cooldown}s</div>
-                <div style={{marginTop:6,height:3,background:"#1e1e2e",borderRadius:2}}>
-                  <div style={{height:"100%",background:"#7c3aed",width:`${(cooldown/COOLDOWN_SEC)*100}%`,transition:"width 1s linear",borderRadius:2}}/>
-                </div>
-              </>
-            ) : (
-              <div style={{fontSize:13,fontWeight:"bold",color:"#22c55e"}}>✓ READY</div>
-            )}
+          {/* Brush Size */}
+          <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>BRUSH SIZE</div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
+                const active = betIdx === i;
+                const canAfford = sol >= tier.sol;
+                return (
+                  <button key={i} onClick={() => setBetIdx(i as BetIdx)} style={{
+                    display:"flex",justifyContent:"space-between",alignItems:"center",
+                    padding:"7px 10px",borderRadius:6,cursor:"pointer",
+                    border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
+                    background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
+                    opacity: canAfford ? 1 : 0.4,
+                  }}>
+                    <span style={{fontSize:10,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>
+                      {tier.label}
+                    </span>
+                    <span style={{fontSize:10,color:active?"#7c3aed":"#334155",background:"#12121a",
+                      padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>
+                      {tier.tag}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{marginTop:8,fontSize:10,color:"#334155",lineHeight:1.6}}>
+              <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
+              {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
+            </div>
           </div>
 
           {/* Stats */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:12,fontSize:11}}>
-            <div style={{color:"#64748b",marginBottom:8,fontSize:9,letterSpacing:1}}>YOUR STATS</div>
+            <div style={{color:"#64748b",marginBottom:8,fontSize:10,letterSpacing:1}}>YOUR STATS</div>
             {([
               ["Pixels owned", owned],
               ["Total placed", placed],
@@ -575,102 +861,145 @@ export default function Play() {
             ))}
             <div style={{marginTop:8}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontSize:9,color:"#475569"}}>Holdr status</span>
-                <span style={{fontSize:9,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span>
+                <span style={{fontSize:10,color:"#475569"}}>Holdr status</span>
+                <span style={{fontSize:10,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}%`}</span>
               </div>
               <div style={{height:3,background:"#1e1e2e",borderRadius:2}}>
                 <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
               </div>
               {!isHoldr && (
-                <div style={{fontSize:8,color:"#334155",marginTop:3}}>need {(10000-Math.floor(owned*12)).toLocaleString()} more $C</div>
+                <div style={{fontSize:10,color:"#334155",marginTop:3}}>need {String(10000-Math.floor(owned*12))} more $C</div>
               )}
             </div>
           </div>
 
-          {/* Shield */}
-          <div style={{background:"#0d0d1a",border:`1px solid ${shield?"#f59e0b":"#1e1e3f"}`,borderRadius:8,padding:12}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>PIXEL SHIELD</div>
-            {shield ? (
-              <div>
-                <div style={{color:"#f59e0b",fontSize:13,fontWeight:"bold"}}>🛡️ ACTIVE</div>
-                <div style={{fontSize:9,color:"#92400e",marginTop:2}}>{shieldT}s remaining</div>
-                <div style={{marginTop:6,height:3,background:"#1e1e2e",borderRadius:2}}>
-                  <div style={{height:"100%",background:"#f59e0b",width:`${(shieldT/30)*100}%`,transition:"width 1s linear",borderRadius:2}}/>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div style={{fontSize:10,color:"#475569",marginBottom:8,lineHeight:1.6}}>
-                  Cost: <span style={{color:"#a855f7"}}>{shieldCost} $CANVAS</span><br/>
-                  <span style={{fontSize:8,color:"#334155"}}>3 × {owned} pixels · 8h real / 30s demo</span>
-                </div>
-                <button onClick={activateShield} disabled={!canShield} style={{
-                  width:"100%",padding:"7px 0",borderRadius:6,fontSize:9,fontWeight:"bold",fontFamily:"inherit",
-                  background:canShield?"linear-gradient(135deg,#7c3aed,#a855f7)":"#12121a",
-                  color:canShield?"#fff":"#334155",border:"none",cursor:canShield?"pointer":"default",
-                }}>
-                  {owned===0?"Place pixels first":balance<shieldCost?`Need ${(shieldCost-balance).toFixed(0)} more`:"Activate Shield"}
-                </button>
-              </>
-            )}
-          </div>
-
           {/* Withdraw info */}
-          <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:9,color:"#334155",lineHeight:1.8}}>
-            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:8}}>WITHDRAW</div>
+          <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:10,color:"#334155",lineHeight:1.8}}>
+            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:10}}>WITHDRAW</div>
             Withdraw anytime to wallet.<br/>
             10% tax → <span style={{color:"#6d28d9"}}>Holdr pool</span><br/>
             Holdrs earn passively from<br/>all ecosystem withdrawals.
           </div>
         </div>
 
-        {/* MOBILE CONTROLS STRIP */}
-        {isMobile && (
-          <div style={{flexShrink:0,borderBottom:"1px solid #1e1e3f",padding:"8px 10px",background:"#070710",display:"flex",gap:8,alignItems:"center"}}>
-            {/* Color swatch */}
-            <div style={{width:32,height:32,borderRadius:6,background:color,border:"2px solid #4c1d95",flexShrink:0,boxShadow:"0 0 8px rgba(168,85,247,0.4)"}}
-              onClick={() => (document.getElementById('m-color-pick') as HTMLInputElement)?.click()}/>
-            <input id="m-color-pick" type="color" value={color} onChange={e => setColor(e.target.value)}
-              style={{position:"absolute",opacity:0,pointerEvents:"none"}}/>
-            {/* Cooldown / balance */}
-            <div style={{flex:1,lineHeight:1.6}}>
-              <div style={{fontSize:10,color:"#a855f7",fontWeight:"bold"}}>{Math.floor(balance).toLocaleString()} $CANVAS</div>
-              {cooldown > 0
-                ? <div style={{fontSize:10,color:"#f59e0b"}}>⏳ {cooldown}s cooldown</div>
-                : <div style={{fontSize:10,color:"#22c55e"}}>✓ Ready to place</div>
-              }
-            </div>
-            {/* Shield button compact */}
-            {owned > 0 && (() => {
-              const shieldCost = owned * 5;
-              const canShield = !shield && !shieldT && balance >= shieldCost;
-              return (
-                <button onClick={() => {
-                  if (!canShield) return;
-                  const sc = owned * 5;
-                  setBalance(b => b - sc);
-                  setShield(true);
-                  setShieldT(COOLDOWN_SEC * 3);
-                  setLog(l => [`[SHIELD] Active for ${COOLDOWN_SEC*3}s`, ...l.slice(0,11)]);
-                }} style={{
-                  padding:"5px 8px",borderRadius:5,fontSize:9,fontFamily:"inherit",cursor:canShield?"pointer":"default",
-                  background:shield?"#1a0a2e":canShield?"#2d1b69":"#0a0a14",
-                  color:shield?"#a855f7":canShield?"#c4b5fd":"#334155",
-                  border:`1px solid ${shield?"#7c3aed":canShield?"#4c1d95":"#1e1e3f"}`,
-                  flexShrink:0,
-                }}>
-                  {shield ? "🛡️ ON" : "🛡️"}
-                </button>
-              );
-            })()}
-          </div>
-        )}
-
         {/* CANVAS CENTER */}
-        <div style={{flex:1,minHeight:0,display:"flex",alignItems:"flex-start",justifyContent:"flex-start",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+        <div ref={canvasWrapRef} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
 
-          {/* Strike popup */}
+          {/* Vault jackpot popup */}
+          {bucketWin !== null && (() => {
+            const TOKENS = ["🪙","💰","✨","⭐","💎","🌟","🔥","🎰","💸","🏆"];
+            const particles = Array.from({length:80}, (_,i) => {
+              const angle = (i/80)*Math.PI*2 + (i%3)*0.15;
+              const dist  = 180 + (i%5)*110;
+              return {
+                tx: Math.cos(angle)*dist, ty: Math.sin(angle)*dist,
+                rot: (i%2===0?1:-1)*(180+i*7),
+                delay: (i%8)*0.06,
+                dur: 1.0 + (i%5)*0.25,
+                size: 14 + (i%4)*8,
+                tok: TOKENS[i%TOKENS.length],
+              };
+            });
+            return (
+              <>
+                <style>{`
+                  @keyframes vaultFlash   { 0%{opacity:0} 8%{opacity:0.55} 100%{opacity:0} }
+                  @keyframes tokenFly     { 0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)} 100%{opacity:0;transform:translate(var(--vtx),var(--vty)) scale(0.2) rotate(var(--vrot))} }
+                  @keyframes vaultBoom    { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.2)} 12%{opacity:1;transform:translate(-50%,-50%) scale(1.25)} 20%{transform:translate(-50%,-50%) scale(0.95)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.85)} }
+                  @keyframes vaultShake   { 0%,100%{transform:none} 15%{transform:translate(-6px,4px)} 30%{transform:translate(6px,-4px)} 45%{transform:translate(-4px,3px)} 60%{transform:translate(4px,-3px)} 75%{transform:translate(-2px,2px)} }
+                `}</style>
+
+                {/* Screen flash */}
+                <div style={{position:"fixed",inset:0,zIndex:98,pointerEvents:"none",
+                  background:"radial-gradient(ellipse at center,rgba(245,158,11,0.55),transparent 70%)",
+                  animation:"vaultFlash 1.2s ease-out forwards"}} />
+
+                {/* Token particles */}
+                {particles.map((p,i) => (
+                  <div key={i} style={{
+                    position:"fixed",left:"50%",top:"50%",
+                    fontSize:p.size,pointerEvents:"none",zIndex:99,userSelect:"none",
+                    "--vtx":`${p.tx}px`,"--vty":`${p.ty}px`,"--vrot":`${p.rot}deg`,
+                    animation:`tokenFly ${p.dur}s ${p.delay}s cubic-bezier(0.1,0.8,0.3,1) forwards`,
+                  } as React.CSSProperties}>{p.tok}</div>
+                ))}
+
+                {/* Central popup */}
+                <div style={{position:"fixed",top:"50%",left:"50%",zIndex:100,
+                  pointerEvents:"none",textAlign:"center",
+                  animation:"vaultBoom 5s ease-out forwards, vaultShake 0.5s ease-out forwards"}}>
+                  <div style={{
+                    padding:"28px 52px",borderRadius:20,
+                    background:"linear-gradient(135deg,#1c0900,#2d1200)",
+                    border:"3px solid #f59e0b",
+                    boxShadow:"0 0 160px rgba(245,158,11,1),0 0 60px rgba(251,191,36,0.9),inset 0 0 40px rgba(245,158,11,0.15)",
+                    fontFamily:"'Press Start 2P',monospace",
+                  }}>
+                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4}}>🏛️ VAULT CRACKED</div>
+                    <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1,
+                      textShadow:"0 0 30px rgba(251,191,36,1),0 0 60px rgba(245,158,11,0.8)"}}>+{String(bucketWin)}</div>
+                    <div style={{fontSize:10,color:"#92400e",marginTop:8}}>$CANVAS · 10% of The Vault</div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+
+          {/* SOL Win popup */}
+          {solWin !== null && solWin.mult >= 2 && (
+            <div style={{
+              position:"absolute",bottom:"20%",left:"50%",
+              transform:"translate(-50%,0)",
+              zIndex:22,textAlign:"center",pointerEvents:"none",
+            }}>
+              <style>{`
+                @keyframes solWinIn {
+                  0%   { opacity:0; transform:translate(-50%,20px) scale(0.7); }
+                  15%  { opacity:1; transform:translate(-50%,-8px) scale(1.08); }
+                  75%  { opacity:1; transform:translate(-50%,0) scale(1); }
+                  100% { opacity:0; transform:translate(-50%,-15px) scale(0.9); }
+                }
+              `}</style>
+              <div style={{
+                padding:"14px 30px",borderRadius:12,
+                background:"#0a150a",border:`2px solid ${solWin.mult>=10?"#22c55e":"#4ade80"}`,
+                boxShadow:`0 0 ${solWin.mult>=10?"80px":"40px"} rgba(34,197,94,${solWin.mult>=10?0.8:0.4})`,
+                fontFamily:"'Press Start 2P',monospace",
+                animation:"solWinIn 2.5s ease-out forwards",
+              }}>
+                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2}}>◎ SOL WIN {solWin.label}</div>
+                <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold"}}>+{solWin.amount.toFixed(4)}</div>
+                <div style={{fontSize:10,color:"#166534",marginTop:4}}>SOL returned to wallet</div>
+              </div>
+            </div>
+          )}
+
+          {/* Earnings / Strike popup */}
           {strike && (() => {
+            if (strike.tier === "none") {
+              return (
+                <div style={{position:"absolute",top:"50%",left:"50%",
+                  transform:"translate(-50%,-60%)",zIndex:20,textAlign:"center",pointerEvents:"none"}}>
+                  <style>{`
+                    @keyframes earnIn {
+                      0%   { opacity:0; transform:translate(-50%,-70%) scale(0.8); }
+                      20%  { opacity:1; transform:translate(-50%,-60%) scale(1.05); }
+                      70%  { opacity:1; transform:translate(-50%,-55%) scale(1); }
+                      100% { opacity:0; transform:translate(-50%,-45%) scale(0.9); }
+                    }
+                  `}</style>
+                  <div style={{
+                    padding:"8px 18px",borderRadius:8,
+                    background:"rgba(15,15,22,0.9)",border:"1px solid #334155",
+                    fontFamily:"'Press Start 2P',monospace",
+                    animation:"earnIn 1.5s ease-out forwards",
+                  }}>
+                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:"bold"}}>+{strike.earn}</div>
+                    <div style={{fontSize:8,color:"#475569",marginTop:2}}>$CANVAS</div>
+                  </div>
+                </div>
+              );
+            }
             const sc = strikeStyle(strike.tier);
             return (
               <div style={{
@@ -693,50 +1022,59 @@ export default function Play() {
                   fontFamily:"'Press Start 2P',monospace",
                   animation:"strikeIn 3s ease-out forwards",
                 }}>
-                  <div style={{fontSize:9,color:sc.text,marginBottom:6,letterSpacing:2}}>
+                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2}}>
                     {strike.tier.toUpperCase()} STRIKE
                   </div>
                   <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold"}}>+{strike.earn}</div>
-                  <div style={{fontSize:8,color:sc.text,marginTop:4}}>{strikeBonus(strike.tier)}× base · $CANVAS</div>
+                  <div style={{fontSize:10,color:sc.text,marginTop:4}}>{strikeBonus(strike.tier)}× base · $CANVAS</div>
                 </div>
               </div>
             );
           })()}
 
           <div style={{position:"relative"}}>
-            {shield && (
-              <div style={{
-                position:"absolute",inset:-12,borderRadius:8,
-                border:"2px solid #f59e0b",
-                boxShadow:"0 0 60px rgba(245,158,11,0.5),inset 0 0 40px rgba(245,158,11,0.04)",
-                pointerEvents:"none",zIndex:2,
-              }}/>
-            )}
 
+            <canvas
+              ref={overlayRef}
+              width={GRID*PX}
+              height={GRID*PX}
+              style={{
+                position:"absolute",inset:0,
+                pointerEvents:"none",
+                imageRendering:"pixelated",
+                zIndex:3,
+              }}
+            />
             <canvas
               ref={canvasRef}
               width={GRID*PX}
               height={GRID*PX}
               onClick={handleClick}
               onMouseMove={handleMove}
-              onMouseLeave={() => setHovered(null)}
+              onMouseLeave={() => {
+                setHovered(null);
+                if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                // Do NOT clear profilePopup here — it should stay until user explicitly closes it
+              }}
               style={{
-                cursor: cooldown>0 ? "not-allowed" : "crosshair",
+                cursor: "crosshair",
                 display:"block",
+                imageRendering:"pixelated",
                 border:"1px solid #1e1e3f",
                 borderRadius:4,
                 boxShadow:"0 0 60px rgba(88,28,235,0.15)",
               }}
             />
 
-            {hovered && (
+            {/* Coordinate mini-tooltip (always on hover) */}
+            {hovered && !profilePopup && (
               <div style={{
                 position:"absolute",
                 left: Math.min(hovered.x*PX+14, GRID*PX-170),
                 top:  Math.max(hovered.y*PX-38, 0),
                 background:"#0d0d1a",border:"1px solid #2d1b69",
                 borderRadius:6,padding:"5px 10px",
-                fontSize:9,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
+                fontSize:10,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
               }}>
                 ({hovered.x},{hovered.y}) ·{" "}
                 {hovered.d
@@ -748,204 +1086,225 @@ export default function Play() {
                     background:hovered.d.color,borderRadius:2,verticalAlign:"middle",
                   }}/>
                 )}
+                {hovered.d && hovered.d.owner !== "art" && (
+                  <span style={{marginLeft:6,color:"#64748b",fontSize:9}}>hold 3s for profile</span>
+                )}
               </div>
             )}
+
+            {/* Transparent backdrop (fixed) — click outside to close profile popup */}
+            {profilePopup && (
+              <div
+                style={{position:"fixed",inset:0,zIndex:18,cursor:"default"}}
+                onClick={() => setProfilePopup(null)}
+              />
+            )}
+
+            {/* Profile popup (fires after 3s hover, fixed to cursor) */}
+            {profilePopup && (() => {
+              const popW = 240;
+              const popH = 200;
+              const vw = typeof window !== "undefined" ? window.innerWidth  : 1920;
+              const vh = typeof window !== "undefined" ? window.innerHeight : 1080;
+              const leftPos = profilePopup.x + popW + 24 > vw ? profilePopup.x - popW - 14 : profilePopup.x + 14;
+              const topPos  = Math.max(8, Math.min(profilePopup.y - 20, vh - popH - 8));
+              const prof = PROFILES[profilePopup.owner] ?? null;
+              const isYou = profilePopup.owner === WALLET;
+              return (
+                <div
+                  style={{
+                    position:"fixed", left:leftPos, top:topPos,
+                    width:popW, background:"#0a0a18",
+                    border:"1px solid #7c3aed", borderRadius:10,
+                    padding:14, zIndex:20, pointerEvents:"auto",
+                    boxShadow:"0 0 24px rgba(124,58,237,0.5)",
+                    fontFamily:"inherit",
+                  }}
+                  onClick={e => e.stopPropagation()}
+                  onMouseEnter={() => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }}
+                >
+                  {/* Close */}
+                  <div
+                    onClick={() => setProfilePopup(null)}
+                    style={{position:"absolute",top:8,right:10,cursor:"pointer",fontSize:12,color:"#64748b",lineHeight:1}}
+                  >x</div>
+
+                  {isYou ? (
+                    <div style={{textAlign:"center",paddingTop:8}}>
+                      <div style={{fontSize:28,marginBottom:6}}>🎮</div>
+                      <div style={{color:"#a78bfa",fontSize:11,fontWeight:"bold"}}>You</div>
+                      <div style={{color:"#64748b",fontSize:10,marginTop:4}}>This is your pixel</div>
+                      <div style={{color:"#475569",fontSize:9,marginTop:6}}>({profilePopup.canvasX}, {profilePopup.canvasY})</div>
+                    </div>
+                  ) : prof ? (
+                    <>
+                      {/* Avatar + name */}
+                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                        <div style={{
+                          width:40,height:40,borderRadius:"50%",
+                          background:"#1e1b4b",border:"2px solid #7c3aed",
+                          display:"flex",alignItems:"center",justifyContent:"center",
+                          fontSize:20,flexShrink:0,
+                        }}>{prof.avatar}</div>
+                        <div>
+                          <div style={{color:"#e2e8f0",fontSize:12,fontWeight:"bold"}}>{prof.displayName}</div>
+                          <div style={{color:"#64748b",fontSize:9,marginTop:2}}>{prof.handle}</div>
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      <div style={{color:"#94a3b8",fontSize:10,lineHeight:1.5,marginBottom:10,wordBreak:"break-word"}}>
+                        {prof.bio}
+                      </div>
+
+                      {/* Stats */}
+                      <div style={{display:"flex",gap:12,marginBottom:10}}>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#a78bfa",fontSize:11,fontWeight:"bold"}}>{prof.joinedSlot}</div>
+                          <div style={{color:"#475569",fontSize:9}}>pixels</div>
+                        </div>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#22d3ee",fontSize:11,fontWeight:"bold"}}>
+                            ({profilePopup.canvasX},{profilePopup.canvasY})
+                          </div>
+                          <div style={{color:"#475569",fontSize:9}}>this pixel</div>
+                        </div>
+                      </div>
+
+                      {/* Links */}
+                      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                        {prof.xUrl && (
+                          <a
+                            href={prof.xUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display:"inline-flex",alignItems:"center",gap:4,
+                              background:"#18181b",border:"1px solid #3f3f46",
+                              borderRadius:6,padding:"4px 8px",
+                              color:"#e2e8f0",fontSize:10,textDecoration:"none",
+                            }}
+                          >
+                            <span style={{fontSize:12}}>𝕏</span> Twitter
+                          </a>
+                        )}
+                        {prof.homepage && (
+                          <a
+                            href={prof.homepage}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display:"inline-flex",alignItems:"center",gap:4,
+                              background:"#18181b",border:"1px solid #3f3f46",
+                              borderRadius:6,padding:"4px 8px",
+                              color:"#a78bfa",fontSize:10,textDecoration:"none",
+                            }}
+                          >
+                            🔗 Site
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    /* Unknown wallet */
+                    <div style={{textAlign:"center",paddingTop:8}}>
+                      <div style={{fontSize:28,marginBottom:6}}>👤</div>
+                      <div style={{color:"#94a3b8",fontSize:11}}>{profilePopup.owner}</div>
+                      <div style={{color:"#475569",fontSize:9,marginTop:6}}>
+                        ({profilePopup.canvasX}, {profilePopup.canvasY}) · no public profile
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
-        {/* MOBILE BOTTOM TABS */}
-        {isMobile && (
-          <div style={{height:240,flexShrink:0,borderTop:"1px solid #1e1e3f",background:"#070710",display:"flex",flexDirection:"column"}}>
-            {/* Tab nav */}
-            <div style={{display:"flex",flexShrink:0,borderBottom:"1px solid #1e1e3f"}}>
-              {([
-                {id:"color", label:"🎨 Color"},
-                {id:"game",  label:"⚡ Game"},
-                {id:"stats", label:"👥 Stats"},
-                {id:"log",   label:"📋 Log"},
-              ] as {id:'color'|'game'|'stats'|'log';label:string}[]).map(t => (
-                <button key={t.id} onClick={() => setMobileTab(t.id)} style={{
-                  flex:1,padding:"7px 2px",fontSize:9,fontFamily:"inherit",
-                  background:mobileTab===t.id?"#12121a":"transparent",
-                  color:mobileTab===t.id?"#a855f7":"#475569",
-                  border:"none",
-                  borderBottom:mobileTab===t.id?"2px solid #a855f7":"2px solid transparent",
-                  cursor:"pointer",
-                }}>{t.label}</button>
-              ))}
-            </div>
-            {/* Tab content */}
-            <div style={{flex:1,overflowY:"auto",padding:"8px 10px"}}>
-
-              {mobileTab === "color" && (
-                <div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:4,marginBottom:10}}>
-                    {PALETTE.map(c => (
-                      <button key={c} onClick={() => setColor(c)} style={{
-                        aspectRatio:"1",borderRadius:3,background:c,border:"none",cursor:"pointer",padding:0,
-                        outline:color===c?"2px solid #fff":"2px solid transparent",outlineOffset:1,
-                      }}/>
-                    ))}
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8,fontSize:10}}>
-                    <div style={{width:20,height:20,borderRadius:4,background:color,border:"1px solid #2d1b69",flexShrink:0}}/>
-                    <span style={{color:"#475569"}}>{color}</span>
-                    <label style={{marginLeft:"auto",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontSize:9,color:"#64748b"}}>Custom</span>
-                      <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{width:22,height:22,borderRadius:3,border:"none",cursor:"pointer",padding:0}}/>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {mobileTab === "game" && (() => {
-                const shieldCost = owned * 5;
-                const canShield = !shield && !shieldT && balance >= shieldCost;
-                return (
-                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                    <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px"}}>
-                      <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>STATUS</div>
-                      <div style={{fontSize:12,color:"#a855f7",fontWeight:"bold",marginBottom:4}}>{Math.floor(balance).toLocaleString()} $CANVAS</div>
-                      {owned > 0 && <div style={{fontSize:9,color:"#6d28d9"}}>+{(owned*HOLD_REWARD_RATE*60).toFixed(3)}/min hold</div>}
-                      {cooldown > 0
-                        ? <div style={{marginTop:6,fontSize:10,color:"#f59e0b"}}>⏳ {cooldown}s cooldown</div>
-                        : <div style={{marginTop:6,fontSize:10,color:"#22c55e"}}>✓ Ready to place</div>
-                      }
-                      <div style={{marginTop:6,fontSize:9,color:"#475569"}}>Pixels owned: <span style={{color:"#22d3ee"}}>{owned}</span> · Placed: <span style={{color:"#22d3ee"}}>{placed}</span></div>
-                    </div>
-                    {owned > 0 && (
-                      <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px"}}>
-                        <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>SHIELD</div>
-                        <div style={{fontSize:9,color:"#334155",marginBottom:6,lineHeight:1.6}}>
-                          Cost: {owned * 5} $CANVAS · Protects for {COOLDOWN_SEC*3}s
-                          {isHoldr && " · 50% discount (Holdr)"}
-                        </div>
-                        <button onClick={() => {
-                          if (!canShield) return;
-                          setBalance(b => b - shieldCost);
-                          setShield(true);
-                          setShieldT(COOLDOWN_SEC * 3);
-                          setLog(l => [`[SHIELD] Active for ${COOLDOWN_SEC*3}s`, ...l.slice(0,11)]);
-                        }} style={{
-                          width:"100%",padding:"8px",borderRadius:6,fontSize:10,fontFamily:"inherit",
-                          background:shield?"linear-gradient(135deg,#2d1b69,#4c1d95)":canShield?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
-                          color:shield?"#a855f7":canShield?"#c4b5fd":"#334155",
-                          border:`1px solid ${shield?"#7c3aed":canShield?"#4c1d95":"#1e1e3f"}`,
-                          cursor:canShield?"pointer":"default",
-                        }}>
-                          {shield ? "🛡️ Shield Active" : owned===0 ? "Place pixels first" : balance<shieldCost ? `Need ${(shieldCost-balance).toFixed(0)} more` : "🛡️ Activate Shield"}
-                        </button>
-                      </div>
-                    )}
-                    <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:"8px 10px"}}>
-                      <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>STRIKE ODDS</div>
-                      {[
-                        {tier:"Common",  chance:"5%",   mult:"5×",   color:"#64748b"},
-                        {tier:"Rare",    chance:"1%",   mult:"25×",  color:"#22d3ee"},
-                        {tier:"Legendary",chance:"0.1%",mult:"200×", color:"#f59e0b"},
-                      ].map(s => (
-                        <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10}}>
-                          <span style={{color:s.color}}>{s.tier}</span>
-                          <span style={{color:"#334155"}}>{s.chance}</span>
-                          <span style={{color:s.color,fontWeight:"bold"}}>{s.mult}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {mobileTab === "stats" && (
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                  <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px"}}>
-                    <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>TOP PLAYERS</div>
-                    {[
-                      {addr:"0xaf1…c32", px:1284, isYou:false},
-                      {addr:"0x7a3…b9f", px:963,  isYou:false},
-                      {addr:WALLET,      px:owned, isYou:true},
-                      {addr:"0x99d…441", px:312,  isYou:false},
-                      {addr:"0xb82…71a", px:148,  isYou:false},
-                    ].sort((a,b)=>b.px-a.px).slice(0,5).map((p,i) => (
-                      <div key={p.addr} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10,color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569"}}>
-                        <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:160}}>{i+1}. {p.addr}</span>
-                        <span style={{flexShrink:0,marginLeft:4}}>{p.px}px</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:"8px 10px",fontSize:10}}>
-                    <div style={{color:"#64748b",marginBottom:6,fontSize:9,letterSpacing:1}}>HOLDR STATUS</div>
-                    <div style={{height:4,background:"#12121a",borderRadius:2,marginBottom:4}}>
-                      <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.5s"}}/>
-                    </div>
-                    <div style={{fontSize:9,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓ HOLDR":`${Math.floor(holdrProgress)}% — need ${Math.max(0,Math.ceil((10000/12)-owned))} more px`}</div>
-                  </div>
-                </div>
-              )}
-
-              {mobileTab === "log" && (
-                <div style={{fontSize:10,lineHeight:2}}>
-                  {log.slice(0,12).map((l,i) => (
-                    <div key={i} style={{color:i===0?"#a855f7":"#334155",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l}</div>
-                  ))}
-                </div>
-              )}
-
-            </div>
-          </div>
-        )}
-
         {/* RIGHT PANEL */}
-        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
+        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
           {/* Color picker */}
           <div>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:4}}>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>COLOR</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:2}}>
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{
-                  aspectRatio:"1",borderRadius:4,background:c,border:"none",cursor:"pointer",
+                  width:16,height:16,borderRadius:2,background:c,border:"none",cursor:"pointer",padding:0,
                   outline:color===c?"2px solid #ffffff":"2px solid transparent",
-                  outlineOffset:2,transition:"outline 0.1s",
+                  outlineOffset:1,transition:"outline 0.1s",
                 }}/>
               ))}
             </div>
-            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6,fontSize:9}}>
+            {/* Custom color picker */}
+            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6}}>
+              <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Custom color">
+                <div style={{
+                  width:24,height:24,borderRadius:4,
+                  background:`conic-gradient(red,yellow,lime,cyan,blue,magenta,red)`,
+                  border: color && !PALETTE.includes(color) ? "2px solid #fff" : "2px solid #334155",
+                  boxShadow: color && !PALETTE.includes(color) ? "0 0 8px rgba(255,255,255,0.5)" : "none",
+                  transition:"border 0.15s",
+                }}/>
+                <input type="color" value={color}
+                  onChange={e => setColor(e.target.value)}
+                  style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}}
+                />
+              </label>
               <div style={{width:14,height:14,borderRadius:3,background:color,flexShrink:0,border:"1px solid #2d1b69"}}/>
-              <span style={{color:"#475569"}}>{color}</span>
+              <span style={{color:"#475569",fontSize:10}}>{color}</span>
             </div>
           </div>
 
           {/* Strike tiers */}
           <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>STRIKE ODDS</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>STRIKE ODDS</div>
             {[
               {tier:"Common",  chance:"5%",   mult:"5×",   color:"#64748b"},
               {tier:"Rare",    chance:"1%",   mult:"25×",  color:"#22d3ee"},
               {tier:"Legendary",chance:"0.1%",mult:"200×", color:"#f59e0b"},
             ].map(s => (
-              <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:9}}>
+              <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:10}}>
                 <span style={{color:s.color}}>{s.tier}</span>
                 <span style={{color:"#334155"}}>{s.chance}</span>
                 <span style={{color:s.color,fontWeight:"bold"}}>{s.mult}</span>
               </div>
             ))}
-            <div style={{marginTop:6,fontSize:8,color:"#1e3a4f",lineHeight:1.6}}>
+            <div style={{marginTop:6,fontSize:10,color:"#1e3a4f",lineHeight:1.6}}>
               Pyth Entropy RNG · on-chain verifiable
             </div>
           </div>
 
           {/* Activity log */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
-            <div style={{fontSize:8,lineHeight:2,overflow:"hidden"}}>
-              {log.slice(0,8).map((l,i) => (
-                <div key={i} style={{color:i===0?"#a855f7":"#334155",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l}</div>
-              ))}
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>ACTIVITY LOG</div>
+            <div style={{fontSize:10,lineHeight:2,overflow:"hidden"}}>
+              {log.slice(0,8).map((l,i) => {
+                const logParts = l.split('|');
+                const dispText = logParts[0];
+                const coordStr = logParts.length > 1 ? logParts[1] : '';
+                const hasCoords = coordStr.includes(',');
+                const lx = hasCoords ? parseInt(coordStr.split(',')[0], 10) : -1;
+                const ly = hasCoords ? parseInt(coordStr.split(',')[1], 10) : -1;
+                return (
+                <div key={i}
+                  onClick={() => {
+                    if (!hasCoords) return;
+                    spawnAnim(lx, ly, '#a855f7', 'rare');
+                    canvasWrapRef.current?.scrollTo({
+                      left: Math.max(0, lx - 200),
+                      top: Math.max(0, ly - 200),
+                      behavior: 'smooth',
+                    });
+                  }}
+                  style={{color:i===0?"#a855f7":hasCoords?"#4a3060":"#334155",cursor:hasCoords?"pointer":"default",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} title={hasCoords?"Click to highlight pixel":undefined}>{dispText}</div>
+              );
+              })}
             </div>
           </div>
 
           {/* Leaderboard */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
-            <div style={{fontSize:9,color:"#64748b",marginBottom:10,letterSpacing:1}}>TOP PLAYERS</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:10,letterSpacing:1}}>TOP PLAYERS</div>
             {[
               {addr:"0xaf1…c32", px:1284, earn:24680, isYou:false},
               {addr:"0x7a3…b9f", px:963,  earn:18420, isYou:false},
@@ -956,11 +1315,18 @@ export default function Play() {
             .sort((a,b)=>b.px-a.px)
             .slice(0,5)
             .map((p,i) => (
-              <div key={p.addr} style={{
-                display:"flex",justifyContent:"space-between",
-                marginBottom:6,fontSize:9,
-                color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
-              }}>
+              <div key={p.addr}
+                onClick={e => setProfilePopup({ x: e.clientX, y: e.clientY, owner: p.addr, canvasX: 0, canvasY: 0 })}
+                style={{
+                  display:"flex",justifyContent:"space-between",
+                  marginBottom:6,fontSize:10,
+                  color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
+                  cursor:"pointer",
+                  borderRadius:4,padding:"2px 4px",margin:"-2px -4px 4px",
+                  transition:"background 0.15s",
+                }}
+                onMouseEnter={e=>(e.currentTarget.style.background="rgba(168,85,247,0.08)")}
+                onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
                   {i+1}. {p.addr}
                 </span>
