@@ -173,8 +173,6 @@ export default function Home() {
         <nav className="lp-nav" style={{ borderBottom:"1px solid #1e1e3f", backdropFilter:"blur(4px)", background:"rgba(10,10,15,0.6)" }}>
           <CanvasLogo size="sm" />
           <div className="lp-nav-links" style={{ fontSize:16 }}>
-            <a href="#mechanics" className="lp-nav-link-hide" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_mechanics')}</a>
-            <a href="#tokenomics" className="lp-nav-link-hide" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_tokenomics')}</a>
             <LangSwitcher lang={lang} onChange={setLang_} />
             <Link href="/play" style={{ padding:"8px 20px", background:"#7c3aed", color:"#fff", borderRadius:6, textDecoration:"none", fontWeight:"bold", fontSize:16 }}>
               {T('nav_play_demo')}
