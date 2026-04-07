@@ -130,6 +130,8 @@ function MiniCanvas() {
       border:"2px solid #6d28d9",
       borderRadius:10,
       boxShadow:"0 0 40px rgba(168,85,247,0.55), 0 0 80px rgba(124,58,237,0.3), 0 0 120px rgba(99,102,241,0.15)",
+      maxWidth:"100%",
+      height:"auto",
     }} />
   );
 }
@@ -168,11 +170,11 @@ export default function Home() {
       {/* all content sits above bg canvas */}
       <div style={{ position:"relative", zIndex:1 }}>
         {/* NAV */}
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 32px", borderBottom:"1px solid #1e1e3f", backdropFilter:"blur(4px)", background:"rgba(10,10,15,0.6)" }}>
+        <nav className="lp-nav" style={{ borderBottom:"1px solid #1e1e3f", backdropFilter:"blur(4px)", background:"rgba(10,10,15,0.6)" }}>
           <CanvasLogo size="sm" />
-          <div style={{ display:"flex", gap:16, alignItems:"center", fontSize:16 }}>
-            <a href="#mechanics" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_mechanics')}</a>
-            <a href="#tokenomics" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_tokenomics')}</a>
+          <div className="lp-nav-links" style={{ fontSize:16 }}>
+            <a href="#mechanics" className="lp-nav-link-hide" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_mechanics')}</a>
+            <a href="#tokenomics" className="lp-nav-link-hide" style={{ color:"#94a3b8", textDecoration:"none" }}>{T('nav_tokenomics')}</a>
             <LangSwitcher lang={lang} onChange={setLang_} />
             <Link href="/play" style={{ padding:"8px 20px", background:"#7c3aed", color:"#fff", borderRadius:6, textDecoration:"none", fontWeight:"bold", fontSize:16 }}>
               {T('nav_play_demo')}
@@ -181,8 +183,8 @@ export default function Home() {
         </nav>
 
         {/* HERO */}
-        <section style={{ display:"flex", alignItems:"center", justifyContent:"space-between", maxWidth:1100, margin:"0 auto", padding:"80px 32px", gap:48 }}>
-          <div style={{ flex:1 }}>
+        <section className="lp-hero" style={{ maxWidth:1100, margin:"0 auto" }}>
+          <div className="lp-hero-text">
             <div style={{ fontSize:17, color:"#22d3ee", marginBottom:12, letterSpacing:3, textTransform:"uppercase" }}>
               {T('hero_tag')}
             </div>
@@ -196,7 +198,7 @@ export default function Home() {
             <p style={{ fontSize:16, color:"#475569", marginBottom:32, maxWidth:420, lineHeight:1.7 }}>
               {T('hero_desc')}
             </p>
-            <div style={{ display:"flex", gap:12 }}>
+            <div className="lp-hero-cta">
               <Link href="/play" style={{
                 padding:"14px 28px", background:"linear-gradient(135deg,#7c3aed,#a855f7)",
                 color:"#fff", borderRadius:8, textDecoration:"none", fontWeight:"bold", fontSize:17,
@@ -207,24 +209,24 @@ export default function Home() {
                 color:"#a855f7", borderRadius:8, textDecoration:"none", fontSize:14
               }}>{T('hero_cta_how')}</a>
             </div>
-            <div style={{ marginTop:24, fontSize:15, color:"#475569", display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ marginTop:24, fontSize:15, color:"#475569", display:"flex", alignItems:"center", gap:8, justifyContent:"inherit" }}>
               <span style={{ width:8, height:8, background:"#22c55e", borderRadius:"50%", display:"inline-block", animation:"pulse 2s infinite" }} />
               <span style={{ color:"#22c55e" }}>{count.toLocaleString()}</span> {T('hero_pixels_placed')}
             </div>
           </div>
-          <div style={{ flexShrink:0, position:"relative" }}>
+          <div className="lp-mini-canvas-wrap">
             <div style={{ position:"absolute", inset:-48, background:"radial-gradient(circle,rgba(124,58,237,0.25),transparent 70%)", borderRadius:"50%", animation:"pulse 3s infinite" }} />
             <MiniCanvas />
           </div>
         </section>
 
         {/* CORE LOOP */}
-        <section id="mechanics" style={{ maxWidth:1100, margin:"0 auto", padding:"60px 32px" }}>
+        <section id="mechanics" className="lp-section" style={{ maxWidth:1100, margin:"0 auto" }}>
           <div style={{ textAlign:"center", marginBottom:48 }}>
             <div style={{ fontSize:17, color:"#a855f7", letterSpacing:3, textTransform:"uppercase", marginBottom:8 }}>{T('section_core_loop')}</div>
             <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:22 }}>{T('section_how')}</div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
+          <div className="lp-grid-4">
             {STEPS.map((s,i) => (
               <div key={i} style={{ padding:24, background:"rgba(18,18,26,0.85)", border:"1px solid #1e1e3f", borderRadius:12, backdropFilter:"blur(4px)" }}>
                 <div style={{ fontSize:28, marginBottom:12 }}>{s.emoji}</div>
@@ -236,11 +238,11 @@ export default function Home() {
         </section>
 
         {/* STRIKES */}
-        <section style={{ maxWidth:1100, margin:"0 auto", padding:"0 32px 60px" }}>
+        <section className="lp-section-b" style={{ maxWidth:1100, margin:"0 auto" }}>
           <div style={{ background:"rgba(13,17,23,0.85)", border:"1px solid #0e3a4f", borderRadius:16, padding:32, backdropFilter:"blur(4px)" }}>
             <div style={{ fontSize:17, color:"#22d3ee", letterSpacing:3, textTransform:"uppercase", marginBottom:8 }}>{T('section_strikes')}</div>
             <p style={{ color:"#94a3b8", marginBottom:24, fontSize:16 }}>{T('strikes_desc')}</p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
+            <div className="lp-grid-3">
               {([
                 { tierKey:"strike_common"    as const, chance:"5%",   mult:"5×",   color:"#64748b", glow:"rgba(100,116,139,0.3)" },
                 { tierKey:"strike_rare"      as const, chance:"1%",   mult:"25×",  color:"#22d3ee", glow:"rgba(34,211,238,0.3)"  },
@@ -259,12 +261,12 @@ export default function Home() {
         </section>
 
         {/* TOKENOMICS */}
-        <section id="tokenomics" style={{ maxWidth:1100, margin:"0 auto", padding:"0 32px 60px" }}>
+        <section id="tokenomics" className="lp-section-b" style={{ maxWidth:1100, margin:"0 auto" }}>
           <div style={{ textAlign:"center", marginBottom:48 }}>
             <div style={{ fontSize:17, color:"#a855f7", letterSpacing:3, textTransform:"uppercase", marginBottom:8 }}>{T('section_tokenomics')}</div>
             <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:22 }}>{T('tok_title')}</div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:16 }}>
+          <div className="lp-grid-3" style={{ marginBottom:16 }}>
             {TOKENOMICS.map(tok => (
               <div key={tok.label} style={{ padding:24, background:"rgba(18,18,26,0.85)", border:`1px solid ${tok.color}30`, borderRadius:12, backdropFilter:"blur(4px)" }}>
                 <div style={{ fontSize:40, fontWeight:"bold", color:tok.color, marginBottom:4 }}>{tok.pct}%</div>
@@ -282,15 +284,15 @@ export default function Home() {
         </section>
 
         {/* HOLDR */}
-        <section style={{ maxWidth:1100, margin:"0 auto", padding:"0 32px 60px" }}>
-          <div style={{ background:"linear-gradient(135deg,rgba(26,5,51,0.9),rgba(15,23,42,0.9))", border:"1px solid #4c1d95", borderRadius:16, padding:32, display:"flex", gap:24, alignItems:"flex-start", backdropFilter:"blur(4px)" }}>
-            <div style={{ fontSize:40 }}>💎</div>
-            <div>
+        <section className="lp-section-b" style={{ maxWidth:1100, margin:"0 auto" }}>
+          <div className="lp-holdr-row" style={{ background:"linear-gradient(135deg,rgba(26,5,51,0.9),rgba(15,23,42,0.9))", border:"1px solid #4c1d95", borderRadius:16, padding:32, backdropFilter:"blur(4px)" }}>
+            <div style={{ fontSize:40, flexShrink:0 }}>💎</div>
+            <div style={{ flex:1, minWidth:0 }}>
               <h3 style={{ color:"#c084fc", fontWeight:"bold", fontSize:22, marginBottom:8 }}>{T('holdr_title')}</h3>
               <p style={{ color:"#cbd5e1", fontSize:16, lineHeight:1.7, marginBottom:16, maxWidth:600 }}>
                 {T('holdr_desc')}
               </p>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+              <div className="lp-grid-3-sm">
                 {([
                   ['holdr_r1_label','holdr_r1_val'],
                   ['holdr_r2_label','holdr_r2_val'],
@@ -307,8 +309,8 @@ export default function Home() {
         </section>
 
         {/* CTA */}
-        <section style={{ textAlign:"center", padding:"60px 32px 80px" }}>
-          <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:"clamp(22px,3.5vw,34px)", marginBottom:16 }}>
+        <section className="lp-cta-section">
+          <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:"clamp(18px,3.5vw,34px)", marginBottom:16 }}>
             {T('cta_title')}
           </div>
           <p style={{ color:"#475569", fontSize:16, marginBottom:28 }}>{T('cta_desc')}</p>
@@ -320,7 +322,7 @@ export default function Home() {
         </section>
 
         {/* FOOTER */}
-        <footer style={{ borderTop:"1px solid #1e1e3f", padding:"24px 32px", textAlign:"center", fontSize:17, color:"#475569" }}>
+        <footer className="lp-footer" style={{ borderTop:"1px solid #1e1e3f", textAlign:"center", fontSize:17, color:"#475569" }}>
           <CanvasLogo size="sm" />
           {" · "}{T('footer_built')}
         </footer>

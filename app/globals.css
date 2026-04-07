@@ -12,3 +12,54 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #12121a; }
 ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 2px; }
+
+/* ── Landing page mobile responsive ────────────────────────────────────────── */
+
+/* Nav */
+.lp-nav { display:flex; align-items:center; justify-content:space-between; padding:14px 32px; }
+.lp-nav-links { display:flex; gap:16px; align-items:center; }
+.lp-nav-link-hide { display:inline; }
+
+/* Hero */
+.lp-hero { display:flex; align-items:center; justify-content:space-between; padding:80px 32px; gap:48px; }
+.lp-hero-text { flex:1; }
+.lp-hero-cta { display:flex; gap:12px; flex-wrap:wrap; }
+.lp-mini-canvas-wrap { flex-shrink:0; position:relative; }
+
+/* Sections */
+.lp-section  { padding:60px 32px; }
+.lp-section-b { padding:0 32px 60px; }
+.lp-cta-section { text-align:center; padding:60px 32px 80px; }
+.lp-footer { padding:24px 32px; }
+
+/* Grids */
+.lp-grid-4  { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.lp-grid-3  { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.lp-grid-3-sm { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.lp-holdr-row { display:flex; gap:24px; align-items:flex-start; }
+
+@media (max-width: 768px) {
+  /* Nav: hide section links, reduce padding */
+  .lp-nav { padding:12px 16px; }
+  .lp-nav-links { gap:8px; }
+  .lp-nav-link-hide { display:none; }
+
+  /* Hero: stack vertically, center */
+  .lp-hero { flex-direction:column; padding:40px 16px 32px; gap:32px; text-align:center; }
+  .lp-hero-text { max-width:100% !important; }
+  .lp-hero-cta { justify-content:center; }
+  .lp-mini-canvas-wrap { width:100%; display:flex; justify-content:center; }
+  .lp-mini-canvas-wrap canvas { max-width:calc(100vw - 32px) !important; height:auto !important; }
+
+  /* Sections */
+  .lp-section  { padding:40px 16px; }
+  .lp-section-b { padding:0 16px 40px; }
+  .lp-cta-section { padding:40px 16px 60px; }
+  .lp-footer { padding:20px 16px; }
+
+  /* Grids: collapse to 1 or 2 cols */
+  .lp-grid-4  { grid-template-columns:repeat(2,1fr); }
+  .lp-grid-3  { grid-template-columns:1fr; }
+  .lp-grid-3-sm { grid-template-columns:1fr; }
+  .lp-holdr-row { flex-direction:column; }
+}
