@@ -835,7 +835,7 @@ export default function Play() {
             <span className="rpg-title-text" style={{fontSize:isMobile?8:10,color:"#c9a227",letterSpacing:2}}>
               ⛩ CANVAS WARS
             </span>
-            <span style={{fontSize:6,color:"#4a3a6e",letterSpacing:1}}>キャンバス戦争・ピクセル領域争奪</span>
+            <span style={{fontSize:6,color:"#4a3a6e",letterSpacing:1}}>PIXEL TERRITORY WARS</span>
           </div>
         </div>
         <div style={{display:isMobile?"none":"flex",alignItems:"center",gap:10}}>
@@ -849,17 +849,17 @@ export default function Play() {
           </a>
           <div style={{width:1,height:14,background:"#2d1a4e"}}/>
           <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{fontSize:7,color:"#4a3a6e"}}>冒険者</span>
+            <span style={{fontSize:7,color:"#4a3a6e"}}>WARRIORS</span>
             <span style={{fontSize:9,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
           </div>
           <div style={{width:1,height:14,background:"#2d1a4e"}}/>
           <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{fontSize:7,color:"#4a3a6e"}}>領土</span>
+            <span style={{fontSize:7,color:"#4a3a6e"}}>TERRITORY</span>
             <span style={{fontSize:9,color:"#a78bfa",fontWeight:"bold"}}>{pixelsTotal.toLocaleString()}</span>
           </div>
           <div style={{width:1,height:14,background:"#2d1a4e"}}/>
           <div style={{display:"flex",alignItems:"center",gap:5}}>
-            <span style={{fontSize:7,color:"#4a3a6e"}}>採掘</span>
+            <span style={{fontSize:7,color:"#4a3a6e"}}>MINING</span>
             <div style={{width:44,height:4,background:"#1e1e3f",borderRadius:2,overflow:"hidden"}}>
               <div style={{width:`${miningPct}%`,height:"100%",
                 background:"linear-gradient(90deg,#7c3aed,#c084fc)",
@@ -895,7 +895,7 @@ export default function Play() {
               cursor:"pointer",letterSpacing:1,
               background:connecting?"#0d0920":"linear-gradient(135deg,#2d1a4e,#4c1d95)",
               color:"#ddd0a8",border:"1px solid #7c3aed"}}>
-              {connecting?"接続中…":"⚔ CONNECT"}
+              {connecting?"CONNECTING...":"⚔ CONNECT"}
             </button>
           )}
           <LangSwitcher lang={lang} onChange={setLang_} />
@@ -907,10 +907,10 @@ export default function Play() {
         <div style={{display:"flex",alignItems:"stretch",borderBottom:"1px solid #2d1a4e",
           background:"#07040f",flexShrink:0}}>
           {[
-            {jp:"冒険者",val:players.toLocaleString(),color:"#38bdf8",pct:60},
-            {jp:"領土",  val:fmtCompact(pixelsTotal), color:"#c084fc",pct:45},
-            {jp:"報酬",  val:fmtCompact(Math.floor(solEarned)),color:"#00c896",pct:72},
-            {jp:"採掘",  val:`${miningPct.toFixed(1)}%`,color:"#a78bfa",pct:miningPct},
+            {jp:"WARRIORS",val:players.toLocaleString(),color:"#38bdf8",pct:60},
+            {jp:"TERRITORY",  val:fmtCompact(pixelsTotal), color:"#c084fc",pct:45},
+            {jp:"REWARDS",  val:fmtCompact(Math.floor(solEarned)),color:"#00c896",pct:72},
+            {jp:"MINING",  val:`${miningPct.toFixed(1)}%`,color:"#a78bfa",pct:miningPct},
           ].map((s,i,arr)=>(
             <div key={i} style={{flex:1,padding:"5px 6px",
               borderRight:i<arr.length-1?"1px solid #2d1a4e":undefined,
@@ -952,7 +952,7 @@ export default function Play() {
           <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:8,color:"#6b5f4a"}}>◎{sol.toFixed(3)}</span>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end"}}>
-              <span style={{fontSize:6,color:"#4a3a6e"}}>マナ</span>
+              <span style={{fontSize:6,color:"#4a3a6e"}}>MANA</span>
               <span style={{fontSize:9,color:"#c084fc",fontWeight:"bold"}}>{Math.floor(balance).toLocaleString()}</span>
             </div>
           </div>
@@ -975,7 +975,7 @@ export default function Play() {
             textAlign:"center",position:"relative"}}>
             <span style={goldCorner('tl')}>◆</span><span style={goldCorner('tr')}>◆</span>
             <span style={goldCorner('bl')}>◆</span><span style={goldCorner('br')}>◆</span>
-            <div style={{fontSize:7,letterSpacing:3,color:"#6b4c10",marginBottom:2}}>竜の宝箱</div>
+            <div style={{fontSize:7,letterSpacing:3,color:"#6b4c10",marginBottom:2}}>DRAGON VAULT</div>
             <div style={{fontSize:8,letterSpacing:2,color:"#c9a227",marginBottom:6}}>DRAGON VAULT</div>
             <div style={{fontSize:"13px",fontWeight:"bold",color:"#ffd700",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",wordBreak:"break-all",
@@ -1003,11 +1003,11 @@ export default function Play() {
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
               <div>
-                <div style={{fontSize:6,color:"#4a3a6e",letterSpacing:1}}>ゴールド</div>
+                <div style={{fontSize:6,color:"#4a3a6e",letterSpacing:1}}>GOLD</div>
                 <div style={{fontSize:8,letterSpacing:1,color:"#2a6e42"}}>GOLD TREASURY</div>
               </div>
               {sol<0.5&&!topUpOpen&&(
-                <div style={{fontSize:7,color:"#e84545",animation:"hpBlink 1s ease-in-out infinite"}}>！LOW！</div>
+                <div style={{fontSize:7,color:"#e84545",animation:"hpBlink 1s ease-in-out infinite"}}>LOW!</div>
               )}
             </div>
             <div style={{height:5,background:"#0a180a",overflow:"hidden",border:"1px solid #1a4e2a",marginBottom:4}}>
@@ -1045,7 +1045,7 @@ export default function Play() {
                     color:"#ddd0a8"}}>
                     {pack.popular&&(
                       <span style={{position:"absolute",top:-6,right:4,fontSize:6,
-                        background:"#1a4e2a",color:"#00c896",padding:"1px 4px",letterSpacing:1}}>人気</span>
+                        background:"#1a4e2a",color:"#00c896",padding:"1px 4px",letterSpacing:1}}>HOT</span>
                     )}
                     <span style={{color:"#00c896"}}>◎{pack.label}</span>
                     <span style={{color:"#2d1a4e"}}>{pack.tag}</span>
@@ -1061,7 +1061,7 @@ export default function Play() {
             border:"2px solid #3d1f6e",padding:10,position:"relative"}}>
             <span style={manaCorner('tl')}>◆</span><span style={manaCorner('tr')}>◆</span>
             <span style={manaCorner('bl')}>◆</span><span style={manaCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>マナ残高</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>MANA</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#5b2d9e",marginBottom:4}}>$CANVAS MANA</div>
             <div style={{fontSize:"18px",fontWeight:"bold",color:"#c084fc",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",
@@ -1080,7 +1080,7 @@ export default function Play() {
             border:"2px solid #2d1a4e",padding:10,position:"relative"}}>
             <span style={dimCorner('tl')}>◆</span><span style={dimCorner('tr')}>◆</span>
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>呪文威力</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>SPELL POWER</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#4a3a6e",marginBottom:8}}>SPELL POWER</div>
             <div style={{display:"flex",flexDirection:"column",gap:5}}>
               {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier,i)=>{
@@ -1120,7 +1120,7 @@ export default function Play() {
             border:"2px solid #2d1a4e",padding:10,position:"relative"}}>
             <span style={dimCorner('tl')}>◆</span><span style={dimCorner('tr')}>◆</span>
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>武者データ</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>HERO STATS</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#4a3a6e",marginBottom:8}}>WARRIOR STATS</div>
             {([
               [T('pixels_owned'),owned,"#38bdf8"],
@@ -1154,7 +1154,7 @@ export default function Play() {
           {/* Withdraw */}
           <div style={{background:"#06030f",border:"1px solid #1a0e2e",
             padding:8,fontSize:7,color:"#3d1f6e",lineHeight:2}}>
-            <div style={{color:"#4a3a6e",marginBottom:2,letterSpacing:1}}>出金・WITHDRAW</div>
+            <div style={{color:"#4a3a6e",marginBottom:2,letterSpacing:1}}>WITHDRAW</div>
             {T('withdraw_desc')}<br/>
             {T('withdraw_tax')} <span style={{color:"#7c3aed"}}>{T('withdraw_holdr')}</span><br/>
             {T('withdraw_passive')}
@@ -1202,7 +1202,7 @@ export default function Play() {
                     display:"flex",flexDirection:"column",alignItems:"center",gap:6,position:"relative"}}>
                     <span style={goldCorner('tl')}>◆</span><span style={goldCorner('tr')}>◆</span>
                     <span style={goldCorner('bl')}>◆</span><span style={goldCorner('br')}>◆</span>
-                    <div style={{fontSize:7,color:"#6b4c10",letterSpacing:4,lineHeight:1.6}}>宝箱を開けた！</div>
+                    <div style={{fontSize:7,color:"#6b4c10",letterSpacing:4,lineHeight:1.6}}>VAULT OPENED!</div>
                     <div style={{fontSize:10,color:"#c9a227",letterSpacing:3,lineHeight:1.4}}>{shiftNonLatin(T('vault_cracked'))}</div>
                     <div style={{fontSize:34,color:"#ffd700",fontWeight:"bold",lineHeight:1.2,
                       textShadow:"0 0 30px rgba(255,215,0,1),0 0 60px rgba(201,162,39,0.8)"}}>
@@ -1251,7 +1251,7 @@ export default function Play() {
                   <div style={{padding:"8px 16px",background:"rgba(6,3,15,0.92)",
                     border:"1px solid #3d1f6e",fontFamily:"'Press Start 2P',monospace"}}>
                     <div style={{fontSize:11,color:"#6b5f4a",fontWeight:"bold"}}>+{strike.earn}</div>
-                    <div style={{fontSize:7,color:"#3d1f6e",marginTop:2}}>マナ獲得</div>
+                    <div style={{fontSize:7,color:"#3d1f6e",marginTop:2}}>MANA GAINED</div>
                   </div>
                 </div>
               );
@@ -1261,7 +1261,7 @@ export default function Play() {
             const bc=isLeg?"#c9a227":isRare?"#22d3ee":"#4a3a6e";
             const gc=isLeg?"rgba(201,162,39,0.9)":isRare?"rgba(34,211,238,0.6)":"rgba(74,58,110,0.4)";
             const tc=isLeg?"#ffd700":isRare?"#67e8f9":"#94a3b8";
-            const jp=isLeg?"伝説の一撃！":isRare?"必殺技！":"クリティカル！";
+            const jp=isLeg?"LEGENDARY STRIKE!":isRare?"DEADLY STRIKE!":"CRITICAL HIT!";
             const en=isLeg?"LEGENDARY STRIKE":isRare?"RARE STRIKE":"CRITICAL HIT";
             return(
               <div style={{position:"absolute",top:"50%",left:"50%",
@@ -1412,7 +1412,7 @@ export default function Play() {
             border:"2px solid #2d1a4e",padding:10,position:"relative"}}>
             <span style={dimCorner('tl')}>◆</span><span style={dimCorner('tr')}>◆</span>
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>呪文パレット</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>SPELL PALETTE</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#4a3a6e",marginBottom:8}}>SPELL PALETTE</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:2}}>
               {PALETTE.map(c=>(
@@ -1441,12 +1441,12 @@ export default function Play() {
             border:"2px solid #2d1a4e",padding:10,position:"relative"}}>
             <span style={dimCorner('tl')}>◆</span><span style={dimCorner('tr')}>◆</span>
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>戦闘ボーナス</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>BATTLE BONUS</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#4a3a6e",marginBottom:8}}>BATTLE BONUSES</div>
             {[
-              {tier:T('strike_common'),  chance:"5%",  mult:"5×",  col:"#6b5f4a",jp:"通常"},
-              {tier:T('strike_rare'),    chance:"1%",  mult:"25×", col:"#22d3ee",jp:"必殺"},
-              {tier:T('strike_legendary'),chance:"0.1%",mult:"200×",col:"#ffd700",jp:"伝説"},
+              {tier:T('strike_common'),  chance:"5%",  mult:"5×",  col:"#6b5f4a",jp:"COMMON"},
+              {tier:T('strike_rare'),    chance:"1%",  mult:"25×", col:"#22d3ee",jp:"RARE"},
+              {tier:T('strike_legendary'),chance:"0.1%",mult:"200×",col:"#ffd700",jp:"LEGEND"},
             ].map(s=>(
               <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",
                 alignItems:"center",marginBottom:5,fontSize:9,gap:4}}>
@@ -1466,7 +1466,7 @@ export default function Play() {
             border:"2px solid #2d1a4e",padding:10,flex:1,overflow:"hidden",position:"relative"}}>
             <span style={dimCorner('tl')}>◆</span><span style={dimCorner('tr')}>◆</span>
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>戦闘ログ</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>BATTLE LOG</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#4a3a6e",marginBottom:8}}>BATTLE LOG</div>
             <div style={{fontSize:9,lineHeight:2,overflow:"hidden"}}>
               {log.slice(0,8).map((l,i)=>{
@@ -1497,7 +1497,7 @@ export default function Play() {
             border:"2px solid #2d1a4e",padding:10,position:"relative"}}>
             <span style={dimCorner('tl')}>◆</span><span style={dimCorner('tr')}>◆</span>
             <span style={dimCorner('bl')}>◆</span><span style={dimCorner('br')}>◆</span>
-            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>英雄ランキング</div>
+            <div style={{fontSize:6,color:"#3d1f6e",letterSpacing:1}}>HERO RANKINGS</div>
             <div style={{fontSize:8,letterSpacing:1,color:"#4a3a6e",marginBottom:8}}>HERO RANKINGS</div>
             {[
               {addr:"0xaf1…c32",px:1284,isYou:false},
@@ -1533,7 +1533,7 @@ export default function Play() {
           background:"#07040f",display:"flex",flexDirection:"column",overflow:"hidden"}}>
           <div style={{display:"flex",borderBottom:"1px solid #2d1a4e",flexShrink:0}}>
             {(["color","game","stats","log"] as const).map(tab=>{
-              const labels:{[k:string]:string}={color:"🎨 呪文",game:"⚔ 戦闘",stats:"👥 英雄",log:"📜 戦記"};
+              const labels:{[k:string]:string}={color:"🎨 COLOR",game:"⚔ BATTLE",stats:"👥 HEROES",log:"📜 LOG"};
               return(
                 <button key={tab} onClick={()=>setMobileTab(tab)} style={{
                   flex:1,padding:"7px 0",border:"none",background:"transparent",
@@ -1590,14 +1590,14 @@ export default function Play() {
                 <div style={{background:"linear-gradient(180deg,#120900,#080500)",border:"1px solid #c9a227",padding:10,position:"relative"}}>
                   <span style={goldCorner('tl')}>◆</span><span style={goldCorner('tr')}>◆</span>
                   <span style={goldCorner('bl')}>◆</span><span style={goldCorner('br')}>◆</span>
-                  <div style={{fontSize:7,color:"#6b4c10",letterSpacing:2,marginBottom:3}}>竜の宝箱 DRAGON VAULT</div>
+                  <div style={{fontSize:7,color:"#6b4c10",letterSpacing:2,marginBottom:3}}>DRAGON VAULT</div>
                   <div style={{fontSize:"12px",color:"#ffd700",fontWeight:"bold",fontFamily:"'Press Start 2P',monospace",
                     textShadow:"0 0 16px rgba(255,215,0,0.8)"}}>{bucket.toLocaleString()}</div>
                   <div style={{fontSize:7,color:"#6b4c10",marginTop:2}}>{T('vault_odds')} · {T('vault_win')}</div>
                 </div>
                 <div style={{background:"linear-gradient(180deg,#0a0618,#06030f)",border:"1px solid #2d1a4e",padding:10,position:"relative"}}>
                   <span style={dimCorner('tl')}>◆</span><span style={dimCorner('br')}>◆</span>
-                  <div style={{fontSize:7,color:"#3d1f6e",marginBottom:6}}>戦闘ボーナス BATTLE BONUSES</div>
+                  <div style={{fontSize:7,color:"#3d1f6e",marginBottom:6}}>BATTLE BONUSES</div>
                   {[
                     {tier:T('strike_common'),  chance:"5%",  mult:"5×",  col:"#6b5f4a"},
                     {tier:T('strike_rare'),    chance:"1%",  mult:"25×", col:"#22d3ee"},
@@ -1612,15 +1612,15 @@ export default function Play() {
                   ))}
                 </div>
                 <div style={{fontSize:9,color:"#6b5f4a",lineHeight:1.8}}>
-                  <div style={{display:"flex",justifyContent:"space-between"}}><span>マナ残高</span><span style={{color:"#c084fc"}}>{Math.floor(balance)} $CANVAS</span></div>
-                  <div style={{display:"flex",justifyContent:"space-between"}}><span>領土</span><span style={{color:"#38bdf8"}}>{owned}</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><span>MANA</span><span style={{color:"#c084fc"}}>{Math.floor(balance)} $CANVAS</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><span>TERRITORY</span><span style={{color:"#38bdf8"}}>{owned}</span></div>
                   <div style={{display:"flex",justifyContent:"space-between"}}><span>EXP</span><span style={{color:isHoldr?"#ffd700":"#3d1f6e"}}>{isHoldr?"★MAX":Math.floor(holdrProgress)+"%"}</span></div>
                 </div>
               </div>
             )}
             {mobileTab==="stats"&&(
               <div>
-                <div style={{fontSize:7,color:"#4a3a6e",marginBottom:8,letterSpacing:1}}>英雄ランキング HERO RANKINGS</div>
+                <div style={{fontSize:7,color:"#4a3a6e",marginBottom:8,letterSpacing:1}}>HERO RANKINGS</div>
                 {[
                   {addr:"0xaf1…c32",px:1284,isYou:false},
                   {addr:"0x7a3…b9f",px:963, isYou:false},
