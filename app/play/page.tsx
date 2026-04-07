@@ -1079,6 +1079,9 @@ export default function Play() {
                     border:"3px solid #f59e0b",
                     boxShadow:"0 0 160px rgba(245,158,11,1),0 0 60px rgba(251,191,36,0.9),inset 0 0 40px rgba(245,158,11,0.15)",
                     fontFamily:"'Press Start 2P',monospace",
+                    whiteSpace:"nowrap",
+                    width:"max-content",
+                    maxWidth:"min(90vw, 420px)",
                   }}>
                     <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4}}>{T('vault_cracked')}</div>
                     <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1,
@@ -1111,6 +1114,9 @@ export default function Play() {
                 boxShadow:`0 0 ${solWin.mult>=10?"80px":"40px"} rgba(34,197,94,${solWin.mult>=10?0.8:0.4})`,
                 fontFamily:"'Press Start 2P',monospace",
                 animation:"solWinIn 2.5s ease-out forwards",
+                whiteSpace:"nowrap",
+                width:"max-content",
+                maxWidth:"min(90vw, 380px)",
               }}>
                 <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2}}>{T('sol_win_label')} {solWin.label}</div>
                 <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold"}}>+{solWin.amount.toFixed(4)}</div>
@@ -1166,12 +1172,15 @@ export default function Play() {
                   boxShadow:`0 0 ${strike.tier==="legendary"?"80px":strike.tier==="rare"?"50px":"30px"} ${sc.shadow}`,
                   fontFamily:"'Press Start 2P',monospace",
                   animation:"strikeIn 3s ease-out forwards",
+                  whiteSpace:"nowrap",
+                  width:"max-content",
+                  maxWidth:"min(90vw, 420px)",
                 }}>
-                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2}}>
+                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                     {T('strike_label', {tier: strike.tier.toUpperCase()})}
                   </div>
                   <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold"}}>+{strike.earn}</div>
-                  <div style={{fontSize:10,color:sc.text,marginTop:4}}>{T('strike_base', {mult: String(strikeBonus(strike.tier))})}</div>
+                  <div style={{fontSize:10,color:sc.text,marginTop:4,whiteSpace:"nowrap"}}>{T('strike_base', {mult: String(strikeBonus(strike.tier))})}</div>
                 </div>
               </div>
             );
