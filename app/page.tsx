@@ -8,34 +8,101 @@ const PALETTE = [
   "#f1f5f9","#64748b","#1e293b","#ffffff",
 ];
 
+const GAME_COLORS = [
+  "#a855f7","#7c3aed","#22d3ee","#06b6d4","#ec4899",
+  "#f43f5e","#f59e0b","#22c55e","#3b82f6","#ef4444",
+  "#8b5cf6","#14b8a6","#fb923c","#e879f9","#a3e635",
+];
+
 function MiniCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [earned, setEarned] = useState(0);
+  const [lastMsg, setLastMsg] = useState<{txt:string;key:number}|null>(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    const SIZE = 32, PX = 8;
+    const SIZE = 40, PX = 7;
     const grid = Array.from({ length: SIZE * SIZE }, () =>
-      Math.random() > 0.55 ? PALETTE[Math.floor(Math.random() * PALETTE.length)] : "#1a1a2e"
+      GAME_COLORS[Math.floor(Math.random() * GAME_COLORS.length)]
     );
-    const draw = () => {
-      grid.forEach((color, i) => {
-        ctx.fillStyle = color;
-        ctx.fillRect((i % SIZE) * PX, Math.floor(i / SIZE) * PX, PX, PX);
-      });
+    const glow = new Float32Array(SIZE * SIZE);
+
+    const drawPixel = (i: number) => {
+      const x = (i % SIZE) * PX, y = Math.floor(i / SIZE) * PX;
+      ctx.fillStyle = grid[i];
+      ctx.fillRect(x, y, PX, PX);
+      const g = glow[i];
+      if (g > 0.01) {
+        ctx.fillStyle = `rgba(255,255,255,${g.toFixed(2)})`;
+        ctx.fillRect(x, y, PX, PX);
+        glow[i] = Math.max(0, g - 0.07);
+      }
     };
-    draw();
-    const iv = setInterval(() => {
-      const idx = Math.floor(Math.random() * SIZE * SIZE);
-      grid[idx] = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-      ctx.fillStyle = grid[idx];
-      ctx.fillRect((idx % SIZE) * 8, Math.floor(idx / SIZE) * 8, 8, 8);
-    }, 80);
-    return () => clearInterval(iv);
+
+    grid.forEach((_, i) => drawPixel(i));
+
+    const placeBet = () => {
+      const count = [1, 10, 100][Math.floor(Math.random() * 3)];
+      const color = GAME_COLORS[Math.floor(Math.random() * GAME_COLORS.length)];
+      const cx = Math.floor(Math.random() * SIZE);
+      const cy = Math.floor(Math.random() * SIZE);
+      const radius = count === 1 ? 1 : count === 10 ? 2 : 5;
+      let placed = 0;
+      for (let dy = -radius; dy <= radius && placed < count; dy++) {
+        for (let dx = -radius; dx <= radius && placed < count; dx++) {
+          if (dx*dx+dy*dy > radius*radius) continue;
+          const nx = (cx+dx+SIZE)%SIZE, ny = (cy+dy+SIZE)%SIZE;
+          const i = ny*SIZE+nx;
+          grid[i] = color; glow[i] = 1.0; placed++;
+        }
+      }
+      const earn = count * 5 + Math.floor(Math.random() * count * 3);
+      setEarned(e => e + earn);
+      if (count === 100) setLastMsg({ txt: "🏛️ VAULT +50K", key: Date.now() });
+      else if (count === 10) setLastMsg({ txt: `⚡ STRIKE +${earn}`, key: Date.now() });
+      grid.forEach((_, i) => drawPixel(i));
+    };
+
+    const betIv = setInterval(placeBet, 600);
+    const glowIv = setInterval(() => { grid.forEach((_, i) => { if (glow[i] > 0) drawPixel(i); }); }, 40);
+    return () => { clearInterval(betIv); clearInterval(glowIv); };
   }, []);
+
+  useEffect(() => {
+    if (!lastMsg) return;
+    const t = setTimeout(() => setLastMsg(null), 1200);
+    return () => clearTimeout(t);
+  }, [lastMsg?.key]);
+
   return (
-    <canvas ref={canvasRef} width={256} height={256}
-      style={{ imageRendering:"pixelated", border:"1px solid #2d1b69", borderRadius:8 }} />
+    <div style={{ position:"relative", display:"inline-block" }}>
+      <canvas ref={canvasRef} width={280} height={280}
+        style={{ imageRendering:"pixelated", border:"1px solid #2d1b69", borderRadius:8, display:"block" }} />
+      <div style={{ position:"absolute", top:8, right:8, background:"rgba(239,68,68,0.15)",
+        border:"1px solid rgba(239,68,68,0.5)", borderRadius:4, padding:"2px 7px",
+        display:"flex", alignItems:"center", gap:4 }}>
+        <span style={{ width:5, height:5, background:"#ef4444", borderRadius:"50%",
+          display:"inline-block", animation:"pulse 1.2s infinite" }} />
+        <span style={{ fontSize:8, color:"#ef4444", letterSpacing:1 }}>LIVE</span>
+      </div>
+      <div style={{ position:"absolute", bottom:8, left:8, right:8,
+        background:"rgba(7,7,16,0.88)", borderRadius:6, padding:"5px 10px",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        backdropFilter:"blur(6px)", border:"1px solid rgba(124,58,237,0.35)" }}>
+        <span style={{ fontSize:8.5, color:"#6d28d9", letterSpacing:1 }}>$CANVAS EARNED</span>
+        <span style={{ fontSize:12, color:"#a855f7", fontWeight:"bold" }}>+{earned.toLocaleString()}</span>
+      </div>
+      {lastMsg && (
+        <div key={lastMsg.key} style={{ position:"absolute", top:"40%", left:"50%",
+          transform:"translate(-50%,-50%)", background:"rgba(124,58,237,0.9)", borderRadius:6,
+          padding:"5px 12px", whiteSpace:"nowrap", fontSize:10, color:"#fff", fontWeight:"bold",
+          pointerEvents:"none" }}>
+          {lastMsg.txt}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -62,7 +129,7 @@ export default function Home() {
   return (
     <div style={{ background:"#0a0a0f", color:"#e2e8f0", fontFamily:"'Share Tech Mono','Courier New',monospace", minHeight:"100vh" }}>
       {/* NAV */}
-      <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 32px", borderBottom:"1px solid #1e1e3f" }}>
+      <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 32px", borderBottom:"1px solid #1e1e3f", position:"sticky", top:0, zIndex:50, background:"rgba(10,10,15,0.95)", backdropFilter:"blur(12px)" }}>
         <span style={{ color:"#a855f7", fontFamily:"'Press Start 2P',monospace", fontSize:13, letterSpacing:2 }}>CANVAS</span>
         <div style={{ display:"flex", gap:24, alignItems:"center", fontSize:13 }}>
           <a href="#mechanics" style={{ color:"#94a3b8", textDecoration:"none" }}>Mechanics</a>
@@ -86,7 +153,7 @@ export default function Home() {
             A <span style={{ color:"#a855f7" }}>pixel war game</span> on Solana.<br />
             Claim territory. Earn tokens. Survive the chaos.
           </p>
-          <p style={{ fontSize:13, color:"#475569", marginBottom:32, maxWidth:420, lineHeight:1.7 }}>
+          <p style={{ fontSize:14, color:"#94a3b8", marginBottom:32, maxWidth:420, lineHeight:1.7 }}>
             1,000 × 1,000 grid. Real-time PVP. Every pixel has a price.
           </p>
           <div style={{ display:"flex", gap:12 }}>
@@ -122,7 +189,7 @@ export default function Home() {
             <div key={i} style={{ padding:24, background:"#12121a", border:"1px solid #1e1e3f", borderRadius:12 }}>
               <div style={{ fontSize:28, marginBottom:12 }}>{s.emoji}</div>
               <div style={{ color:"#c084fc", fontWeight:"bold", marginBottom:8, fontSize:13 }}>{i+1}. {s.label}</div>
-              <p style={{ color:"#64748b", fontSize:12, lineHeight:1.7 }}>{s.desc}</p>
+              <p style={{ color:"#94a3b8", fontSize:13, lineHeight:1.7 }}>{s.desc}</p>
             </div>
           ))}
         </div>
@@ -164,7 +231,7 @@ export default function Home() {
             <div key={t.label} style={{ padding:24, background:"#12121a", border:`1px solid ${t.color}30`, borderRadius:12 }}>
               <div style={{ fontSize:36, fontWeight:"black", color:t.color, marginBottom:4 }}>{t.pct}%</div>
               <div style={{ fontWeight:"bold", fontSize:13, color:t.color, marginBottom:6 }}>{t.label}</div>
-              <p style={{ fontSize:12, color:"#64748b" }}>{t.sub}</p>
+              <p style={{ fontSize:13, color:"#94a3b8" }}>{t.sub}</p>
             </div>
           ))}
         </div>
@@ -193,7 +260,7 @@ export default function Home() {
                 { label:"Withdrawal tax",                val:"10% to Holdrs" },
               ].map(r => (
                 <div key={r.label} style={{ padding:"10px 14px", background:"rgba(124,58,237,0.1)", borderRadius:8 }}>
-                  <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{r.label}</div>
+                  <div style={{ fontSize:11, color:"#94a3b8", marginBottom:4 }}>{r.label}</div>
                   <div style={{ fontSize:12, color:"#c084fc", fontWeight:"bold" }}>{r.val}</div>
                 </div>
               ))}
@@ -207,7 +274,7 @@ export default function Home() {
         <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:"clamp(18px,3vw,28px)", marginBottom:16 }}>
           Ready to claim your territory?
         </div>
-        <p style={{ color:"#475569", fontSize:13, marginBottom:28 }}>The demo runs in your browser - no wallet needed.</p>
+        <p style={{ color:"#94a3b8", fontSize:14, marginBottom:28 }}>The demo runs in your browser - no wallet needed.</p>
         <Link href="/play" style={{
           display:"inline-block", padding:"16px 48px", fontFamily:"'Press Start 2P',monospace", fontSize:12,
           background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", borderRadius:10,
