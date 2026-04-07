@@ -1078,15 +1078,16 @@ export default function Play() {
                     background:"linear-gradient(135deg,#1c0900,#2d1200)",
                     border:"3px solid #f59e0b",
                     boxShadow:"0 0 160px rgba(245,158,11,1),0 0 60px rgba(251,191,36,0.9),inset 0 0 40px rgba(245,158,11,0.15)",
-                    fontFamily:"'Press Start 2P',monospace",
+                    fontFamily:"'Press Start 2P','Noto Sans SC','Noto Sans KR','Noto Sans JP',monospace",
                     whiteSpace:"nowrap",
                     width:"max-content",
                     maxWidth:"min(90vw, 420px)",
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:0,
                   }}>
-                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4}}>{T('vault_cracked')}</div>
-                    <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1,
+                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4,lineHeight:1.4,textAlign:"center"}}>{T('vault_cracked')}</div>
+                    <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1.2,textAlign:"center",
                       textShadow:"0 0 30px rgba(251,191,36,1),0 0 60px rgba(245,158,11,0.8)"}}>+{String(bucketWin)}</div>
-                    <div style={{fontSize:10,color:"#92400e",marginTop:8}}>{T('vault_subtitle')}</div>
+                    <div style={{fontSize:10,color:"#92400e",marginTop:8,lineHeight:1.4,textAlign:"center"}}>{T('vault_subtitle')}</div>
                   </div>
                 </div>
               </>
@@ -1112,15 +1113,16 @@ export default function Play() {
                 padding:"14px 30px",borderRadius:12,
                 background:"#0a150a",border:`2px solid ${solWin.mult>=10?"#22c55e":"#4ade80"}`,
                 boxShadow:`0 0 ${solWin.mult>=10?"80px":"40px"} rgba(34,197,94,${solWin.mult>=10?0.8:0.4})`,
-                fontFamily:"'Press Start 2P',monospace",
+                fontFamily:"'Press Start 2P','Noto Sans SC','Noto Sans KR','Noto Sans JP',monospace",
                 animation:"solWinIn 2.5s ease-out forwards",
                 whiteSpace:"nowrap",
                 width:"max-content",
                 maxWidth:"min(90vw, 380px)",
+                display:"flex",flexDirection:"column",alignItems:"center",gap:0,
               }}>
-                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2}}>{T('sol_win_label')} {solWin.label}</div>
-                <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold"}}>+{solWin.amount.toFixed(4)}</div>
-                <div style={{fontSize:10,color:"#166534",marginTop:4}}>{T('sol_returned')}</div>
+                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{T('sol_win_label')} {solWin.label}</div>
+                <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{solWin.amount.toFixed(4)}</div>
+                <div style={{fontSize:10,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{T('sol_returned')}</div>
               </div>
             </div>
           )}
@@ -1170,17 +1172,18 @@ export default function Play() {
                   padding:"18px 36px",borderRadius:14,
                   background:sc.bg,border:`2px solid ${sc.border}`,
                   boxShadow:`0 0 ${strike.tier==="legendary"?"80px":strike.tier==="rare"?"50px":"30px"} ${sc.shadow}`,
-                  fontFamily:"'Press Start 2P',monospace",
+                  fontFamily:"'Press Start 2P','Noto Sans SC','Noto Sans KR','Noto Sans JP',monospace",
                   animation:"strikeIn 3s ease-out forwards",
                   whiteSpace:"nowrap",
                   width:"max-content",
                   maxWidth:"min(90vw, 420px)",
+                  display:"flex",flexDirection:"column",alignItems:"center",gap:0,
                 }}>
-                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>
                     {T('strike_label', {tier: strike.tier.toUpperCase()})}
                   </div>
-                  <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold"}}>+{strike.earn}</div>
-                  <div style={{fontSize:10,color:sc.text,marginTop:4,whiteSpace:"nowrap"}}>{T('strike_base', {mult: String(strikeBonus(strike.tier))})}</div>
+                  <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{strike.earn}</div>
+                  <div style={{fontSize:10,color:sc.text,marginTop:4,lineHeight:1.4,textAlign:"center"}}>{T('strike_base', {mult: String(strikeBonus(strike.tier))})}</div>
                 </div>
               </div>
             );
