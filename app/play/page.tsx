@@ -738,33 +738,33 @@ export default function Play() {
             target="_blank" rel="noopener noreferrer"
             style={{display:"flex",alignItems:"center",gap:6,background:"#0d0a18",border:"1px solid #4c1d95",borderRadius:6,padding:"5px 12px",textDecoration:"none"}}
           >
-            <span style={{fontSize:9,color:"#7c3aed",letterSpacing:1}}>$CANVAS</span>
-            <span style={{fontSize:11,color:"#a78bfa",fontWeight:"bold",letterSpacing:1}}>${canvasPrice.toFixed(5)}</span>
-            <span style={{fontSize:8,color:"#4c1d95"}}>↗</span>
+            <span style={{fontSize:11,color:"#7c3aed",letterSpacing:1}}>$CANVAS</span>
+            <span style={{fontSize:14,color:"#a78bfa",fontWeight:"bold",letterSpacing:1}}>${canvasPrice.toFixed(5)}</span>
+            <span style={{fontSize:10,color:"#4c1d95"}}>↗</span>
           </a>
           {/* Global stats — inline next to price */}
           <div style={{display:isMobile?"none":"flex",alignItems:"center",gap:10,borderLeft:"1px solid #1e1e3f",paddingLeft:12}}>
             <div style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PLAYERS</span>
-              <span style={{fontSize:10,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
+              <span style={{fontSize:11,color:"#475569",letterSpacing:1}}>PLAYERS</span>
+              <span style={{fontSize:12.5,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
             </div>
             <div style={{width:1,height:10,background:"#1e1e3f"}}/>
             <div style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>PIXELS</span>
-              <span style={{fontSize:10,color:"#a78bfa",fontWeight:"bold"}}>{pixelsTotal.toLocaleString()}</span>
+              <span style={{fontSize:11,color:"#475569",letterSpacing:1}}>PIXELS</span>
+              <span style={{fontSize:12.5,color:"#a78bfa",fontWeight:"bold"}}>{pixelsTotal.toLocaleString()}</span>
             </div>
             <div style={{width:1,height:10,background:"#1e1e3f"}}/>
             <div style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>SOL EARNED</span>
-              <span style={{fontSize:10,color:"#22c55e",fontWeight:"bold"}}>◎ {solEarned.toFixed(1)}</span>
+              <span style={{fontSize:11,color:"#475569",letterSpacing:1}}>SOL EARNED</span>
+              <span style={{fontSize:12.5,color:"#22c55e",fontWeight:"bold"}}>◎ {solEarned.toFixed(1)}</span>
             </div>
             <div style={{width:1,height:10,background:"#1e1e3f"}}/>
             <div style={{display:"flex",alignItems:"center",gap:5}}>
-              <span style={{fontSize:9,color:"#475569",letterSpacing:1}}>$CANVAS MINED</span>
+              <span style={{fontSize:11,color:"#475569",letterSpacing:1}}>$CANVAS MINED</span>
               <div style={{width:56,height:5,background:"#1e1e3f",borderRadius:3,overflow:"hidden"}}>
                 <div style={{width:`${miningPct}%`,height:"100%",background:"linear-gradient(90deg,#7c3aed,#a855f7)",borderRadius:3,transition:"width 1s linear"}}/>
               </div>
-              <span style={{fontSize:10,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
+              <span style={{fontSize:12.5,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
             </div>
           </div>
           {/* Social links */}
@@ -795,13 +795,13 @@ export default function Play() {
             </a>
           </div>
           {walletConnected ? (
-            <div style={{fontSize:10,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
+            <div style={{fontSize:12.5,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
               <div style={{width:6,height:6,background:"#22c55e",borderRadius:"50%"}} />
               <span style={{color:"#22c55e"}}>Demo_7f4…a9c</span>
             </div>
           ) : (
             <button onClick={handleConnect} disabled={connecting} style={{
-              fontSize:10,padding:"6px 14px",borderRadius:6,fontFamily:"inherit",cursor:"pointer",
+              fontSize:12.5,padding:"6px 14px",borderRadius:6,fontFamily:"inherit",cursor:"pointer",
               background:connecting?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#a855f7)",
               color:"#fff",border:"none",
             }}>
@@ -817,23 +817,23 @@ export default function Play() {
       {isMobile && (
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 12px",borderBottom:"1px solid #1e1e3f",background:"#070710",flexShrink:0}}>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>PLAYERS</span>
-            <span style={{fontSize:9.5,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
+            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>PLAYERS</span>
+            <span style={{fontSize:12,color:"#38bdf8",fontWeight:"bold"}}>{players.toLocaleString()}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>PIXELS</span>
-            <span style={{fontSize:9.5,color:"#22d3ee",fontWeight:"bold"}}>{fmtCompact(pixelsTotal)}</span>
+            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>PIXELS</span>
+            <span style={{fontSize:12,color:"#22d3ee",fontWeight:"bold"}}>{fmtCompact(pixelsTotal)}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>SOL EARNED</span>
-            <span style={{fontSize:9.5,color:"#a3e635",fontWeight:"bold"}}>{fmtCompact(Math.floor(solEarned))}</span>
+            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>SOL EARNED</span>
+            <span style={{fontSize:12,color:"#a3e635",fontWeight:"bold"}}>{fmtCompact(Math.floor(solEarned))}</span>
           </div>
           <div style={{width:1,height:20,background:"#1e1e3f"}}/>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-            <span style={{fontSize:7.5,color:"#475569",letterSpacing:0.5}}>$CANVAS MINED</span>
-            <span style={{fontSize:9.5,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
+            <span style={{fontSize:9.5,color:"#475569",letterSpacing:0.5}}>$CANVAS MINED</span>
+            <span style={{fontSize:12,color:"#a855f7",fontWeight:"bold"}}>{miningPct.toFixed(2)}%</span>
           </div>
         </div>
       )}
@@ -852,7 +852,7 @@ export default function Play() {
             const active = betIdx === i;
             return (
               <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
-                padding:"4px 7px",borderRadius:4,fontSize:9,cursor:"pointer",
+                padding:"4px 7px",borderRadius:4,fontSize:11,cursor:"pointer",
                 border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
                 background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
                 color:active?"#a855f7":"#475569",letterSpacing:0.5
@@ -860,10 +860,10 @@ export default function Play() {
             );
           })}
           <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:9,color:"#94a3b8"}}>{sol.toFixed(3)} SOL</span>
+            <span style={{fontSize:11,color:"#94a3b8"}}>{sol.toFixed(3)} SOL</span>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:0}}>
-              <span style={{fontSize:7.5,color:"#6d28d9",letterSpacing:0.5}}>$CANVAS</span>
-              <span style={{fontSize:10,color:"#a855f7",fontWeight:"bold",letterSpacing:0.5}}>{Math.floor(balance).toLocaleString()}</span>
+              <span style={{fontSize:9.5,color:"#6d28d9",letterSpacing:0.5}}>$CANVAS</span>
+              <span style={{fontSize:12.5,color:"#a855f7",fontWeight:"bold",letterSpacing:0.5}}>{Math.floor(balance).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -890,15 +890,15 @@ export default function Play() {
                 100% { transform:scale(1); }
               }
             `}</style>
-            <div style={{fontSize:10,letterSpacing:3,color:"#92400e",marginBottom:4}}>{T('vault_title')}</div>
+            <div style={{fontSize:12.5,letterSpacing:3,color:"#92400e",marginBottom:4}}>{T('vault_title')}</div>
             <div style={{
-              fontSize:14,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
+              fontSize:17.5,fontWeight:"bold",color:"#f59e0b",lineHeight:1,
               fontFamily:"'Press Start 2P',monospace",letterSpacing:0,wordBreak:"break-all",
             }}>{String(Math.floor(bucket))}</div>
             <div style={{marginTop:8,height:2,background:"#1c0900",borderRadius:1}}>
               <div style={{height:"100%",background:"linear-gradient(90deg,#f59e0b,#fbbf24)",width:"100%",borderRadius:1,opacity:0.4}}/>
             </div>
-            <div style={{fontSize:10,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
+            <div style={{fontSize:12.5,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
               {T('vault_odds')}<br/>{T('vault_win')}
             </div>
           </div>
@@ -912,25 +912,25 @@ export default function Play() {
             transition:"border-color 0.4s,box-shadow 0.4s",
           }}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-              <div style={{fontSize:10,color:"#166534",letterSpacing:1}}>{T('sol_balance')}</div>
+              <div style={{fontSize:12.5,color:"#166534",letterSpacing:1}}>{T('sol_balance')}</div>
               {sol < 0.5 && !topUpOpen && (
-                <div style={{fontSize:8,color:"#ef4444",letterSpacing:1,animation:"pulse 1.5s infinite"}}>
+                <div style={{fontSize:10,color:"#ef4444",letterSpacing:1,animation:"pulse 1.5s infinite"}}>
                   {T('sol_low')}
                   <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
                 </div>
               )}
             </div>
-            <div style={{fontSize:22,fontWeight:"bold",color:topUpFlash?"#a3e635":"#22c55e",lineHeight:1,transition:"color 0.4s"}}>
+            <div style={{fontSize:27.5,fontWeight:"bold",color:topUpFlash?"#a3e635":"#22c55e",lineHeight:1,transition:"color 0.4s"}}>
               {sol.toFixed(4)}
             </div>
-            <div style={{fontSize:10,color:"#166534",marginTop:3}}>
+            <div style={{fontSize:12.5,color:"#166534",marginTop:3}}>
               {BET_TIERS[betIdx].sol} SOL → {BET_TIERS[betIdx].pixels}px
             </div>
 
             {/* Top Up toggle */}
             <button onClick={()=>setTopUpOpen(o=>!o)} style={{
               marginTop:8,width:"100%",padding:"5px 0",borderRadius:6,
-              fontSize:9,fontWeight:"bold",fontFamily:"inherit",letterSpacing:1,
+              fontSize:11,fontWeight:"bold",fontFamily:"inherit",letterSpacing:1,
               background:topUpOpen?"#0d1a0d":"linear-gradient(135deg,#14532d,#166534)",
               color:topUpOpen?"#475569":"#bbf7d0",
               border:`1px solid ${topUpOpen?"#1e2e1e":"#166534"}`,
@@ -945,13 +945,13 @@ export default function Play() {
                   <button key={pack.sol} onClick={()=>handleTopUp(pack.sol, pack.label)}
                     style={{
                       position:"relative",display:"flex",justifyContent:"space-between",alignItems:"center",
-                      padding:"7px 9px",borderRadius:6,fontFamily:"inherit",cursor:"pointer",fontSize:9,
+                      padding:"7px 9px",borderRadius:6,fontFamily:"inherit",cursor:"pointer",fontSize:11,
                       background:pack.popular?"#0a1f0a":"#080f08",
                       border:pack.popular?"1px solid #166534":"1px solid #0e1f0e",
                       color:"#e2e8f0",
                     }}>
                     {pack.popular && (
-                      <span style={{position:"absolute",top:-7,right:6,fontSize:7,background:"#166534",color:"#bbf7d0",padding:"1px 5px",borderRadius:3,letterSpacing:1}}>
+                      <span style={{position:"absolute",top:-7,right:6,fontSize:9,background:"#166534",color:"#bbf7d0",padding:"1px 5px",borderRadius:3,letterSpacing:1}}>
                         {T('pack_popular')}
                       </span>
                     )}
@@ -959,7 +959,7 @@ export default function Play() {
                     <span style={{color:"#334155"}}>{pack.tag}</span>
                   </button>
                 ))}
-                <div style={{fontSize:8,color:"#14532d",textAlign:"center",marginTop:2}}>
+                <div style={{fontSize:10,color:"#14532d",textAlign:"center",marginTop:2}}>
                   {T('top_up_demo')}
                 </div>
               </div>
@@ -968,10 +968,10 @@ export default function Play() {
 
           {/* Balance */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:4,letterSpacing:1}}>{T('canvas_balance')}</div>
-            <div style={{fontSize:26,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{String(Math.floor(balance))}</div>
+            <div style={{fontSize:12.5,color:"#64748b",marginBottom:4,letterSpacing:1}}>{T('canvas_balance')}</div>
+            <div style={{fontSize:32.5,fontWeight:"bold",color:"#a855f7",lineHeight:1}}>{String(Math.floor(balance))}</div>
             {owned > 0 && (
-              <div style={{fontSize:10,color:"#6d28d9",marginTop:3}}>
+              <div style={{fontSize:12.5,color:"#6d28d9",marginTop:3}}>
                 +{(owned*HOLD_REWARD_RATE*60).toFixed(3)}{T('per_min_hold')}
               </div>
             )}
@@ -979,7 +979,7 @@ export default function Play() {
 
           {/* Brush Size */}
           <div style={{background:"#0d0d1a",border:"1px solid #2d1b69",borderRadius:8,padding:12}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('brush_size')}</div>
+            <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('brush_size')}</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((tier, i) => {
                 const active = betIdx === i;
@@ -992,10 +992,10 @@ export default function Play() {
                     background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
                     opacity: canAfford ? 1 : 0.4,
                   }}>
-                    <span style={{fontSize:10,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>
+                    <span style={{fontSize:12.5,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>
                       {tier.label}
                     </span>
-                    <span style={{fontSize:10,color:active?"#7c3aed":"#334155",background:"#12121a",
+                    <span style={{fontSize:12.5,color:active?"#7c3aed":"#334155",background:"#12121a",
                       padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>
                       {tier.tag}
                     </span>
@@ -1003,15 +1003,15 @@ export default function Play() {
                 );
               })}
             </div>
-            <div style={{marginTop:8,fontSize:10,color:"#334155",lineHeight:1.6}}>
+            <div style={{marginTop:8,fontSize:12.5,color:"#334155",lineHeight:1.6}}>
               <span style={{color:"#a855f7"}}>{BET_TIERS[betIdx].sol} SOL</span>
               {" · "}{BET_TIERS[betIdx].pixels} pixel{BET_TIERS[betIdx].pixels>1?"s":""}
             </div>
           </div>
 
           {/* Stats */}
-          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:12,fontSize:11}}>
-            <div style={{color:"#64748b",marginBottom:8,fontSize:10,letterSpacing:1}}>{T('your_stats')}</div>
+          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:12,fontSize:14}}>
+            <div style={{color:"#64748b",marginBottom:8,fontSize:12.5,letterSpacing:1}}>{T('your_stats')}</div>
             {([
               [T('pixels_owned'), owned],
               [T('total_placed'), placed],
@@ -1023,21 +1023,21 @@ export default function Play() {
             ))}
             <div style={{marginTop:8}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontSize:10,color:"#475569"}}>{T('holdr_status')}</span>
-                <span style={{fontSize:10,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?T('holdr_check'):`${Math.floor(holdrProgress)}%`}</span>
+                <span style={{fontSize:12.5,color:"#475569"}}>{T('holdr_status')}</span>
+                <span style={{fontSize:12.5,color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?T('holdr_check'):`${Math.floor(holdrProgress)}%`}</span>
               </div>
               <div style={{height:3,background:"#1e1e2e",borderRadius:2}}>
                 <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
               </div>
               {!isHoldr && (
-                <div style={{fontSize:10,color:"#334155",marginTop:3}}>{T('holdr_need')} {String(10000-Math.floor(owned*12))} {T('holdr_more')}</div>
+                <div style={{fontSize:12.5,color:"#334155",marginTop:3}}>{T('holdr_need')} {String(10000-Math.floor(owned*12))} {T('holdr_more')}</div>
               )}
             </div>
           </div>
 
           {/* Withdraw info */}
-          <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:10,color:"#334155",lineHeight:1.8}}>
-            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:10}}>{T('withdraw_title')}</div>
+          <div style={{background:"#0a0a12",border:"1px solid #1a1a30",borderRadius:8,padding:10,fontSize:12.5,color:"#334155",lineHeight:1.8}}>
+            <div style={{color:"#475569",marginBottom:2,letterSpacing:1,fontSize:12.5}}>{T('withdraw_title')}</div>
             {T('withdraw_desc')}<br/>
             {T('withdraw_tax')} <span style={{color:"#6d28d9"}}>{T('withdraw_holdr')}</span><br/>
             {T('withdraw_passive')}
@@ -1101,10 +1101,10 @@ export default function Play() {
                     maxWidth:"min(90vw, 420px)",
                     display:"flex",flexDirection:"column",alignItems:"center",gap:0,
                   }}>
-                    <div style={{fontSize:11,color:"#f59e0b",marginBottom:10,letterSpacing:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('vault_cracked'))}</div>
-                    <div style={{fontSize:38,color:"#fbbf24",fontWeight:"bold",lineHeight:1.2,textAlign:"center",
+                    <div style={{fontSize:14,color:"#f59e0b",marginBottom:10,letterSpacing:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('vault_cracked'))}</div>
+                    <div style={{fontSize:47.5,color:"#fbbf24",fontWeight:"bold",lineHeight:1.2,textAlign:"center",
                       textShadow:"0 0 30px rgba(251,191,36,1),0 0 60px rgba(245,158,11,0.8)"}}>+{String(bucketWin)}</div>
-                    <div style={{fontSize:10,color:"#92400e",marginTop:8,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('vault_subtitle'))}</div>
+                    <div style={{fontSize:12.5,color:"#92400e",marginTop:8,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('vault_subtitle'))}</div>
                   </div>
                 </div>
               </>
@@ -1137,9 +1137,9 @@ export default function Play() {
                 maxWidth:"min(90vw, 380px)",
                 display:"flex",flexDirection:"column",alignItems:"center",gap:0,
               }}>
-                <div style={{fontSize:10,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(`${T('sol_win_label')} ${solWin.label}`)}</div>
-                <div style={{fontSize:24,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{solWin.amount.toFixed(4)}</div>
-                <div style={{fontSize:10,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('sol_returned'))}</div>
+                <div style={{fontSize:12.5,color:"#4ade80",marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(`${T('sol_win_label')} ${solWin.label}`)}</div>
+                <div style={{fontSize:30,color:"#22c55e",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{solWin.amount.toFixed(4)}</div>
+                <div style={{fontSize:12.5,color:"#166534",marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('sol_returned'))}</div>
               </div>
             </div>
           )}
@@ -1164,8 +1164,8 @@ export default function Play() {
                     fontFamily:"'Press Start 2P',monospace",
                     animation:"earnIn 1.5s ease-out forwards",
                   }}>
-                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:"bold"}}>+{strike.earn}</div>
-                    <div style={{fontSize:8,color:"#475569",marginTop:2}}>{T('earn_token')}</div>
+                    <div style={{fontSize:15,color:"#94a3b8",fontWeight:"bold"}}>+{strike.earn}</div>
+                    <div style={{fontSize:10,color:"#475569",marginTop:2}}>{T('earn_token')}</div>
                   </div>
                 </div>
               );
@@ -1196,11 +1196,11 @@ export default function Play() {
                   maxWidth:"min(90vw, 420px)",
                   display:"flex",flexDirection:"column",alignItems:"center",gap:0,
                 }}>
-                  <div style={{fontSize:10,color:sc.text,marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>
+                  <div style={{fontSize:12.5,color:sc.text,marginBottom:6,letterSpacing:2,lineHeight:1.4,textAlign:"center"}}>
                     {shiftNonLatin(T('strike_label', {tier: strike.tier.toUpperCase()}))}
                   </div>
-                  <div style={{fontSize:28,color:"#ffffff",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{strike.earn}</div>
-                  <div style={{fontSize:10,color:sc.text,marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('strike_base', {mult: String(strikeBonus(strike.tier))}))}</div>
+                  <div style={{fontSize:35,color:"#ffffff",fontWeight:"bold",lineHeight:1.2,textAlign:"center"}}>+{strike.earn}</div>
+                  <div style={{fontSize:12.5,color:sc.text,marginTop:4,lineHeight:1.4,textAlign:"center"}}>{shiftNonLatin(T('strike_base', {mult: String(strikeBonus(strike.tier))}))}</div>
                 </div>
               </div>
             );
@@ -1248,7 +1248,7 @@ export default function Play() {
                 top:  Math.max(hovered.y*PX-38, 0),
                 background:"#0d0d1a",border:"1px solid #2d1b69",
                 borderRadius:6,padding:"5px 10px",
-                fontSize:10,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
+                fontSize:12.5,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
               }}>
                 ({hovered.x},{hovered.y}) ·{" "}
                 {hovered.d
@@ -1261,7 +1261,7 @@ export default function Play() {
                   }}/>
                 )}
                 {hovered.d && hovered.d.owner !== "art" && (
-                  <span style={{marginLeft:6,color:"#64748b",fontSize:9}}>hold 3s for profile</span>
+                  <span style={{marginLeft:6,color:"#64748b",fontSize:11}}>hold 3s for profile</span>
                 )}
               </div>
             )}
@@ -1300,15 +1300,15 @@ export default function Play() {
                   {/* Close */}
                   <div
                     onClick={() => setProfilePopup(null)}
-                    style={{position:"absolute",top:8,right:10,cursor:"pointer",fontSize:12,color:"#64748b",lineHeight:1}}
+                    style={{position:"absolute",top:8,right:10,cursor:"pointer",fontSize:15,color:"#64748b",lineHeight:1}}
                   >x</div>
 
                   {isYou ? (
                     <div style={{textAlign:"center",paddingTop:8}}>
-                      <div style={{fontSize:28,marginBottom:6}}>🎮</div>
-                      <div style={{color:"#a78bfa",fontSize:11,fontWeight:"bold"}}>You</div>
-                      <div style={{color:"#64748b",fontSize:10,marginTop:4}}>This is your pixel</div>
-                      <div style={{color:"#475569",fontSize:9,marginTop:6}}>({profilePopup.canvasX}, {profilePopup.canvasY})</div>
+                      <div style={{fontSize:35,marginBottom:6}}>🎮</div>
+                      <div style={{color:"#a78bfa",fontSize:14,fontWeight:"bold"}}>You</div>
+                      <div style={{color:"#64748b",fontSize:12.5,marginTop:4}}>This is your pixel</div>
+                      <div style={{color:"#475569",fontSize:11,marginTop:6}}>({profilePopup.canvasX}, {profilePopup.canvasY})</div>
                     </div>
                   ) : prof ? (
                     <>
@@ -1318,30 +1318,30 @@ export default function Play() {
                           width:40,height:40,borderRadius:"50%",
                           background:"#1e1b4b",border:"2px solid #7c3aed",
                           display:"flex",alignItems:"center",justifyContent:"center",
-                          fontSize:20,flexShrink:0,
+                          fontSize:25,flexShrink:0,
                         }}>{prof.avatar}</div>
                         <div>
-                          <div style={{color:"#e2e8f0",fontSize:12,fontWeight:"bold"}}>{prof.displayName}</div>
-                          <div style={{color:"#64748b",fontSize:9,marginTop:2}}>{prof.handle}</div>
+                          <div style={{color:"#e2e8f0",fontSize:15,fontWeight:"bold"}}>{prof.displayName}</div>
+                          <div style={{color:"#64748b",fontSize:11,marginTop:2}}>{prof.handle}</div>
                         </div>
                       </div>
 
                       {/* Bio */}
-                      <div style={{color:"#94a3b8",fontSize:10,lineHeight:1.5,marginBottom:10,wordBreak:"break-word"}}>
+                      <div style={{color:"#94a3b8",fontSize:12.5,lineHeight:1.5,marginBottom:10,wordBreak:"break-word"}}>
                         {prof.bio}
                       </div>
 
                       {/* Stats */}
                       <div style={{display:"flex",gap:12,marginBottom:10}}>
                         <div style={{textAlign:"center"}}>
-                          <div style={{color:"#a78bfa",fontSize:11,fontWeight:"bold"}}>{prof.joinedSlot}</div>
-                          <div style={{color:"#475569",fontSize:9}}>pixels</div>
+                          <div style={{color:"#a78bfa",fontSize:14,fontWeight:"bold"}}>{prof.joinedSlot}</div>
+                          <div style={{color:"#475569",fontSize:11}}>pixels</div>
                         </div>
                         <div style={{textAlign:"center"}}>
-                          <div style={{color:"#22d3ee",fontSize:11,fontWeight:"bold"}}>
+                          <div style={{color:"#22d3ee",fontSize:14,fontWeight:"bold"}}>
                             ({profilePopup.canvasX},{profilePopup.canvasY})
                           </div>
-                          <div style={{color:"#475569",fontSize:9}}>this pixel</div>
+                          <div style={{color:"#475569",fontSize:11}}>this pixel</div>
                         </div>
                       </div>
 
@@ -1356,10 +1356,10 @@ export default function Play() {
                               display:"inline-flex",alignItems:"center",gap:4,
                               background:"#18181b",border:"1px solid #3f3f46",
                               borderRadius:6,padding:"4px 8px",
-                              color:"#e2e8f0",fontSize:10,textDecoration:"none",
+                              color:"#e2e8f0",fontSize:12.5,textDecoration:"none",
                             }}
                           >
-                            <span style={{fontSize:12}}>𝕏</span> Twitter
+                            <span style={{fontSize:15}}>𝕏</span> Twitter
                           </a>
                         )}
                         {prof.homepage && (
@@ -1371,7 +1371,7 @@ export default function Play() {
                               display:"inline-flex",alignItems:"center",gap:4,
                               background:"#18181b",border:"1px solid #3f3f46",
                               borderRadius:6,padding:"4px 8px",
-                              color:"#a78bfa",fontSize:10,textDecoration:"none",
+                              color:"#a78bfa",fontSize:12.5,textDecoration:"none",
                             }}
                           >
                             🔗 Site
@@ -1382,9 +1382,9 @@ export default function Play() {
                   ) : (
                     /* Unknown wallet */
                     <div style={{textAlign:"center",paddingTop:8}}>
-                      <div style={{fontSize:28,marginBottom:6}}>👤</div>
-                      <div style={{color:"#94a3b8",fontSize:11}}>{profilePopup.owner}</div>
-                      <div style={{color:"#475569",fontSize:9,marginTop:6}}>
+                      <div style={{fontSize:35,marginBottom:6}}>👤</div>
+                      <div style={{color:"#94a3b8",fontSize:14}}>{profilePopup.owner}</div>
+                      <div style={{color:"#475569",fontSize:11,marginTop:6}}>
                         ({profilePopup.canvasX}, {profilePopup.canvasY}) · no public profile
                       </div>
                     </div>
@@ -1399,7 +1399,7 @@ export default function Play() {
         <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
           {/* Color picker */}
           <div>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('color_label')}</div>
+            <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('color_label')}</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:2}}>
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{
@@ -1425,33 +1425,33 @@ export default function Play() {
                 />
               </label>
               <div style={{width:14,height:14,borderRadius:3,background:color,flexShrink:0,border:"1px solid #2d1b69"}}/>
-              <span style={{color:"#475569",fontSize:10}}>{color}</span>
+              <span style={{color:"#475569",fontSize:12.5}}>{color}</span>
             </div>
           </div>
 
           {/* Strike tiers */}
           <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('strike_odds')}</div>
+            <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('strike_odds')}</div>
             {[
               {tier:T('strike_common'),  chance:"5%",   mult:"5×",   color:"#64748b"},
               {tier:T('strike_rare'),    chance:"1%",   mult:"25×",  color:"#22d3ee"},
               {tier:T('strike_legendary'),chance:"0.1%",mult:"200×", color:"#f59e0b"},
             ].map(s => (
-              <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",alignItems:"center",marginBottom:5,fontSize:10,gap:4}}>
+              <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",alignItems:"center",marginBottom:5,fontSize:12.5,gap:4}}>
                 <span style={{color:s.color}}>{s.tier}</span>
                 <span style={{color:"#334155",textAlign:"right"}}>{s.chance}</span>
                 <span style={{color:s.color,fontWeight:"bold",textAlign:"right"}}>{s.mult}</span>
               </div>
             ))}
-            <div style={{marginTop:6,fontSize:10,color:"#1e3a4f",lineHeight:1.6}}>
+            <div style={{marginTop:6,fontSize:12.5,color:"#1e3a4f",lineHeight:1.6}}>
               {T('strike_rng')}
             </div>
           </div>
 
           {/* Activity log */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('activity_label')}</div>
-            <div style={{fontSize:10,lineHeight:2,overflow:"hidden"}}>
+            <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('activity_label')}</div>
+            <div style={{fontSize:12.5,lineHeight:2,overflow:"hidden"}}>
               {log.slice(0,8).map((l,i) => {
                 const logParts = l.split('|');
                 const dispText = logParts[0];
@@ -1478,7 +1478,7 @@ export default function Play() {
 
           {/* Leaderboard */}
           <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:10,letterSpacing:1}}>{T('top_players')}</div>
+            <div style={{fontSize:12.5,color:"#64748b",marginBottom:10,letterSpacing:1}}>{T('top_players')}</div>
             {[
               {addr:"0xaf1…c32", px:1284, earn:24680, isYou:false},
               {addr:"0x7a3…b9f", px:963,  earn:18420, isYou:false},
@@ -1493,7 +1493,7 @@ export default function Play() {
                 onClick={e => setProfilePopup({ x: e.clientX, y: e.clientY, owner: p.addr, canvasX: 0, canvasY: 0 })}
                 style={{
                   display:"flex",justifyContent:"space-between",
-                  marginBottom:6,fontSize:10,
+                  marginBottom:6,fontSize:12.5,
                   color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
                   cursor:"pointer",
                   borderRadius:4,padding:"2px 4px",margin:"-2px -4px 4px",
@@ -1521,7 +1521,7 @@ export default function Play() {
               return (
                 <button key={tab} onClick={()=>setMobileTab(tab)} style={{
                   flex:1,padding:"7px 0",border:"none",background:"transparent",
-                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:9,cursor:"pointer",
+                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:11,cursor:"pointer",
                   borderBottom:mobileTab===tab?"2px solid #7c3aed":"2px solid transparent",
                   letterSpacing:0.5
                 }}>{labels[tab]}</button>
@@ -1548,7 +1548,7 @@ export default function Play() {
                       style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}}/>
                   </label>
                   <div style={{width:16,height:16,borderRadius:3,background:color,border:"1px solid #2d1b69"}}/>
-                  <span style={{color:"#475569",fontSize:10}}>{color}</span>
+                  <span style={{color:"#475569",fontSize:12.5}}>{color}</span>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:4}}>
                   {BET_TIERS.map((bet,i) => {
@@ -1559,8 +1559,8 @@ export default function Play() {
                         padding:"6px 10px",borderRadius:6,border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
                         background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",cursor:"pointer"
                       }}>
-                        <span style={{fontSize:10,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>{bet.sol} SOL</span>
-                        <span style={{fontSize:10,color:active?"#7c3aed":"#334155",background:"#12121a",padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>{bet.pixels}px</span>
+                        <span style={{fontSize:12.5,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>{bet.sol} SOL</span>
+                        <span style={{fontSize:12.5,color:active?"#7c3aed":"#334155",background:"#12121a",padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>{bet.pixels}px</span>
                       </button>
                     );
                   })}
@@ -1571,25 +1571,25 @@ export default function Play() {
             {mobileTab==="game" && (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 <div style={{background:"#0a0718",border:"1px solid #4c1d95",borderRadius:8,padding:10}}>
-                  <div style={{fontSize:9,color:"#7c3aed",letterSpacing:1,marginBottom:4}}>{T('vault_title')}</div>
-                  <div style={{fontSize:16,color:"#a855f7",fontWeight:"bold",letterSpacing:1}}>{bucket.toLocaleString()}</div>
-                  <div style={{fontSize:9,color:"#6d28d9",marginTop:2}}>{T('vault_odds')} · {T('vault_win')}</div>
+                  <div style={{fontSize:11,color:"#7c3aed",letterSpacing:1,marginBottom:4}}>{T('vault_title')}</div>
+                  <div style={{fontSize:20,color:"#a855f7",fontWeight:"bold",letterSpacing:1}}>{bucket.toLocaleString()}</div>
+                  <div style={{fontSize:11,color:"#6d28d9",marginTop:2}}>{T('vault_odds')} · {T('vault_win')}</div>
                 </div>
                 <div style={{background:"#0d0d1a",border:"1px solid #0e2a36",borderRadius:8,padding:10}}>
-                  <div style={{fontSize:9,color:"#64748b",marginBottom:6,letterSpacing:1}}>{T('strike_odds')}</div>
+                  <div style={{fontSize:11,color:"#64748b",marginBottom:6,letterSpacing:1}}>{T('strike_odds')}</div>
                   {[
                     {tier:T('strike_common'),  chance:"5%",  mult:"5×",  col:"#64748b"},
                     {tier:T('strike_rare'),    chance:"1%",  mult:"25×", col:"#22d3ee"},
                     {tier:T('strike_legendary'),chance:"0.1%",mult:"200×",col:"#f59e0b"},
                   ].map(s => (
-                    <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",alignItems:"center",marginBottom:4,fontSize:10,gap:4}}>
+                    <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",alignItems:"center",marginBottom:4,fontSize:12.5,gap:4}}>
                       <span style={{color:s.col}}>{s.tier}</span>
                       <span style={{color:"#334155",textAlign:"right"}}>{s.chance}</span>
                       <span style={{color:s.col,fontWeight:"bold",textAlign:"right"}}>{s.mult}</span>
                     </div>
                   ))}
                 </div>
-                <div style={{fontSize:9,color:"#475569",lineHeight:1.8}}>
+                <div style={{fontSize:11,color:"#475569",lineHeight:1.8}}>
                   <div style={{display:"flex",justifyContent:"space-between"}}><span>Balance</span><span style={{color:"#94a3b8"}}>{Math.floor(balance)} $CANVAS</span></div>
                   <div style={{display:"flex",justifyContent:"space-between"}}><span>Pixels owned</span><span style={{color:"#94a3b8"}}>{owned}</span></div>
                   <div style={{display:"flex",justifyContent:"space-between"}}><span>Holdr</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?T('holdr_check'):`${Math.floor(holdrProgress)}%`}</span></div>
@@ -1599,7 +1599,7 @@ export default function Play() {
             {/* ── STATS TAB ── */}
             {mobileTab==="stats" && (
               <div>
-                <div style={{fontSize:9,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('top_players')}</div>
+                <div style={{fontSize:11,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('top_players')}</div>
                 {[
                   {addr:"0xaf1…c32",px:1284,earn:24680,isYou:false},
                   {addr:"0x7a3…b9f",px:963, earn:18420,isYou:false},
@@ -1611,7 +1611,7 @@ export default function Play() {
                 .map((p,i) => (
                   <div key={p.addr}
                     onClick={e=>setProfilePopup({x:e.clientX,y:e.clientY,owner:p.addr,canvasX:0,canvasY:0})}
-                    style={{display:"flex",justifyContent:"space-between",marginBottom:6,fontSize:10,
+                    style={{display:"flex",justifyContent:"space-between",marginBottom:6,fontSize:12.5,
                       color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",cursor:"pointer",
                       borderRadius:4,padding:"2px 4px",margin:"-2px -4px 4px",transition:"background 0.15s"}}
                     onMouseEnter={e=>(e.currentTarget.style.background="rgba(168,85,247,0.08)")}
@@ -1623,7 +1623,7 @@ export default function Play() {
                   </div>
                 ))}
                 <div style={{marginTop:8,background:"#0d0d1a",borderRadius:6,padding:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:9,color:"#64748b",letterSpacing:1}}><span>HOLDR PROGRESS</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓":""+Math.floor(holdrProgress)+"%"}</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:11,color:"#64748b",letterSpacing:1}}><span>HOLDR PROGRESS</span><span style={{color:isHoldr?"#a855f7":"#334155"}}>{isHoldr?"✓":""+Math.floor(holdrProgress)+"%"}</span></div>
                   <div style={{width:"100%",height:4,background:"#1e1e3f",borderRadius:2,overflow:"hidden"}}>
                     <div style={{height:"100%",background:isHoldr?"#a855f7":"#4c1d95",width:`${holdrProgress}%`,borderRadius:2,transition:"width 0.3s"}}/>
                   </div>
@@ -1632,7 +1632,7 @@ export default function Play() {
             )}
             {/* ── LOG TAB ── */}
             {mobileTab==="log" && (
-              <div style={{fontSize:10,lineHeight:2}}>
+              <div style={{fontSize:12.5,lineHeight:2}}>
                 {log.slice(0,10).map((l,i) => {
                   const logParts = l.split('|');
                   const dispText = logParts[0];
