@@ -84,7 +84,7 @@ export const translations = {
     // CTA
     cta_title:          'Ready to claim your territory?',
     cta_desc:           'The demo runs in your browser — no wallet needed.',
-    cta_btn:            '▶ PLAY NOW',
+    cta_btn:            'PLAY NOW',
 
     // Footer
     footer_built:       'Built on Solana · Fair launch · Demo only — not financial advice',
@@ -232,7 +232,7 @@ export const translations = {
 
     cta_title:          '准备好占领你的领土了吗？',
     cta_desc:           '演示在浏览器中运行 — 无需钱包。',
-    cta_btn:            '▶ 立即游戏',
+    cta_btn:            '立即游戏',
 
     footer_built:       '基于 Solana 构建 · 公平发射 · 仅供演示 — 非投资建议',
 
@@ -371,7 +371,7 @@ export const translations = {
 
     cta_title:          '영역을 점령할 준비가 되셨나요?',
     cta_desc:           '데모는 브라우저에서 실행됩니다 — 지갑 불필요.',
-    cta_btn:            '▶ 지금 플레이',
+    cta_btn:            '지금 플레이',
 
     footer_built:       'Solana 기반 · 공정 출시 · 데모 전용 — 투자 조언 아님',
 
@@ -510,7 +510,7 @@ export const translations = {
 
     cta_title:          '領土を占領する準備はできていますか？',
     cta_desc:           'デモはブラウザで動作 — ウォレット不要。',
-    cta_btn:            '▶ 今すぐプレイ',
+    cta_btn:            '今すぐプレイ',
 
     footer_built:       'Solana上に構築 · フェアローンチ · デモのみ — 投資アドバイスではありません',
 
@@ -649,7 +649,7 @@ export const translations = {
 
     cta_title:          'Готов захватить свою территорию?',
     cta_desc:           'Демо работает в браузере — кошелёк не нужен.',
-    cta_btn:            '▶ ИГРАТЬ СЕЙЧАС',
+    cta_btn:            'ИГРАТЬ СЕЙЧАС',
 
     footer_built:       'Построено на Solana · Честный запуск · Только демо — не является финансовым советом',
 
@@ -788,7 +788,7 @@ export const translations = {
 
     cta_title:          'Siap mengklaim wilayahmu?',
     cta_desc:           'Demo berjalan di browser — tidak perlu dompet.',
-    cta_btn:            '▶ MAIN SEKARANG',
+    cta_btn:            'MAIN SEKARANG',
 
     footer_built:       'Dibangun di Solana · Fair launch · Demo saja — bukan saran keuangan',
 

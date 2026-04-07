@@ -313,10 +313,10 @@ export default function Home() {
           </div>
           <p style={{ color:"#475569", fontSize:16, marginBottom:28 }}>{T('cta_desc')}</p>
           <Link href="/play" style={{
-            display:"inline-block", padding:"16px 48px", fontFamily:"'Press Start 2P',monospace", fontSize:15,
+            display:"inline-flex", alignItems:"center", gap:8, padding:"16px 48px", fontFamily:"'Press Start 2P',monospace", fontSize:15,
             background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", borderRadius:10,
             textDecoration:"none", boxShadow:"0 0 48px rgba(168,85,247,0.55)"
-          }}>{T('cta_btn')}</Link>
+          }}><span style={{fontSize:"0.72em", lineHeight:1, marginTop:1}}>▶</span><span style={{position:"relative",top:3}}>{T('cta_btn')}</span></Link>
         </section>
 
         {/* FOOTER */}
