@@ -1494,27 +1494,36 @@ export default function Play() {
         <div style={{flexShrink:0,borderTop:"1px solid #1e1e3f",background:"#070710",display:"flex",flexDirection:"column",overflow:"hidden",height:290}}>
           {/* Quick-access bar: color swatch + active bet + balances */}
           <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",borderBottom:"1px solid #0d0d1a",flexShrink:0,background:"#09090f"}}>
+            {/* Color swatch */}
             <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Color">
-              <div style={{width:24,height:24,borderRadius:4,background:color,border:"2px solid #4c1d95",boxSizing:"border-box"}}/>
+              <div style={{width:26,height:26,borderRadius:4,background:color,border:"2px solid #4c1d95",boxSizing:"border-box"}}/>
               <input type="color" value={color} onChange={e=>setColor(e.target.value)}
                 style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}} />
             </label>
-            <div style={{display:"flex",gap:4,flex:1,overflow:"hidden"}}>
-              {BET_TIERS.map((bet,i) => {
-                const active = betIdx === i;
-                return (
-                  <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
-                    flex:1,padding:"4px 0",borderRadius:4,fontSize:10,cursor:"pointer",
-                    border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
-                    background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",
-                    color:active?"#a855f7":"#475569",letterSpacing:0.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
-                  }}>{bet.usdt} USDT</button>
-                );
-              })}
-            </div>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:0,flexShrink:0}}>
-              <span style={{fontSize:9,color:"#64748b"}}>◎ {usdt.toFixed(2)}</span>
-              <span style={{fontSize:11,color:"#a855f7",fontWeight:"bold"}}>{fmtCompact(Math.floor(balance))} $C</span>
+            {/* Brush size dropdown */}
+            <select value={betIdx} onChange={e=>setBetIdx(Number(e.target.value) as BetIdx)} style={{
+              flex:1,padding:"5px 8px",borderRadius:5,fontSize:11,cursor:"pointer",
+              border:"1px solid #4c1d95",background:"linear-gradient(135deg,#1e0a3e,#0a0a14)",
+              color:"#a855f7",fontWeight:"bold",outline:"none",
+              WebkitAppearance:"none" as React.CSSProperties["WebkitAppearance"],
+            }}>
+              {(BET_TIERS as unknown as typeof BET_TIERS[number][]).map((bet,i) => (
+                <option key={i} value={i} style={{background:"#0a0a14",color:"#a855f7"}}>
+                  {bet.usdt} USDT · {bet.pixels}px
+                </option>
+              ))}
+            </select>
+            {/* Balances */}
+            <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"center"}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:1}}>
+                <span style={{fontSize:9,color:"#64748b",letterSpacing:0.5}}>USDT</span>
+                <span style={{fontSize:13,color:"#22d3ee",fontWeight:"bold",lineHeight:1}}>${usdt.toFixed(2)}</span>
+              </div>
+              <div style={{width:1,height:28,background:"#1e1e3f"}}/>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:1}}>
+                <span style={{fontSize:9,color:"#64748b",letterSpacing:0.5}}>$CANVAS</span>
+                <span style={{fontSize:13,color:"#a855f7",fontWeight:"bold",lineHeight:1}}>{fmtCompact(Math.floor(balance))}</span>
+              </div>
             </div>
           </div>
           {/* Tab bar */}
@@ -1553,21 +1562,7 @@ export default function Play() {
                   <div style={{width:16,height:16,borderRadius:3,background:color,border:"1px solid #2d1b69"}}/>
                   <span style={{color:"#475569",fontSize:12.5}}>{color}</span>
                 </div>
-                <div style={{display:"flex",flexDirection:"column",gap:4}}>
-                  {BET_TIERS.map((bet,i) => {
-                    const active = betIdx === i;
-                    return (
-                      <button key={i} onClick={()=>setBetIdx(i as BetIdx)} style={{
-                        display:"flex",justifyContent:"space-between",alignItems:"center",
-                        padding:"6px 10px",borderRadius:6,border:`1px solid ${active?"#7c3aed":"#1e1e3f"}`,
-                        background:active?"linear-gradient(135deg,#1e0a3e,#2d1b69)":"#0a0a14",cursor:"pointer"
-                      }}>
-                        <span style={{fontSize:12.5,color:active?"#a855f7":"#475569",fontWeight:active?"bold":"normal"}}>{bet.usdt} USDT</span>
-                        <span style={{fontSize:12.5,color:active?"#7c3aed":"#334155",background:"#12121a",padding:"2px 6px",borderRadius:3,border:`1px solid ${active?"#4c1d95":"#1e1e3f"}`}}>{bet.pixels}px</span>
-                      </button>
-                    );
-                  })}
-                </div>
+
               </div>
             )}
             {/* ── GAME TAB ── */}
