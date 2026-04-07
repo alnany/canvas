@@ -9,32 +9,34 @@ interface Props {
 const LANGS = Object.keys(LANG_LABELS) as Lang[];
 
 export default function LangSwitcher({ lang, onChange }: Props) {
-  const handle = (l: Lang) => { setLang(l); onChange(l); };
+  const handle = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const l = e.target.value as Lang;
+    setLang(l);
+    onChange(l);
+  };
 
   return (
-    <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+    <select
+      value={lang}
+      onChange={handle}
+      style={{
+        background: '#12121a',
+        color: '#c4b5fd',
+        border: '1px solid #4c1d95',
+        borderRadius: 6,
+        padding: '5px 8px',
+        fontSize: 11,
+        fontFamily: 'inherit',
+        cursor: 'pointer',
+        outline: 'none',
+        letterSpacing: 0.5,
+      }}
+    >
       {LANGS.map(l => (
-        <button
-          key={l}
-          onClick={() => handle(l)}
-          style={{
-            padding: '3px 7px',
-            fontSize: 9,
-            fontFamily: 'inherit',
-            fontWeight: lang === l ? 'bold' : 'normal',
-            borderRadius: 4,
-            border: `1px solid ${lang === l ? '#7c3aed' : '#1e1e3f'}`,
-            background: lang === l ? '#2d1b69' : 'transparent',
-            color: lang === l ? '#c4b5fd' : '#475569',
-            cursor: 'pointer',
-            letterSpacing: 0.5,
-            transition: 'all 0.15s',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <option key={l} value={l} style={{ background: '#12121a', color: '#e2e8f0' }}>
           {LANG_LABELS[l]}
-        </button>
+        </option>
       ))}
-    </div>
+    </select>
   );
 }
