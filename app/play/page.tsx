@@ -5,6 +5,7 @@ import { Lang, getLang, t } from '../i18n/translations';
 import LangSwitcher from '../components/LangSwitcher';
 import { CanvasLogo } from '../components/CanvasLogo';
 import { MouseTrail } from '../components/MouseTrail';
+import { BgCanvas } from '../components/BgCanvas';
 
 const GRID = 1000;
 const PX   = 1;
@@ -725,6 +726,7 @@ export default function Play() {
   return (
     <>
     <MouseTrail />
+    <BgCanvas opacity={0.05} speedScale={0.2} />
     <div style={{background:"#070710",height:"100vh",color:"#e2e8f0",fontFamily:"'Share Tech Mono','Courier New',monospace",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{borderBottom:"1px solid #1e1e3f",padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,7,16,0.95)",backdropFilter:"blur(8px)"}}>
