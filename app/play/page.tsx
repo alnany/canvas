@@ -1408,10 +1408,10 @@ export default function Play() {
               {tier:T('strike_rare'),    chance:"1%",   mult:"25×",  color:"#22d3ee"},
               {tier:T('strike_legendary'),chance:"0.1%",mult:"200×", color:"#f59e0b"},
             ].map(s => (
-              <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:10}}>
+              <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",alignItems:"center",marginBottom:5,fontSize:10,gap:4}}>
                 <span style={{color:s.color}}>{s.tier}</span>
-                <span style={{color:"#334155"}}>{s.chance}</span>
-                <span style={{color:s.color,fontWeight:"bold"}}>{s.mult}</span>
+                <span style={{color:"#334155",textAlign:"right"}}>{s.chance}</span>
+                <span style={{color:s.color,fontWeight:"bold",textAlign:"right"}}>{s.mult}</span>
               </div>
             ))}
             <div style={{marginTop:6,fontSize:10,color:"#1e3a4f",lineHeight:1.6}}>
@@ -1553,10 +1553,10 @@ export default function Play() {
                     {tier:T('strike_rare'),    chance:"1%",  mult:"25×", col:"#22d3ee"},
                     {tier:T('strike_legendary'),chance:"0.1%",mult:"200×",col:"#f59e0b"},
                   ].map(s => (
-                    <div key={s.tier} style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10}}>
+                    <div key={s.tier} style={{display:"grid",gridTemplateColumns:"1fr 2.5rem 2.5rem",alignItems:"center",marginBottom:4,fontSize:10,gap:4}}>
                       <span style={{color:s.col}}>{s.tier}</span>
-                      <span style={{color:"#334155"}}>{s.chance}</span>
-                      <span style={{color:s.col,fontWeight:"bold"}}>{s.mult}</span>
+                      <span style={{color:"#334155",textAlign:"right"}}>{s.chance}</span>
+                      <span style={{color:s.col,fontWeight:"bold",textAlign:"right"}}>{s.mult}</span>
                     </div>
                   ))}
                 </div>
