@@ -27,7 +27,7 @@ const USDT_PRIZES = [
 // Vault jackpot
 const BUCKET_WIN_CHANCE = 0.005;        // 0.5% per placement
 const BUCKET_WIN_PCT    = 0.10;         // win 10% of bucket
-const BUCKET_FEED_PCT   = 0.01;         // 1% of CANVAS earn → bucket
+const BUCKET_FEED_PCT   = 0.10;         // 10% of $CANVAS earned → vault (deducted from player)
 
 const BET_TIERS = [
   { usdt: 1,   pixels: 1,   label: "1 USDT",    tag: "×1"  },
@@ -492,8 +492,9 @@ export default function Play() {
   // Timer: hold rewards + bucket growth
   useEffect(() => {
     const t = setInterval(() => {
-      setBalance(b => b + ownedRef.current * HOLD_REWARD_RATE);
-      setBucket(bk => bk + 5);
+      const holdEarn = ownedRef.current * HOLD_REWARD_RATE;
+      setBalance(b => b + holdEarn * (1 - BUCKET_FEED_PCT));
+      setBucket(bk => bk + 5 + holdEarn * BUCKET_FEED_PCT);
       // Simulate small price tick
       setCanvasPrice(p => Math.max(0.001, p + (Math.random() - 0.498) * 0.00008));
       // Global stats tickers
@@ -595,7 +596,7 @@ export default function Play() {
     // Batch state updates
     if (newOwned > 0) setOwned(o => { ownedRef.current = o + newOwned; return o + newOwned; });
     setPlaced(p => p + placed2);
-    setBalance(b => b + totalEarn);
+    setBalance(b => b + totalEarn * (1 - BUCKET_FEED_PCT));
 
     if (totalUsdtReturn > 0) {
       setUsdt(s => s + totalUsdtReturn);
@@ -999,6 +1000,7 @@ export default function Play() {
             <div style={{fontSize:12.5,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
               {T('vault_odds')}<br/>{T('vault_win')}
             </div>
+            <div style={{fontSize:11,color:"#451a03",marginTop:5,letterSpacing:0.5,opacity:0.85}}>10% of your $CANVAS earnings</div>
           </div>
 
           {/* SOL Balance + Top Up */}
