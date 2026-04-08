@@ -44,7 +44,7 @@ export const translations = {
  step2_label: 'Mine $CANVAS while you play',
  step2_desc: 'Every pixel you place mines $CANVAS. Hit a strike — Common (5×), Rare (25×), or Legendary (200×) — and your token earnings surge. Hold pixels to earn passive rewards every hour.',
  step3_label: '$CANVAS has real buying pressure',
- step3_desc: 'Every placement is a provably-fair RNG roll. Hit Legendary and win up to 100\u00d7 your bet — paid out instantly in USDT.',
+ step3_desc: '50% of all platform fees go to $CANVAS buyback & burn, forever. Hold $CANVAS and earn a share of every withdrawal, paid out hourly.',
  step4_label: 'Earn more with every referral',
  step4_desc: 'Invite players, earn from your network. The deeper it grows, the more you earn.',
 
