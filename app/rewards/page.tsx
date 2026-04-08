@@ -6,6 +6,7 @@ import {
   AFFILIATE_POOL, DIRECT_BONUS, MAX_DEPTH,
   validateDownlineRate, getRateSummary, generateReferralCode,
   type Affiliate, type DownlineMember, type EarningRecord,
+  hasCascadeAccess,
 } from '@/lib/affiliate';
 
 // ─── Mock data for UI preview (dev: replace with API calls) ──────────────────
@@ -396,15 +397,35 @@ export default function RewardsPage() {
         {/* Overview tab */}
         {activeTab === 'overview' && (
           <div>
-            <RateSlider
-              myMaxRate={affiliate.maxRate}
-              value={downlineRate}
-              onChange={setDownlineRate}
-              onSave={handleSaveRate}
-              saving={savingRate}
-            />
+            {/* ── Rate / Cascade section ── gated by maxRate > 5% ─────────── */}
+            {hasCascadeAccess(affiliate) ? (
+              /* Elevated affiliate: show cascade rate slider */
+              <RateSlider
+                myMaxRate={affiliate.maxRate}
+                value={downlineRate}
+                onChange={setDownlineRate}
+                onSave={handleSaveRate}
+                saving={savingRate}
+              />
+            ) : (
+              /* Standard affiliate: flat 5%, no cascade controls */
+              <div style={{ background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)', borderRadius: 12, padding: '20px 24px', marginBottom: 24 }}>
+                <div style={{ color: '#94a3b8', fontSize: 11, fontFamily: "'Share Tech Mono', monospace", letterSpacing: 2, marginBottom: 12, textTransform: 'uppercase' }}>Your Referral Rate</div>
+                <div style={{ color: '#f1f5f9', fontSize: 30, fontWeight: 700, marginBottom: 8 }}>
+                  5%{' '}
+                  <span style={{ fontSize: 14, color: '#94a3b8', fontWeight: 400 }}>of platform fees</span>
+                </div>
+                <div style={{ color: '#64748b', fontSize: 12, fontFamily: "'Share Tech Mono', monospace", lineHeight: 1.7 }}>
+                  You earn 5% of Canvas platform fees on every referral — no configuration needed.<br />
+                  For every $100 your referral spends, you earn <strong style={{ color: '#a78bfa' }}>$0.20</strong> (5% of the $4 platform fee).<br />
+                  <span style={{ color: '#334155', marginTop: 6, display: 'block' }}>
+                    Cascade controls unlock if Canvas grants you an elevated rate above 5%.
+                  </span>
+                </div>
+              </div>
+            )}
 
-            {/* How it works */}
+                        {/* How it works */}
             <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 24 }}>
               <div style={{ color: '#94a3b8', fontSize: 11, fontFamily: 'Share Tech Mono', letterSpacing: 2, marginBottom: 16, textTransform: 'uppercase' }}>How the Cascade Works</div>
               <div style={{ display: 'flex', gap: 0, alignItems: 'center', flexWrap: 'wrap' }}>
