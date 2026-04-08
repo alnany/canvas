@@ -334,7 +334,7 @@ export default function RewardsPage() {
 
         {/* Hero: Stats row */}
         <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
-          <StatCard label="My Rate" value={`${affiliate.maxRate}%`} sub="of referred spend" />
+          <StatCard label="My Rate" value={`${affiliate.maxRate}%`} sub="of platform fees (4% of spend)" />
           <StatCard label="All-Time Earned" value={fmtUSDT(affiliate.totalEarned)} sub="USDT" />
           <StatCard label="Claimed" value={fmtUSDT(affiliate.totalClaimed)} sub="USDT sent" />
           <div style={{ background: claimable > 0 ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.04)', border: `1px solid ${claimable > 0 ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '20px 24px', flex: 1, minWidth: 200 }}>
