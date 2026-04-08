@@ -425,7 +425,10 @@ export default function RewardsPage() {
               </div>
             )}
 
-                        {/* How it works */}
+                                    {/* How the Cascade Works — only for elevated affiliates */}
+            {hasCascadeAccess(affiliate) && (
+              <div style={{ marginTop: 24 }}>
+{/* How it works */}
             <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 24 }}>
               <div style={{ color: '#94a3b8', fontSize: 11, fontFamily: 'Share Tech Mono', letterSpacing: 2, marginBottom: 16, textTransform: 'uppercase' }}>How the Cascade Works</div>
               <div style={{ display: 'flex', gap: 0, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -448,6 +451,8 @@ export default function RewardsPage() {
                 ))}
               </div>
             </div>
+              </div>
+            )}
           </div>
         )}
 
