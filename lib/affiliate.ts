@@ -22,7 +22,8 @@ export const MIN_RATE_FLOOR   = 10;  // 10% of your own rate is the minimum you 
 
 export interface Affiliate {
   id: string;           // wallet address
-  referralCode: string; // short shareable code
+  referralCode: string; // short shareable code (fallback)
+  username: string | null; // custom @username for referral links (e.g. domain.com/@alice)
   referrerId: string | null; // parent affiliate id (null = direct Canvas invite)
   maxRate: number;      // max % this affiliate can earn — set by their parent/Canvas
   downlineDefaultRate: number; // default % given to their invitees (0 to maxRate)
@@ -190,6 +191,21 @@ export function generateReferralCode(seed?: string): string {
 /**
  * Get ISO week bucket for a date (e.g., "2026-W15")
  */
+/** Validate a custom username. Returns null if valid, error string if not. */
+export function validateUsername(username: string): string | null {
+  if (!username) return 'Username required';
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{2,29}$/.test(username))
+    return 'Username must be 3–30 chars, start with a letter or digit, use only letters/digits/_/-';
+  return null;
+}
+
+/** Build the affiliate referral link for a given affiliate. */
+export function getReferralLink(affiliate: Pick<Affiliate, 'referralCode' | 'username'>, origin: string): string {
+  return affiliate.username
+    ? `${origin}/@${affiliate.username}`
+    : `${origin}/play?ref=${affiliate.referralCode}`;
+}
+
 export function getWeekBucket(date: Date = new Date()): string {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
