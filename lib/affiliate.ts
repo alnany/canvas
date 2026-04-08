@@ -118,7 +118,7 @@ export function calculateEarnings(
     const node = capped[i];
     const downlineRate = i + 1 < capped.length ? capped[i + 1].rate : 0;
     const cascadePct = Math.max(0, node.rate - downlineRate);
-    const cascadeEarning = (purchaseAmount * cascadePct) / 100;
+    const cascadeEarning = (platformFee * cascadePct) / 100;
     result.set(node.affiliateId, {
       cascade: cascadeEarning,
       directBonus: 0,
