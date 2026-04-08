@@ -322,7 +322,7 @@ export default function RewardsPage() {
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <Link href="/" style={{ textDecoration: 'none' }}>
-              <CanvasLogo size={28} />
+              <CanvasLogo size="sm" />
             </Link>
             <Link href="/play" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none' }}>← Back to Canvas</Link>
           </div>
