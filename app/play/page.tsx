@@ -1000,7 +1000,6 @@ export default function Play() {
             <div style={{fontSize:12.5,color:"#6b4c10",marginTop:5,lineHeight:1.6}}>
               {T('vault_odds')}<br/>{T('vault_win')}
             </div>
-            <div style={{fontSize:11,color:"#451a03",marginTop:5,letterSpacing:0.5,opacity:0.85}}>10% of your $CANVAS earnings</div>
           </div>
 
           {/* SOL Balance + Top Up */}
