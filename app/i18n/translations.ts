@@ -64,7 +64,7 @@ export const translations = {
     tok_lp_sub:         '1B — Raydium LP, tokens burned',
     tok_dao:            'Fair Launch',
     tok_dao_sub:        '0 tokens for team, advisors, or VCs — ever.',
-    tok_footer:         'LP tokens burned · Raydium DEX',
+    tok_footer:         '50% of fees → $CANVAS buyback & burn · LP tokens burned · Raydium DEX',
 
     holdr_title:        'Holdr Class',
     holdr_desc:         'Hold ≥10,000 $CANVAS in your in-game balance to qualify. Every time anyone withdraws, 10% is redistributed to Holdrs — weighted by how much above 10K you hold.',
@@ -198,7 +198,7 @@ export const translations = {
     tok_lp_sub:         '10 亿 — Raydium LP，代币已销毁',
     tok_dao:            '公平发行保障',
     tok_dao_sub:        '团队、顾问及 VC 永久零分配。',
-    tok_footer:         'LP 已销毁 · Raydium DEX',
+    tok_footer:         '50% 手续费 → $CANVAS 回购销毁 · LP 已销毁 · Raydium DEX',
 
     holdr_title:        'Holdr 阶层',
     holdr_desc:         '游戏余额达到 ≥10,000 $CANVAS 即晋升为 Holdr。其他玩家每次提取，系统自动将 10% 按比例分配给全体 Holdr，坐享生态分红。',
@@ -332,7 +332,7 @@ export const translations = {
     tok_lp_sub:         '10억 — Raydium LP 토큰 소각',
     tok_dao:            '공정 발행 보장',
     tok_dao_sub:        '팀·어드바이저·VC 배정 0 — 영구적으로.',
-    tok_footer:         'LP 소각 · Raydium DEX',
+    tok_footer:         '수수료 50% → $CANVAS 매수 & 소각 · LP 소각 · Raydium DEX',
 
     holdr_title:        'Holdr 등급',
     holdr_desc:         '인게임 잔액 ≥10,000 $CANVAS를 유지하면 Holdr로 승급. 다른 플레이어가 출금할 때마다 10%가 자동으로 전체 Holdr에게 분배되어 에코시스템 배당을 받습니다.',
@@ -466,7 +466,7 @@ export const translations = {
     tok_lp_sub:         '10億 — Raydium LP、LPトークン焼却済み',
     tok_dao:            'フェアローンチ保証',
     tok_dao_sub:        'チーム・アドバイザー・VCへの配分は永久にゼロ。',
-    tok_footer:         'LPトークン焼却 · Raydium DEX',
+    tok_footer:         '手数料の50% → $CANVAS 買戻し & 焼却 · LPトークン焼却 · Raydium DEX',
 
     holdr_title:        'Holdrクラス',
     holdr_desc:         'ゲーム内残高に≥10,000 $CANVASを保有するとHoldr資格取得。誰かが出金するたびに10%が自動でHoldrへ按分分配されます。',
@@ -600,7 +600,7 @@ export const translations = {
     tok_lp_sub:         '1 млрд — Raydium LP, токены сожжены',
     tok_dao:            'Честный запуск',
     tok_dao_sub:        '0 токенов для команды, советников и VC — навсегда.',
-    tok_footer:         'LP-токены сожжены · Raydium DEX',
+    tok_footer:         '50% комиссий → выкуп и сжигание $CANVAS · LP-токены сожжены · Raydium DEX',
 
     holdr_title:        'Класс Holdr',
     holdr_desc:         'Держи ≥10,000 $CANVAS в игровом балансе для получения статуса Holdr. При каждом выводе система автоматически отчисляет 10% Holdr\'ам пропорционально удержанию сверх 10K.',
@@ -734,7 +734,7 @@ export const translations = {
     tok_lp_sub:         '1 Miliar — Raydium LP, token LP dibakar',
     tok_dao:            'Fair Launch',
     tok_dao_sub:        '0 token untuk tim, advisor, atau VC — selamanya.',
-    tok_footer:         'Token LP dibakar · Raydium DEX',
+    tok_footer:         '50% biaya → buyback & bakar $CANVAS · Token LP dibakar · Raydium DEX',
 
     holdr_title:        'Kelas Holdr',
     holdr_desc:         'Tahan ≥10.000 $CANVAS di saldo dalam game untuk kualifikasi Holdr. Setiap kali ada yang menarik dana, 10% otomatis dibagikan ke seluruh Holdr secara proporsional.',
