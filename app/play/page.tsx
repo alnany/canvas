@@ -1552,7 +1552,7 @@ export default function Play() {
 
           {/* Tab bar: Log | Chat | Board */}
           <div style={{display:"flex",background:"#0d0d1a",borderRadius:6,overflow:"hidden",flexShrink:0}}>
-            {(["log","chat","board"] as const).map(tab => (
+            {(["chat","log","board"] as const).map(tab => (
               <button key={tab} onClick={()=>setRightTab(tab)} style={{
                 flex:1,padding:"5px 0",border:"none",fontSize:9.5,cursor:"pointer",letterSpacing:0.5,
                 background:rightTab===tab?"#1e0a3e":"transparent",
