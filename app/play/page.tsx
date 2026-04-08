@@ -1503,7 +1503,7 @@ export default function Play() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,background:"#070710"}}>
+        <div style={{width:196,borderLeft:"1px solid #1e1e3f",padding:12,display:isMobile?"none":"flex",flexDirection:"column",gap:10,flexShrink:0,overflow:"hidden",background:"#070710"}}>
           {/* Color picker */}
           <div>
             <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('color_label')}</div>
