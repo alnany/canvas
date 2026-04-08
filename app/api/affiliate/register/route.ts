@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
   const affiliate: Affiliate = {
     id: walletAddress,
     referralCode: code,
+    username: null,
     referrerId,
     maxRate,
     downlineDefaultRate: 0,
