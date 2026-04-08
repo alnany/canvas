@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { PrivyProviderWrapper } from "./components/PrivyProviderWrapper";
 
 export const metadata: Metadata = {
   title: "CANVAS — Pixel War on Solana",
@@ -15,7 +16,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <PrivyProviderWrapper>
+          {children}
+        </PrivyProviderWrapper>
+      </body>
     </html>
   );
 }
