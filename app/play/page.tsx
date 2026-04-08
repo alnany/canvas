@@ -95,6 +95,49 @@ const BOTS = [
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
 const WALLET = "YOU (Guest_7f4…a9c)";
 
+// ── World Chat ───────────────────────────────────────────────────────────────
+interface ChatMsg { id: number; owner: string; text: string; ts: string; }
+const CHAT_COLORS: Record<string,string> = {
+  "0xaf1\u2026c32":"#f59e0b","0x7a3\u2026b9f":"#22d3ee","0x99d\u2026441":"#a855f7","0xb82\u271a":"#f97316",
+  "0x55e\u2026f90":"#ec4899","0xfe2\u2026b56":"#84cc16","0x31f\u2026e77":"#f43f5e","0x8d4\u2026c90":"#3d9a3d",
+  "0xcc4\u2026d18":"#f3ba2f","0x12b\u2026d33":"#94a3b8","0x77a\u2026f01":"#06b6d4","0x29e\u2026772":"#a855f7",
+};
+const ownerColor = (o: string) => CHAT_COLORS[o] ?? "#64748b";
+const CHAT_SEEDS: ChatMsg[] = [
+  { id:1,  owner:"0xaf1\u2026c32", text:"gm everyone \U0001f44b",                              ts:"12:41" },
+  { id:2,  owner:"0x99d\u2026441", text:"who's defending the center zone?",              ts:"12:42" },
+  { id:3,  owner:"0x7a3\u2026b9f", text:"just hit Legendary!! 200\xd7 \U0001f525\U0001f525\U0001f525",             ts:"12:43" },
+  { id:4,  owner:"0xb82\u271a", text:"painting bottom-left yellow, don't touch \U0001f624", ts:"12:43" },
+  { id:5,  owner:"0x55e\u2026f90", text:"how many pixels for the Vault jackpot?",        ts:"12:44" },
+  { id:6,  owner:"0xfe2\u2026b56", text:"bot running smooth today \U0001f916",                  ts:"12:44" },
+  { id:7,  owner:"0x31f\u2026e77", text:"BTC zone needs more defenders",                 ts:"12:45" },
+  { id:8,  owner:"0x8d4\u2026c90", text:"WAGMI \U0001f438 pepe army reporting in",               ts:"12:45" },
+  { id:9,  owner:"0xcc4\u2026d18", text:"cross-chain deposit live, let's go!",           ts:"12:46" },
+  { id:10, owner:"0x12b\u2026d33", text:"watching. always watching. \U0001f47b",                 ts:"12:47" },
+];
+const BOT_CHAT_MSGS = [
+  "gm \U0001f31e","just placed 100px \U0001f4aa","who keeps painting over my zone??",
+  "Rare hit! 25\xd7 ez money","the Vault is growing \U0001f440","defending my corner, try me",
+  "LFG we're taking the center \U0001f680","just got rekt but I'm back","anyone forming factions?",
+  "ETH zone looking clean rn","when does leaderboard reset?","never selling my pixels \U0001f48e",
+  "rare strike on slot 847! \U0001f3af","gn everyone \U0001f319","top-right corner is mine now",
+  "who wants to team up?","200\xd7 hit just now omg \U0001f389","pepe army UNITE \U0001f438",
+  "this game is addictive ngl","vault at 9M $CANVAS, huge",
+];
+// ── Leaderboard seed ─────────────────────────────────────────────────────────
+const LB_SEED = [
+  {addr:"0xfe2\u2026b56", px:4821, earn:94200},
+  {addr:"0xaf1\u2026c32", px:3284, earn:64680},
+  {addr:"0x7a3\u2026b9f", px:2963, earn:58420},
+  {addr:"0x18d\u2026f94", px:2104, earn:41200},
+  {addr:"0xbc3\u2026e88", px:1873, earn:36700},
+  {addr:"0x5e1\u2026a49", px:1240, earn:24300},
+  {addr:"0x99d\u2026441", px:812,  earn:15900},
+  {addr:"0xb82\u271a", px:548,  earn:10740},
+  {addr:"0x07f\u2026c73", px:312,  earn:6120 },
+  {addr:"0xd9b\u2026142", px:204,  earn:3990 },
+];
+
 interface UserProfile {
   displayName: string;
   handle:      string;     // wallet short
@@ -401,6 +444,11 @@ export default function Play() {
   const [usdtWin,   setUsdtWin]   = useState<{mult:number;label:string;amount:number}|null>(null);
   const [bucketWin, setBucketWin] = useState<number|null>(null);
   const [betIdx,    setBetIdx]    = useState<BetIdx>(2);   // 0=1, 1=10, 2=100 USDT
+  const [rightTab,  setRightTab]  = useState<'log'|'chat'|'board'>('chat');
+  const [chatInput, setChatInput] = useState('');
+  const [chatMsgs,  setChatMsgs]  = useState<ChatMsg[]>(CHAT_SEEDS);
+  const chatEndRef  = useRef<HTMLDivElement>(null);
+  const chatIdRef   = useRef(CHAT_SEEDS.length + 1);
 
   // ── Pixel-placement animation overlay ─────────────────────────────────────
   type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
@@ -744,11 +792,41 @@ export default function Play() {
     wrapper.scrollTop  = (sz - wrapper.clientHeight) / 2;
   }, []);
 
+  // Bot chat simulation
+  useEffect(() => {
+    const schedule = (fn: () => void): ReturnType<typeof setTimeout> =>
+      setTimeout(() => { fn(); schedule(fn); }, 2800 + Math.random() * 3200);
+    const id = schedule(() => {
+      const owner = BOTS[Math.floor(Math.random() * BOTS.length)];
+      const text  = BOT_CHAT_MSGS[Math.floor(Math.random() * BOT_CHAT_MSGS.length)];
+      const now   = new Date();
+      const ts    = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+      setChatMsgs(prev => [...prev.slice(-79), { id: chatIdRef.current++, owner, text, ts }]);
+    });
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    if (rightTab === 'chat') chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMsgs, rightTab]);
+
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    const txt = chatInput.trim();
+    if (!txt) return;
+    const now = new Date();
+    const ts  = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setChatMsgs(prev => [...prev.slice(-79), { id: chatIdRef.current++, owner: WALLET, text: txt, ts }]);
+    setChatInput('');
+  };
+
   const isHoldr = owned * 12 >= 10000;
   const [isMobile, setIsMobile] = useState(false);
   const [zoom, setZoom] = useState(2);
   const zoomRef = useRef(2);
-  const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'log'>('color');
+  const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'chat'|'board'>('color');
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -1468,66 +1546,113 @@ export default function Play() {
             </div>
           </div>
 
-          {/* Activity log */}
-          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
-            <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('activity_label')}</div>
-            <div style={{fontSize:12.5,lineHeight:2,overflow:"hidden"}}>
-              {log.slice(0,8).map((l,i) => {
-                const logParts = l.split('|');
-                const dispText = logParts[0];
-                const coordStr = logParts.length > 1 ? logParts[1] : '';
-                const hasCoords = coordStr.includes(',');
-                const lx = hasCoords ? parseInt(coordStr.split(',')[0], 10) : -1;
-                const ly = hasCoords ? parseInt(coordStr.split(',')[1], 10) : -1;
-                return (
-                <div key={i}
-                  onClick={() => {
-                    if (!hasCoords) return;
-                    spawnAnim(lx, ly, '#a855f7', 'rare');
-                    canvasWrapRef.current?.scrollTo({
-                      left: Math.max(0, lx - 200),
-                      top: Math.max(0, ly - 200),
-                      behavior: 'smooth',
-                    });
-                  }}
-                  style={{color:i===0?"#a855f7":hasCoords?"#4a3060":"#334155",cursor:hasCoords?"pointer":"default",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} title={hasCoords?"Click to highlight pixel":undefined}>{dispText}</div>
-              );
-              })}
-            </div>
-          </div>
-
-          {/* Leaderboard */}
-          <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
-            <div style={{fontSize:12.5,color:"#64748b",marginBottom:10,letterSpacing:1}}>{T('top_players')}</div>
-            {[
-              {addr:"0xaf1…c32", px:1284, earn:24680, isYou:false},
-              {addr:"0x7a3…b9f", px:963,  earn:18420, isYou:false},
-              {addr:WALLET,      px:owned, earn:Math.floor(balance), isYou:true},
-              {addr:"0x99d…441", px:312,  earn:6180,  isYou:false},
-              {addr:"0xb82…71a", px:148,  earn:2860,  isYou:false},
-            ]
-            .sort((a,b)=>b.px-a.px)
-            .slice(0,5)
-            .map((p,i) => (
-              <div key={p.addr}
-                onClick={e => setProfilePopup({ x: e.clientX, y: e.clientY, owner: p.addr, canvasX: 0, canvasY: 0 })}
-                style={{
-                  display:"flex",justifyContent:"space-between",
-                  marginBottom:6,fontSize:12.5,
-                  color:p.isYou?"#a855f7":i===0?"#f59e0b":"#475569",
-                  cursor:"pointer",
-                  borderRadius:4,padding:"2px 4px",margin:"-2px -4px 4px",
-                  transition:"background 0.15s",
-                }}
-                onMouseEnter={e=>(e.currentTarget.style.background="rgba(168,85,247,0.08)")}
-                onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
-                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
-                  {i+1}. {p.addr}
-                </span>
-                <span style={{flexShrink:0,marginLeft:4}}>{p.px}px</span>
-              </div>
+          {/* Tab bar: Log | Chat | Board */}
+          <div style={{display:"flex",background:"#0d0d1a",borderRadius:6,overflow:"hidden",flexShrink:0}}>
+            {(["log","chat","board"] as const).map(tab => (
+              <button key={tab} onClick={()=>setRightTab(tab)} style={{
+                flex:1,padding:"5px 0",border:"none",fontSize:9.5,cursor:"pointer",letterSpacing:0.5,
+                background:rightTab===tab?"#1e0a3e":"transparent",
+                color:rightTab===tab?"#a855f7":"#475569",
+                borderBottom:rightTab===tab?"2px solid #7c3aed":"2px solid transparent",
+              }}>
+                {tab==="log"?"📋 LOG":tab==="chat"?"💬 CHAT":"🏆 BOARD"}
+              </button>
             ))}
           </div>
+
+          {/* LOG tab */}
+          {rightTab==="log" && (
+            <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden"}}>
+              <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('activity_label')}</div>
+              <div style={{fontSize:12.5,lineHeight:2,overflow:"hidden"}}>
+                {log.slice(0,8).map((l,i) => {
+                  const logParts = l.split('|');
+                  const dispText = logParts[0];
+                  const coordStr = logParts.length > 1 ? logParts[1] : '';
+                  const hasCoords = coordStr.includes(',');
+                  const lx = hasCoords ? parseInt(coordStr.split(',')[0], 10) : -1;
+                  const ly = hasCoords ? parseInt(coordStr.split(',')[1], 10) : -1;
+                  return (
+                    <div key={i}
+                      onClick={() => {
+                        if (!hasCoords) return;
+                        spawnAnim(lx, ly, '#a855f7', 'rare');
+                        canvasWrapRef.current?.scrollTo({ left: Math.max(0,lx-200), top: Math.max(0,ly-200), behavior:'smooth' });
+                      }}
+                      style={{color:i===0?"#a855f7":hasCoords?"#4a3060":"#334155",cursor:hasCoords?"pointer":"default",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}
+                      title={hasCoords?"Click to highlight pixel":undefined}>{dispText}</div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* CHAT tab */}
+          {rightTab==="chat" && (
+            <div style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden",background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10}}>
+              <div style={{fontSize:9,color:"#334155",marginBottom:6,letterSpacing:1}}>
+                WORLD CHAT ·  <span style={{color:"#4c1d95"}}>≥100 $CANVAS to post</span>
+              </div>
+              <div style={{flex:1,overflowY:"auto",paddingRight:2}}>
+                {chatMsgs.map(msg => (
+                  <div key={msg.id} style={{marginBottom:6}}>
+                    <div style={{display:"flex",alignItems:"baseline",gap:4}}>
+                      <span style={{fontSize:10.5,color:msg.owner===WALLET?"#c084fc":ownerColor(msg.owner),fontWeight:"bold",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:110}}>
+                        {msg.owner===WALLET?"YOU":msg.owner}
+                      </span>
+                      <span style={{fontSize:8.5,color:"#1e293b",flexShrink:0}}>{msg.ts}</span>
+                    </div>
+                    <div style={{fontSize:11,color:msg.owner===WALLET?"#e2e8f0":"#64748b",lineHeight:1.5,wordBreak:"break-word"}}>{msg.text}</div>
+                  </div>
+                ))}
+                <div ref={chatEndRef}/>
+              </div>
+              <form onSubmit={handleSendChat} style={{display:"flex",gap:4,marginTop:6,flexShrink:0}}>
+                <input value={chatInput} onChange={e=>setChatInput(e.target.value)}
+                  placeholder="say something…" maxLength={80}
+                  style={{flex:1,padding:"4px 6px",fontSize:10.5,background:"#07070e",border:"1px solid #1e1e3f",
+                    borderRadius:4,color:"#94a3b8",outline:"none",minWidth:0}} />
+                <button type="submit" style={{padding:"4px 8px",fontSize:11,background:"#4c1d95",border:"none",
+                  borderRadius:4,color:"#a855f7",cursor:"pointer",fontWeight:"bold",flexShrink:0}}>→</button>
+              </form>
+            </div>
+          )}
+
+          {/* BOARD tab */}
+          {rightTab==="board" && (
+            <div style={{background:"#0d0d1a",border:"1px solid #1e1e3f",borderRadius:8,padding:10,flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+              <div style={{fontSize:9,color:"#334155",marginBottom:6,letterSpacing:1,flexShrink:0}}>
+                LEADERBOARD ·  <span style={{color:"#4c1d95"}}>by pixels placed</span>
+              </div>
+              <div style={{display:"flex",gap:2,fontSize:9,color:"#334155",marginBottom:4,flexShrink:0}}>
+                <span style={{width:14}}>#</span><span style={{flex:1}}>PLAYER</span>
+                <span style={{width:28,textAlign:"right"}}>PX</span>
+                <span style={{width:42,textAlign:"right"}}>$CANVAS</span>
+              </div>
+              <div style={{flex:1,overflowY:"auto"}}>
+                {[...LB_SEED, {addr:WALLET, px:owned, earn:Math.floor(balance)}]
+                  .sort((a,b)=>b.px-a.px).slice(0,10)
+                  .map((p,i) => {
+                    const isYou = p.addr===WALLET;
+                    const rc = i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#b45309":isYou?"#a855f7":"#475569";
+                    return (
+                      <div key={p.addr}
+                        onClick={e=>setProfilePopup({x:e.clientX,y:e.clientY,owner:p.addr,canvasX:0,canvasY:0})}
+                        style={{display:"flex",alignItems:"center",gap:2,marginBottom:4,fontSize:11,color:rc,cursor:"pointer",
+                          borderRadius:4,padding:"2px 3px",margin:"-2px -3px 3px",
+                          background:isYou?"rgba(168,85,247,0.06)":"transparent"}}
+                        onMouseEnter={e=>(e.currentTarget.style.background=isYou?"rgba(168,85,247,0.12)":"rgba(168,85,247,0.05)")}
+                        onMouseLeave={e=>(e.currentTarget.style.background=isYou?"rgba(168,85,247,0.06)":"transparent")}>
+                        <span style={{width:14,flexShrink:0,color:i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#b45309":"#334155"}}>{i+1}</span>
+                        <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isYou?"YOU":p.addr}</span>
+                        <span style={{width:28,textAlign:"right",flexShrink:0}}>{fmtCompact(p.px)}</span>
+                        <span style={{width:42,textAlign:"right",flexShrink:0,color:isYou?"#a855f7":"#334155"}}>{fmtCompact(p.earn)}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1570,14 +1695,14 @@ export default function Play() {
           </div>
           {/* Tab bar */}
           <div style={{display:"flex",borderBottom:"1px solid #1e1e3f",flexShrink:0}}>
-            {(["color","game","stats","log"] as const).map(tab => {
-              const labels:{[k:string]:string} = {color:"🎨 Color",game:"⚡ Game",stats:"👥 Stats",log:"📋 Log"};
+            {(["color","game","stats","chat","board"] as const).map(tab => {
+              const labels:{[k:string]:string} = {color:"🎨",game:"⚡",stats:"👥",chat:"💬",board:"🏆"};
               return (
                 <button key={tab} onClick={()=>setMobileTab(tab)} style={{
                   flex:1,padding:"6px 0",border:"none",background:"transparent",
-                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:10,cursor:"pointer",
+                  color:mobileTab===tab?"#a855f7":"#475569",fontSize:13,cursor:"pointer",
                   borderBottom:mobileTab===tab?"2px solid #7c3aed":"2px solid transparent",
-                  letterSpacing:0.5
+                  letterSpacing:0
                 }}>{labels[tab]}</button>
               );
             })}
@@ -1692,6 +1817,56 @@ export default function Play() {
                       title={hasCoords?"Tap to highlight pixel":undefined}>{dispText}</div>
                   );
                 })}
+            {/* MOBILE CHAT TAB */}
+            {mobileTab==="chat" && (
+              <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+                <div style={{fontSize:9,color:"#334155",marginBottom:4,letterSpacing:1}}>WORLD CHAT</div>
+                <div style={{flex:1,overflowY:"auto"}}>
+                  {chatMsgs.slice(-20).map(msg => (
+                    <div key={msg.id} style={{marginBottom:5}}>
+                      <span style={{fontSize:10,color:msg.owner===WALLET?"#c084fc":ownerColor(msg.owner),fontWeight:"bold"}}>
+                        {msg.owner===WALLET?"YOU":msg.owner}
+                      </span>
+                      <span style={{fontSize:8,color:"#1e293b",marginLeft:4}}>{msg.ts}</span>
+                      <div style={{fontSize:10.5,color:msg.owner===WALLET?"#e2e8f0":"#64748b",lineHeight:1.4,wordBreak:"break-word"}}>{msg.text}</div>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleSendChat} style={{display:"flex",gap:4,marginTop:4,flexShrink:0}}>
+                  <input value={chatInput} onChange={e=>setChatInput(e.target.value)}
+                    placeholder="say something…" maxLength={80}
+                    style={{flex:1,padding:"4px 6px",fontSize:11,background:"#07070e",border:"1px solid #1e1e3f",
+                      borderRadius:4,color:"#94a3b8",outline:"none",minWidth:0}} />
+                  <button type="submit" style={{padding:"4px 8px",fontSize:12,background:"#4c1d95",border:"none",
+                    borderRadius:4,color:"#a855f7",cursor:"pointer",fontWeight:"bold",flexShrink:0}}>→</button>
+                </form>
+              </div>
+            )}
+            {/* MOBILE BOARD TAB */}
+            {mobileTab==="board" && (
+              <div>
+                <div style={{fontSize:9,color:"#334155",marginBottom:4,letterSpacing:1}}>LEADERBOARD</div>
+                <div style={{display:"flex",gap:2,fontSize:8.5,color:"#334155",marginBottom:4}}>
+                  <span style={{width:12}}>#</span><span style={{flex:1}}>PLAYER</span>
+                  <span style={{width:26,textAlign:"right"}}>PX</span>
+                  <span style={{width:40,textAlign:"right"}}>$CANVAS</span>
+                </div>
+                {[...LB_SEED, {addr:WALLET,px:owned,earn:Math.floor(balance)}]
+                  .sort((a,b)=>b.px-a.px).slice(0,10)
+                  .map((p,i) => {
+                    const isYou=p.addr===WALLET;
+                    const col=i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#b45309":isYou?"#a855f7":"#475569";
+                    return (
+                      <div key={p.addr} style={{display:"flex",alignItems:"center",gap:2,marginBottom:4,fontSize:10.5,color:col}}>
+                        <span style={{width:12,flexShrink:0,color:i<3?col:"#334155"}}>{i+1}</span>
+                        <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isYou?"YOU":p.addr}</span>
+                        <span style={{width:26,textAlign:"right",flexShrink:0}}>{fmtCompact(p.px)}</span>
+                        <span style={{width:40,textAlign:"right",flexShrink:0,color:isYou?"#a855f7":"#334155"}}>{fmtCompact(p.earn)}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
               </div>
             )}
           </div>
