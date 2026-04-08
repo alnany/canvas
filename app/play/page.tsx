@@ -471,8 +471,9 @@ export default function Play() {
   const [rightTab,  setRightTab]  = useState<'log'|'chat'|'board'>('chat');
   const [chatInput, setChatInput] = useState('');
   const [chatMsgs,  setChatMsgs]  = useState<ChatMsg[]>(CHAT_SEEDS);
-  const chatEndRef  = useRef<HTMLDivElement>(null);
-  const chatIdRef   = useRef(CHAT_SEEDS.length + 1);
+  const chatEndRef    = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const chatIdRef     = useRef(CHAT_SEEDS.length + 1);
 
   // ── Pixel-placement animation overlay ─────────────────────────────────────
   type AnimEntry = { x:number; y:number; color:string; tier:StrikeTier|'none'; start:number; dur:number; };
@@ -825,9 +826,11 @@ export default function Play() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-scroll chat
+  // Auto-scroll chat — use container ref to avoid page-level scroll
   useEffect(() => {
-    if (rightTab === 'chat') chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (rightTab === 'chat' && chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
   }, [chatMsgs, rightTab]);
 
   const handleSendChat = (e: React.FormEvent) => {
@@ -1602,7 +1605,7 @@ export default function Play() {
               <div style={{fontSize:9,color:"#334155",marginBottom:6,letterSpacing:1}}>
                 WORLD CHAT ·  <span style={{color:"#4c1d95"}}>≥100 $CANVAS to post</span>
               </div>
-              <div style={{flex:1,overflowY:"auto",paddingRight:2}}>
+              <div ref={chatScrollRef} style={{flex:1,overflowY:"auto",paddingRight:2}}>
                 {chatMsgs.map(msg => (
                   <div key={msg.id} style={{marginBottom:6}}>
                     <div style={{display:"flex",alignItems:"baseline",gap:4}}>
