@@ -43,13 +43,13 @@ export const translations = {
     section_core_loop:  'Core Loop',
     section_how:        'How it works',
     step1_label:        'Place a pixel',
-    step1_desc:         'Click any cell on the 1000×1000 grid. 5-min cooldown. Cut it with referrals or $CANVAS burns.',
+    step1_desc:         'Click any cell on the 1000×1000 grid. No cooldown — place pixels as fast as you want.',
     step2_label:        'Earn $CANVAS',
     step2_desc:         '5 per placement + 0.5/hr per pixel you hold + provably-fair strike bonuses up to 200×.',
     step3_label:        'Spend to dominate',
     step3_desc:         'Burn $CANVAS to shield your pixels for 8 hours. Unshielded pixels are open to anyone.',
     step4_label:        'Invite to accelerate',
-    step4_desc:         'Each successful referral cuts your cooldown by 30s. Max −4 min, floor 1 min.',
+    step4_desc:         'Each successful referral earns you bonus $CANVAS. Invite friends, grow your territory.',
 
     // Strikes
     section_strikes:    'Bonus Strikes',
@@ -90,7 +90,7 @@ export const translations = {
     footer_built:       'Fair launch · 0% team / 0% VC · Not financial advice',
 
     // Play — top bar
-    play_demo_note:     '1,000 × 1,000 grid · 5 min cooldown · wallet required',
+    play_demo_note:     '1,000 × 1,000 grid · no cooldown · wallet required',
     play_connect:       '🔗 Connect Wallet',
     play_connecting:    'Connecting…',
 
@@ -102,7 +102,7 @@ export const translations = {
     top_up_demo:        'purchase credited to balance instantly',
     canvas_balance:     '$CANVAS BALANCE',
     per_min_hold:       '/min hold',
-    cooldown_label:     'COOLDOWN',
+    cooldown_label:     'PLACING',
     cooldown_ready:     '✓ READY',
     brush_size:         'BRUSH SIZE',
     your_stats:         'YOUR STATS',
@@ -236,7 +236,7 @@ export const translations = {
 
     footer_built:       '公平发射 · 零团队/零VC · 仅供演示 — 非投资建议',
 
-    play_demo_note:     '1000×1000 网格 · 5分钟冷却 · 需要钱包',
+    play_demo_note:     '1000×1000 网格 · 无冷却 · 需要钱包',
     play_connect:       '🔗 连接钱包',
     play_connecting:    '连接中…',
 
@@ -247,7 +247,7 @@ export const translations = {
     top_up_demo:        '购买立即到账',
     canvas_balance:     '$CANVAS 余额',
     per_min_hold:       '/分钟持有收益',
-    cooldown_label:     '冷却时间',
+    cooldown_label:     '放置中',
     cooldown_ready:     '✓ 可以放置',
     brush_size:         '笔刷大小',
     your_stats:         '你的统计',
@@ -375,7 +375,7 @@ export const translations = {
 
     footer_built:       '공정 출시 · 팀/VC 0% · 투자 조언 아님',
 
-    play_demo_note:     '1,000×1,000 그리드 · 5분 쿨다운 · 지갑 필요',
+    play_demo_note:     '1,000×1,000 그리드 · 쿨다운 없음 · 지갑 필요',
     play_connect:       '🔗 지갑 연결',
     play_connecting:    '연결 중…',
 
@@ -386,7 +386,7 @@ export const translations = {
     top_up_demo:        '구매 즉시 잔액에 추가됩니다',
     canvas_balance:     '$CANVAS 잔액',
     per_min_hold:       '/분 보유 보상',
-    cooldown_label:     '쿨다운',
+    cooldown_label:     '배치 중',
     cooldown_ready:     '✓ 준비 완료',
     brush_size:         '브러시 크기',
     your_stats:         '내 통계',
@@ -514,7 +514,7 @@ export const translations = {
 
     footer_built:       'フェアローンチ · チーム/VC 0% · 投資アドバイスではありません',
 
-    play_demo_note:     '1,000×1,000グリッド · 5分クールダウン · ウォレット必須',
+    play_demo_note:     '1,000×1,000グリッド · クールダウンなし · ウォレット必須',
     play_connect:       '🔗 ウォレット接続',
     play_connecting:    '接続中…',
 
@@ -525,7 +525,7 @@ export const translations = {
     top_up_demo:        '購入は即座に残高に反映されます',
     canvas_balance:     '$CANVAS残高',
     per_min_hold:       '/分保有報酬',
-    cooldown_label:     'クールダウン',
+    cooldown_label:     '配置中',
     cooldown_ready:     '✓ 準備完了',
     brush_size:         'ブラシサイズ',
     your_stats:         '自分の統計',
@@ -653,7 +653,7 @@ export const translations = {
 
     footer_built:       'Честный запуск · 0% команде/VC · Не является финансовым советом',
 
-    play_demo_note:     'Сетка 1000×1000 · кулдаун 5 мин · кошелёк обязателен',
+    play_demo_note:     'Сетка 1000×1000 · без кулдауна · кошелёк обязателен',
     play_connect:       '🔗 Подключить кошелёк',
     play_connecting:    'Подключение…',
 
@@ -664,7 +664,7 @@ export const translations = {
     top_up_demo:        'покупка зачисляется мгновенно',
     canvas_balance:     'БАЛАНС $CANVAS',
     per_min_hold:       '/мин холдинг',
-    cooldown_label:     'КУЛДАУН',
+    cooldown_label:     'РАЗМЕЩЕНИЕ',
     cooldown_ready:     '✓ ГОТОВ',
     brush_size:         'РАЗМЕР КИСТИ',
     your_stats:         'МОЯ СТАТИСТИКА',
@@ -792,7 +792,7 @@ export const translations = {
 
     footer_built:       'Fair launch · 0% tim / 0% VC · Bukan saran keuangan',
 
-    play_demo_note:     'Grid 1.000×1.000 · cooldown 5 mnt · dompet diperlukan',
+    play_demo_note:     'Grid 1.000×1.000 · tanpa cooldown · dompet diperlukan',
     play_connect:       '🔗 Hubungkan Dompet',
     play_connecting:    'Menghubungkan…',
 
@@ -803,7 +803,7 @@ export const translations = {
     top_up_demo:        'pembelian langsung dikreditkan ke saldo',
     canvas_balance:     'SALDO $CANVAS',
     per_min_hold:       '/mnt dari hold',
-    cooldown_label:     'COOLDOWN',
+    cooldown_label:     'PLACING',
     cooldown_ready:     '✓ SIAP',
     brush_size:         'UKURAN KUAS',
     your_stats:         'STATISTIK KAMU',
