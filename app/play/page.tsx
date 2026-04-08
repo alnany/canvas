@@ -423,12 +423,6 @@ export default function Play() {
   }, []);
 
   useEffect(() => { setLang_(getLang()); }, []);
-  // Capture affiliate referral code from URL into localStorage
-  useEffect(() => {
-    const ref = new URLSearchParams(window.location.search).get('ref');
-    if (ref) localStorage.setItem('canvas_ref', ref);
-  }, []);
-
 
   const [color,     setColor]     = useState(PALETTE[6]);
   const [balance,   setBalance]   = useState(0);
@@ -935,7 +929,7 @@ export default function Play() {
           <Link href="/rewards" style={{fontSize:11,padding:"5px 11px",borderRadius:6,background:"rgba(167,139,250,0.08)",border:"1px solid rgba(167,139,250,0.2)",color:"#a78bfa",textDecoration:"none",fontFamily:"'Share Tech Mono',monospace",letterSpacing:1,whiteSpace:"nowrap"}}>
             💰 REWARDS
           </Link>
-                    <LangSwitcher lang={lang} onChange={setLang_} />
+          <LangSwitcher lang={lang} onChange={setLang_} />
         </div>
       </div>
 
