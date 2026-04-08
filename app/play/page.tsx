@@ -14,7 +14,7 @@ const HOLD_REWARD_RATE = 0.5 / 3600;
 
 // ── USDT Economy ─────────────────────────────────────────────────────────────
 const PIXEL_COST_USDT = 1;               // USDT per placement
-const USDT_START      = 1000;             // demo starting balance
+const USDT_START      = 1000;             // starting balance
 // Prize table — 97% RTP (EV = 0.97 USDT per 1 USDT bet)
 const USDT_PRIZES = [
   { mult: 0,   label: "—",     prob: 0.380 },  // 38% loss
@@ -93,7 +93,7 @@ const BOTS = [
   "0xd9b…142","0x44e…f60","0x6c2…a91","0xf3a…b28","0xa1d…e56","0x88c…703",
 ];
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
-const WALLET = "YOU (Demo_7f4…a9c)";
+const WALLET = "YOU (Guest_7f4…a9c)";
 
 interface UserProfile {
   displayName: string;
@@ -798,7 +798,7 @@ export default function Play() {
           {walletConnected ? (
             <div style={{fontSize:12.5,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
               <div style={{width:6,height:6,background:"#22c55e",borderRadius:"50%"}} />
-              <span style={{color:"#22c55e"}}>Demo_7f4…a9c</span>
+              <span style={{color:"#22c55e"}}>Guest_7f4…a9c</span>
             </div>
           ) : (
             <button onClick={handleConnect} disabled={connecting} style={{

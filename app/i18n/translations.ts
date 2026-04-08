@@ -37,7 +37,7 @@ export const translations = {
     hero_desc:          '1,000 × 1,000 grid of real-time PVP. Place pixels, earn $CANVAS, and trigger strikes for massive payouts — up to 100× from the Vault. Fair launch — 0% team, 0% VC.',
     hero_cta_play:      'Play Now',
     hero_cta_how:       'How it works →',
-    hero_pixels_placed: 'pixels placed in demo',
+    hero_pixels_placed: 'pixels placed',
 
     // Core Loop
     section_core_loop:  'Core Loop',
@@ -83,14 +83,14 @@ export const translations = {
 
     // CTA
     cta_title:          'Ready to claim your territory?',
-    cta_desc:           'The demo runs in your browser — no wallet needed.',
+    cta_desc:           'Connect your wallet and start placing pixels.',
     cta_btn:            'PLAY NOW',
 
     // Footer
-    footer_built:       'Fair launch · 0% team / 0% VC · Demo only — not financial advice',
+    footer_built:       'Fair launch · 0% team / 0% VC · Not financial advice',
 
     // Play — top bar
-    play_demo_note:     '1000×1000 demo · 10s cooldown (real: 5 min) · no wallet needed',
+    play_demo_note:     '1,000 × 1,000 grid · 5 min cooldown · wallet required',
     play_connect:       '🔗 Connect Wallet',
     play_connecting:    'Connecting…',
 
@@ -99,7 +99,7 @@ export const translations = {
     sol_low:            'LOW',
     add_sol:            '＋ ADD USDT',
     close:              '▲ CLOSE',
-    top_up_demo:        'demo only · simulated purchase',
+    top_up_demo:        'purchase credited to balance instantly',
     canvas_balance:     '$CANVAS BALANCE',
     per_min_hold:       '/min hold',
     cooldown_label:     'COOLDOWN',
@@ -115,7 +115,7 @@ export const translations = {
     shield_active:      '🛡️ ACTIVE',
     shield_remaining:   's remaining',
     shield_cost_label:  'Cost:',
-    shield_cost_sub:    '3 × {n} pixels · 8h real / 30s demo',
+    shield_cost_sub:    '3 × {n} pixels · 8h shield duration',
     shield_place_first: 'Place pixels first',
     shield_need_more:   'Need {n} more',
     shield_activate:    'Activate Shield',
@@ -140,11 +140,11 @@ export const translations = {
 
     // Log messages
     log_welcome:        '[CANVAS] Click any pixel to place.',
-    log_wallet:         '[WALLET] Demo_7f4…a9c connected · 0 USDT',
+    log_wallet:         '[WALLET] Wallet connected · 0 USDT',
     log_broke:          '[BROKE] Need {n} USDT  —  top up wallet',
     log_place:          '[PLACE] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[STRIKE] {tier}! +{n} $CANVAS @ ({x},{y})',
-    log_topup:          '[TOP UP] +{label} · demo purchase',
+    log_topup:          '[TOP UP] +{label} · added to balance',
     log_shield:         '[SHIELD] Active 30s · Cost: {n} $CANVAS',
     log_refer:          '[REFER] Referral link copied',
     log_mining:         '[MINE] Hold reward tick +{n} $CANVAS',
@@ -236,7 +236,7 @@ export const translations = {
 
     footer_built:       '公平发射 · 零团队/零VC · 仅供演示 — 非投资建议',
 
-    play_demo_note:     '1000×1000 演示 · 10秒冷却（实际：5分钟）· 无需钱包',
+    play_demo_note:     '1000×1000 网格 · 5分钟冷却 · 需要钱包',
     play_connect:       '🔗 连接钱包',
     play_connecting:    '连接中…',
 
@@ -244,7 +244,7 @@ export const translations = {
     sol_low:            '不足',
     add_sol:            '＋ 充值 USDT',
     close:              '▲ 关闭',
-    top_up_demo:        '仅供演示 · 模拟购买',
+    top_up_demo:        '购买立即到账',
     canvas_balance:     '$CANVAS 余额',
     per_min_hold:       '/分钟持有收益',
     cooldown_label:     '冷却时间',
@@ -260,7 +260,7 @@ export const translations = {
     shield_active:      '🛡️ 激活中',
     shield_remaining:   '秒剩余',
     shield_cost_label:  '费用：',
-    shield_cost_sub:    '3 × {n} 像素 · 实际 8小时 / 演示 30秒',
+    shield_cost_sub:    '3 × {n} 像素 · 护盾持续 8小时',
     shield_place_first: '先放置像素',
     shield_need_more:   '还需 {n}',
     shield_activate:    '激活护盾',
@@ -282,7 +282,7 @@ export const translations = {
     pack_whale:         '大户',
 
     log_welcome:        '[CANVAS] 点击任意像素开始放置。',
-    log_wallet:         '[钱包] Demo_7f4…a9c 已连接 · 0 USDT',
+    log_wallet:         '[钱包] 钱包已连接 · 0 USDT',
     log_broke:          '[余额不足] 需要 {n} USDT — 请充值',
     log_place:          '[放置] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[连击] {tier}! +{n} $CANVAS @ ({x},{y})',
@@ -373,9 +373,9 @@ export const translations = {
     cta_desc:           '데모는 브라우저에서 실행됩니다 — 지갑 불필요.',
     cta_btn:            '지금 플레이',
 
-    footer_built:       '공정 출시 · 팀/VC 0% · 데모 전용 — 투자 조언 아님',
+    footer_built:       '공정 출시 · 팀/VC 0% · 투자 조언 아님',
 
-    play_demo_note:     '1000×1000 데모 · 10초 쿨다운 (실제: 5분) · 지갑 불필요',
+    play_demo_note:     '1,000×1,000 그리드 · 5분 쿨다운 · 지갑 필요',
     play_connect:       '🔗 지갑 연결',
     play_connecting:    '연결 중…',
 
@@ -383,7 +383,7 @@ export const translations = {
     sol_low:            '부족',
     add_sol:            '＋ USDT 충전',
     close:              '▲ 닫기',
-    top_up_demo:        '데모 전용 · 시뮬레이션 구매',
+    top_up_demo:        '구매 즉시 잔액에 추가됩니다',
     canvas_balance:     '$CANVAS 잔액',
     per_min_hold:       '/분 보유 보상',
     cooldown_label:     '쿨다운',
@@ -399,7 +399,7 @@ export const translations = {
     shield_active:      '🛡️ 활성화',
     shield_remaining:   '초 남음',
     shield_cost_label:  '비용:',
-    shield_cost_sub:    '3 × {n} 픽셀 · 실제 8시간 / 데모 30초',
+    shield_cost_sub:    '3 × {n} 픽셀 · 방어막 8시간 유지',
     shield_place_first: '먼저 픽셀을 배치하세요',
     shield_need_more:   '{n} 더 필요',
     shield_activate:    '보호막 활성화',
@@ -421,7 +421,7 @@ export const translations = {
     pack_whale:         '고래',
 
     log_welcome:        '[CANVAS] 픽셀을 클릭해 배치하세요.',
-    log_wallet:         '[지갑] Demo_7f4…a9c 연결됨 · 0 USDT',
+    log_wallet:         '[지갑] 지갑 연결됨 · 0 USDT',
     log_broke:          '[잔액 부족] {n} USDT 필요 — 충전하세요',
     log_place:          '[배치] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[스트라이크] {tier}! +{n} $CANVAS @ ({x},{y})',
@@ -512,9 +512,9 @@ export const translations = {
     cta_desc:           'デモはブラウザで動作 — ウォレット不要。',
     cta_btn:            '今すぐプレイ',
 
-    footer_built:       'フェアローンチ · チーム/VC 0% · デモのみ — 投資アドバイスではありません',
+    footer_built:       'フェアローンチ · チーム/VC 0% · 投資アドバイスではありません',
 
-    play_demo_note:     '1000×1000デモ · 10秒クールダウン（実際: 5分）· ウォレット不要',
+    play_demo_note:     '1,000×1,000グリッド · 5分クールダウン · ウォレット必須',
     play_connect:       '🔗 ウォレット接続',
     play_connecting:    '接続中…',
 
@@ -522,7 +522,7 @@ export const translations = {
     sol_low:            '残高不足',
     add_sol:            '＋ USDT追加',
     close:              '▲ 閉じる',
-    top_up_demo:        'デモのみ · 模擬購入',
+    top_up_demo:        '購入は即座に残高に反映されます',
     canvas_balance:     '$CANVAS残高',
     per_min_hold:       '/分保有報酬',
     cooldown_label:     'クールダウン',
@@ -538,7 +538,7 @@ export const translations = {
     shield_active:      '🛡️ アクティブ',
     shield_remaining:   '秒残り',
     shield_cost_label:  'コスト:',
-    shield_cost_sub:    '3 × {n} ピクセル · 実際8時間 / デモ30秒',
+    shield_cost_sub:    '3 × {n} ピクセル · シールド持続 8時間',
     shield_place_first: '先にピクセルを配置',
     shield_need_more:   'あと{n}必要',
     shield_activate:    'シールドを起動',
@@ -560,7 +560,7 @@ export const translations = {
     pack_whale:         'ホエール',
 
     log_welcome:        '[CANVAS] ピクセルをクリックして配置しましょう。',
-    log_wallet:         '[ウォレット] Demo_7f4…a9c 接続済み · 0 USDT',
+    log_wallet:         '[ウォレット] ウォレット接続済み · 0 USDT',
     log_broke:          '[残高不足] {n} USDT必要 — チャージしてください',
     log_place:          '[配置] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[ストライク] {tier}! +{n} $CANVAS @ ({x},{y})',
@@ -651,9 +651,9 @@ export const translations = {
     cta_desc:           'Демо работает в браузере — кошелёк не нужен.',
     cta_btn:            'ИГРАТЬ СЕЙЧАС',
 
-    footer_built:       'Честный запуск · 0% команде/VC · Только демо — не является финансовым советом',
+    footer_built:       'Честный запуск · 0% команде/VC · Не является финансовым советом',
 
-    play_demo_note:     'Демо 1000×1000 · кулдаун 10с (реальный: 5 мин) · кошелёк не нужен',
+    play_demo_note:     'Сетка 1000×1000 · кулдаун 5 мин · кошелёк обязателен',
     play_connect:       '🔗 Подключить кошелёк',
     play_connecting:    'Подключение…',
 
@@ -661,7 +661,7 @@ export const translations = {
     sol_low:            'МАЛО',
     add_sol:            '＋ ПОПОЛНИТЬ USDT',
     close:              '▲ ЗАКРЫТЬ',
-    top_up_demo:        'только демо · симулированная покупка',
+    top_up_demo:        'покупка зачисляется мгновенно',
     canvas_balance:     'БАЛАНС $CANVAS',
     per_min_hold:       '/мин холдинг',
     cooldown_label:     'КУЛДАУН',
@@ -677,7 +677,7 @@ export const translations = {
     shield_active:      '🛡️ АКТИВЕН',
     shield_remaining:   'с осталось',
     shield_cost_label:  'Стоимость:',
-    shield_cost_sub:    '3 × {n} пикселей · 8ч реально / 30с демо',
+    shield_cost_sub:    '3 × {n} пикселей · щит на 8 часов',
     shield_place_first: 'Сначала разместите пиксели',
     shield_need_more:   'Нужно ещё {n}',
     shield_activate:    'Активировать щит',
@@ -699,7 +699,7 @@ export const translations = {
     pack_whale:         'Кит',
 
     log_welcome:        '[CANVAS] Кликни на пиксель для размещения.',
-    log_wallet:         '[КОШЕЛЁК] Demo_7f4…a9c подключён · 0 USDT',
+    log_wallet:         '[КОШЕЛЁК] Кошелёк подключён · 0 USDT',
     log_broke:          '[МАЛО СРЕДСТВ] Нужно {n} USDT — пополни кошелёк',
     log_place:          '[РАЗМЕЩЕНИЕ] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[СТРАЙК] {tier}! +{n} $CANVAS @ ({x},{y})',
@@ -746,7 +746,7 @@ export const translations = {
     hero_desc:          'Grid 1.000×1.000 PVP real-time. Tempatkan piksel untuk mendapatkan $CANVAS dan picu strike untuk memenangkan hingga 100× dari Vault. Fair launch — 0% tim, 0% VC.',
     hero_cta_play:      'Play Now',
     hero_cta_how:       'Cara bermain →',
-    hero_pixels_placed: 'piksel sudah ditempatkan di demo',
+    hero_pixels_placed: 'piksel sudah ditempatkan',
 
     section_core_loop:  'Siklus Inti',
     section_how:        'Cara bermain',
@@ -787,12 +787,12 @@ export const translations = {
     holdr_r3_val:       '10% → Holdr',
 
     cta_title:          'Siap mengklaim wilayahmu?',
-    cta_desc:           'Demo berjalan di browser — tidak perlu dompet.',
+    cta_desc:           'Hubungkan dompet dan mulai menempatkan piksel.',
     cta_btn:            'MAIN SEKARANG',
 
-    footer_built:       'Fair launch · 0% tim / 0% VC · Demo saja — bukan saran keuangan',
+    footer_built:       'Fair launch · 0% tim / 0% VC · Bukan saran keuangan',
 
-    play_demo_note:     'Demo 1000×1000 · cooldown 10d (nyata: 5 mnt) · tanpa dompet',
+    play_demo_note:     'Grid 1.000×1.000 · cooldown 5 mnt · dompet diperlukan',
     play_connect:       '🔗 Hubungkan Dompet',
     play_connecting:    'Menghubungkan…',
 
@@ -800,7 +800,7 @@ export const translations = {
     sol_low:            'RENDAH',
     add_sol:            '＋ ISI USDT',
     close:              '▲ TUTUP',
-    top_up_demo:        'demo saja · pembelian simulasi',
+    top_up_demo:        'pembelian langsung dikreditkan ke saldo',
     canvas_balance:     'SALDO $CANVAS',
     per_min_hold:       '/mnt dari hold',
     cooldown_label:     'COOLDOWN',
@@ -816,7 +816,7 @@ export const translations = {
     shield_active:      '🛡️ AKTIF',
     shield_remaining:   'd tersisa',
     shield_cost_label:  'Biaya:',
-    shield_cost_sub:    '3 × {n} piksel · 8j nyata / 30d demo',
+    shield_cost_sub:    '3 × {n} piksel · shield 8 jam',
     shield_place_first: 'Tempatkan piksel dulu',
     shield_need_more:   'Butuh {n} lagi',
     shield_activate:    'Aktifkan Perisai',
@@ -838,11 +838,11 @@ export const translations = {
     pack_whale:         'Whale',
 
     log_welcome:        '[CANVAS] Klik piksel mana saja untuk menempatkan.',
-    log_wallet:         '[DOMPET] Demo_7f4…a9c terhubung · 0 USDT',
+    log_wallet:         '[DOMPET] Dompet terhubung · 0 USDT',
     log_broke:          '[SALDO KURANG] Butuh {n} USDT — isi dompet',
     log_place:          '[TEMPATKAN] ({x},{y}) → +{n} $CANVAS',
     log_strike:         '[STRIKE] {tier}! +{n} $CANVAS @ ({x},{y})',
-    log_topup:          '[ISI ULANG] +{label} · pembelian demo',
+    log_topup:          '[ISI ULANG] +{label} · ditambahkan ke saldo',
     log_shield:         '[PERISAI] Aktif 30d · Biaya: {n} $CANVAS',
     log_refer:          '[REFERRAL] Tautan referral disalin',
     log_mining:         '[MINING] Hadiah hold +{n} $CANVAS',
