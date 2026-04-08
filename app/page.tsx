@@ -183,9 +183,6 @@ export default function Home() {
         {/* HERO */}
         <section className="lp-hero" style={{ maxWidth:1100, margin:"0 auto" }}>
           <div className="lp-hero-text">
-            <div style={{ fontSize:17, color:"#22d3ee", marginBottom:12, letterSpacing:3, textTransform:"uppercase" }}>
-              {T('hero_tag')}
-            </div>
             <div style={{ marginBottom: 20 }}>
               <CanvasLogo size="lg" />
             </div>
