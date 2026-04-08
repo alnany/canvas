@@ -97,23 +97,27 @@ const WALLET = "YOU (Guest_7f4…a9c)";
 
 // ── World Chat ───────────────────────────────────────────────────────────────
 interface ChatMsg { id: number; owner: string; text: string; ts: string; }
-const CHAT_COLORS: Record<string,string> = {
-  "0xaf1\u2026c32":"#f59e0b","0x7a3\u2026b9f":"#22d3ee","0x99d\u2026441":"#a855f7","@dogefather_sol":"#f97316",
-  "0x55e\u2026f90":"#ec4899","0xfe2\u2026b56":"#84cc16","0x31f\u2026e77":"#f43f5e","0x8d4\u2026c90":"#3d9a3d",
-  "0xcc4\u2026d18":"#f3ba2f","0x12b\u2026d33":"#94a3b8","0x77a\u2026f01":"#06b6d4","0x29e\u2026772":"#a855f7",
+const CHAT_PALETTE = [
+  "#f59e0b","#22d3ee","#a855f7","#f97316","#ec4899","#84cc16","#f43f5e",
+  "#34d399","#60a5fa","#e879f9","#fb923c","#06b6d4","#facc15","#a3e635","#38bdf8",
+];
+// Deterministic bright color per username — always distinct from message text (#64748b)
+const ownerColor = (o: string) => {
+  let h = 0;
+  for (let i = 0; i < o.length; i++) h = (h * 31 + o.charCodeAt(i)) & 0xffff;
+  return CHAT_PALETTE[h % CHAT_PALETTE.length];
 };
-const ownerColor = (o: string) => CHAT_COLORS[o] ?? "#64748b";
 const CHAT_SEEDS: ChatMsg[] = [
-  { id:1,  owner:"0xaf1\u2026c32", text:"gm everyone \U0001f44b",                              ts:"12:41" },
-  { id:2,  owner:"0x99d\u2026441", text:"who's defending the center zone?",              ts:"12:42" },
-  { id:3,  owner:"0x7a3\u2026b9f", text:"just hit Legendary!! 200\xd7 \U0001f525\U0001f525\U0001f525",             ts:"12:43" },
+  { id:1,  owner:"@solmaxi88", text:"gm everyone \U0001f44b",                              ts:"12:41" },
+  { id:2,  owner:"@pixelhunter_nft", text:"who's defending the center zone?",              ts:"12:42" },
+  { id:3,  owner:"@cryptowalrus_sol", text:"just hit Legendary!! 200\xd7 \U0001f525\U0001f525\U0001f525",             ts:"12:43" },
   { id:4,  owner:"@dogefather_sol", text:"painting bottom-left yellow, don't touch \U0001f624", ts:"12:43" },
-  { id:5,  owner:"0x55e\u2026f90", text:"how many pixels for the Vault jackpot?",        ts:"12:44" },
-  { id:6,  owner:"0xfe2\u2026b56", text:"bot running smooth today \U0001f916",                  ts:"12:44" },
-  { id:7,  owner:"0x31f\u2026e77", text:"BTC zone needs more defenders",                 ts:"12:45" },
-  { id:8,  owner:"0x8d4\u2026c90", text:"WAGMI \U0001f438 pepe army reporting in",               ts:"12:45" },
-  { id:9,  owner:"0xcc4\u2026d18", text:"cross-chain deposit live, let's go!",           ts:"12:46" },
-  { id:10, owner:"0x12b\u2026d33", text:"watching. always watching. \U0001f47b",                 ts:"12:47" },
+  { id:5,  owner:"@moonboi_sol", text:"how many pixels for the Vault jackpot?",        ts:"12:44" },
+  { id:6,  owner:"@gigabrain_xyz", text:"bot running smooth today \U0001f916",                  ts:"12:44" },
+  { id:7,  owner:"@nakamotokid", text:"BTC zone needs more defenders",                 ts:"12:45" },
+  { id:8,  owner:"@pepearmy_sol", text:"WAGMI \U0001f438 pepe army reporting in",               ts:"12:45" },
+  { id:9,  owner:"@czarmy_official", text:"cross-chain deposit live, let's go!",           ts:"12:46" },
+  { id:10, owner:"SatoshiGhost", text:"watching. always watching. \U0001f47b",                 ts:"12:47" },
 ];
 const BOT_CHAT_MSGS = [
   "gm \U0001f31e","just placed 100px \U0001f4aa","who keeps painting over my zone??",
@@ -126,16 +130,16 @@ const BOT_CHAT_MSGS = [
 ];
 // ── Leaderboard seed ─────────────────────────────────────────────────────────
 const LB_SEED = [
-  {addr:"0xfe2\u2026b56", px:4821, earn:94200},
-  {addr:"0xaf1\u2026c32", px:3284, earn:64680},
-  {addr:"0x7a3\u2026b9f", px:2963, earn:58420},
-  {addr:"0x18d\u2026f94", px:2104, earn:41200},
-  {addr:"0xbc3\u2026e88", px:1873, earn:36700},
-  {addr:"0x5e1\u2026a49", px:1240, earn:24300},
-  {addr:"0x99d\u2026441", px:812,  earn:15900},
+  {addr:"@gigabrain_xyz", px:4821, earn:94200},
+  {addr:"@solmaxi88", px:3284, earn:64680},
+  {addr:"@cryptowalrus_sol", px:2963, earn:58420},
+  {addr:"@vaultseeker", px:2104, earn:41200},
+  {addr:"@blockanon", px:1873, earn:36700},
+  {addr:"@defipixel", px:1240, earn:24300},
+  {addr:"@pixelhunter_nft", px:812,  earn:15900},
   {addr:"@dogefather_sol", px:548,  earn:10740},
-  {addr:"0x07f\u2026c73", px:312,  earn:6120 },
-  {addr:"0xd9b\u2026142", px:204,  earn:3990 },
+  {addr:"CanvasNinja", px:312,  earn:6120 },
+  {addr:"@pepeking_sol", px:204,  earn:3990 },
 ];
 
 interface UserProfile {
