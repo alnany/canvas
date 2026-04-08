@@ -423,6 +423,12 @@ export default function Play() {
   }, []);
 
   useEffect(() => { setLang_(getLang()); }, []);
+  // Capture affiliate referral code from URL into localStorage
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('ref');
+    if (ref) localStorage.setItem('canvas_ref', ref);
+  }, []);
+
 
   const [color,     setColor]     = useState(PALETTE[6]);
   const [balance,   setBalance]   = useState(0);
