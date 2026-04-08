@@ -31,8 +31,8 @@ export const translations = {
 
     hero_tag:           'USDT · 10B $CANVAS',
     hero_sub1:          'A real-time pixel war game.',
-    hero_sub2:          'Claim territory. Earn tokens. Survive the chaos.',
-    hero_desc:          '1,000 × 1,000 grid. Real-time PVP. USDT top-ups.',
+    hero_sub2:          'Claim territory. Win USDT. Earn tokens.',
+    hero_desc:          '1000×1000 grid. Real-time PVP. ',
     hero_cta_play:      '▶ Play Now',
     hero_cta_how:       'How it works →',
     hero_pixels_placed: 'pixels placed',
@@ -165,7 +165,7 @@ export const translations = {
 
     hero_tag:           'USDT · 总量 100 亿 $CANVAS',
     hero_sub1:          '像素战场，寸土必争。',
-    hero_sub2:          '攻占格子，赚取 $CANVAS，乱局称王。',
+    hero_sub2:          '攻占格子。赢取 USDT。赚取代币。',
     hero_desc:          '1000×1000 超大战场。实时 PVP 对抗。USDT 充值。',
     hero_cta_play:      '▶ 立即开战',
     hero_cta_how:       '游戏玩法 →',
@@ -299,7 +299,7 @@ export const translations = {
 
     hero_tag:           'USDT · 총 100억 $CANVAS',
     hero_sub1:          '픽셀 하나하나가 전장이다.',
-    hero_sub2:          '영역을 점령하고, $CANVAS를 쓸어담고, 끝까지 살아남아라.',
+    hero_sub2:          '영역을 점령하고. USDT를 획득하고. 토큰을 벌어라.',
     hero_desc:          '1,000×1,000 전장. 실시간 PVP. USDT 충전.',
     hero_cta_play:      '▶ 지금 체험',
     hero_cta_how:       '게임 방법 →',
@@ -433,7 +433,7 @@ export const translations = {
 
     hero_tag:           'USDT · 100億 $CANVAS',
     hero_sub1:          '1マス1マスが、戦場だ。',
-    hero_sub2:          '領土を刻め。$CANVASを奪え。混沌を制圧しろ。',
+    hero_sub2:          '領土を刻め。USDTを勝ち取れ。トークンを稼げ。',
     hero_desc:          '1,000×1,000グリッド。リアルタイムPVP。USDT決済。',
     hero_cta_play:      '▶ 今すぐプレイ',
     hero_cta_how:       '遊び方 →',
@@ -567,7 +567,7 @@ export const translations = {
 
     hero_tag:           'USDT · 10 млрд $CANVAS',
     hero_sub1:          'Каждый пиксель — это территория.',
-    hero_sub2:          'Захватывай. Зарабатывай. Доминируй.',
+    hero_sub2:          'Захватывай. Выигрывай USDT. Зарабатывай токены.',
     hero_desc:          'Сетка 1000×1000. PVP в реальном времени. Пополнение через USDT.',
     hero_cta_play:      '▶ Играть',
     hero_cta_how:       'Как играть →',
@@ -701,7 +701,7 @@ export const translations = {
 
     hero_tag:           'USDT · 10 Miliar $CANVAS',
     hero_sub1:          'Setiap piksel adalah pertempuran.',
-    hero_sub2:          'Klaim wilayah. Kumpulkan token. Bertahan dalam kekacauan.',
+    hero_sub2:          'Klaim wilayah. Menangkan USDT. Kumpulkan token.',
     hero_desc:          'Grid 1.000×1.000. PVP real-time. Isi saldo USDT.',
     hero_cta_play:      '▶ Main Sekarang',
     hero_cta_how:       'Cara bermain →',
