@@ -1795,28 +1795,6 @@ export default function Play() {
                 </div>
               </div>
             )}
-            {/* ── LOG TAB ── */}
-            {mobileTab==="log" && (
-              <div style={{fontSize:12.5,lineHeight:2}}>
-                {log.slice(0,10).map((l,i) => {
-                  const logParts = l.split('|');
-                  const dispText = logParts[0];
-                  const coordStr = logParts.length > 1 ? logParts[1] : '';
-                  const hasCoords = coordStr.includes(',');
-                  const lx = hasCoords ? parseInt(coordStr.split(',')[0],10) : -1;
-                  const ly = hasCoords ? parseInt(coordStr.split(',')[1],10) : -1;
-                  return (
-                    <div key={i}
-                      onClick={()=>{
-                        if (!hasCoords) return;
-                        spawnAnim(lx,ly,'#a855f7','rare');
-                        canvasWrapRef.current?.scrollTo({left:Math.max(0,lx-150),top:Math.max(0,ly-150),behavior:'smooth'});
-                      }}
-                      style={{color:i===0?"#a855f7":hasCoords?"#4a3060":"#334155",cursor:hasCoords?"pointer":"default",
-                        whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}
-                      title={hasCoords?"Tap to highlight pixel":undefined}>{dispText}</div>
-                  );
-                })}
             {/* MOBILE CHAT TAB */}
             {mobileTab==="chat" && (
               <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
