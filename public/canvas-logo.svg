@@ -1,8 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 56" width="220" height="56">
-  <rect width="220" height="56" fill="#0a0a0f" rx="8"/>
-  <!-- Letter-by-letter spectrum: C A N V A S -->
-  <text font-family="'Courier New', Courier, monospace" font-weight="900" font-size="36" letter-spacing="4">
-    <tspan x="12" y="42" fill="#ef4444">C</tspan>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 36" width="140" height="36">
+  <rect width="140" height="36" fill="#0a0a0f" rx="5"/>
+  <text font-family="'Courier New', Courier, monospace" font-weight="900" font-size="22" letter-spacing="2">
+    <tspan x="8" y="26" fill="#ef4444">C</tspan>
     <tspan fill="#f97316">A</tspan>
     <tspan fill="#eab308">N</tspan>
     <tspan fill="#22c55e">V</tspan>
