@@ -13,8 +13,19 @@
  *  MIN_RATE_FLOOR  = 10%  (Min downline rate = 10% of your own rate, or 0 if your rate < 10%)
  */
 
-export const AFFILIATE_POOL   = 5;   // % of purchase → cascade pool
-export const DIRECT_BONUS     = 5;   // % of purchase → immediate referrer (guaranteed)
+// Revenue model:
+//   RTP             = 96% of paint spend (goes to prize pool — never touched)
+//   PLATFORM_FEE    =  4% of paint spend (Canvas revenue)
+//   Affiliate rates are expressed as % of PLATFORM_FEE, NOT % of gross spend.
+//
+//   Example: $100 spend → $4 platform fee
+//     Direct bonus:  5% of $4 = $0.20  (guaranteed to immediate referrer)
+//     Cascade pool:  5% of $4 = $0.20  (split up the chain by delta)
+//     Canvas keeps:  90% of $4 = $3.60 (net after affiliates)
+
+export const PLATFORM_FEE_RATE = 4;   // % of purchase → Canvas platform fee (RTP = 96%)
+export const AFFILIATE_POOL   = 5;   // % of platform fee → cascade pool
+export const DIRECT_BONUS     = 5;   // % of platform fee → immediate referrer (guaranteed)
 export const MAX_DEPTH        = 15;
 export const MIN_RATE_FLOOR   = 10;  // 10% of your own rate is the minimum you must give downline
 
