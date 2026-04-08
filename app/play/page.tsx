@@ -6,6 +6,8 @@ import LangSwitcher from '../components/LangSwitcher';
 import { CanvasLogo } from '../components/CanvasLogo';
 import { MouseTrail } from '../components/MouseTrail';
 import { BgCanvas } from '../components/BgCanvas';
+import { usePrivy } from '@privy-io/react-auth';
+import { AuthButton } from '../components/AuthButton';
 
 const GRID = 1000;
 const PX   = 1;
@@ -93,7 +95,7 @@ const BOTS = [
   "@pepeking_sol","GridMaster","@xpixels_io","CryptoArtisan","@nftwarrior_x","QuantumBrush",
 ];
 const rndOwner = () => BOTS[Math.floor(Math.random()*BOTS.length)];
-const WALLET = "YOU (Guest_7f4…a9c)";
+// WALLET identity resolved from Privy auth (see below)
 
 // ── World Chat ───────────────────────────────────────────────────────────────
 interface ChatMsg { id: number; owner: string; text: string; ts: string; }
@@ -402,6 +404,25 @@ function seedCanvas(g: (PxData|null)[]) {
 
 
 export default function Play() {
+  // ── Auth (Privy) ─────────────────────────────────────────────────────────────
+  const { authenticated, user: privyUser } = usePrivy();
+
+  // Derive player identity from Privy user
+  const getProfile = () => {
+    if (typeof window === 'undefined') return {};
+    try { return JSON.parse(localStorage.getItem('canvas_profile') || '{}'); } catch { return {}; }
+  };
+  const WALLET: string = (() => {
+    if (!authenticated || !privyUser) return "YOU (Guest_7f4…a9c)";
+    const profile = getProfile();
+    if (profile?.username) return profile.username;
+    const wa = privyUser.wallet?.address;
+    if (wa) return `${wa.slice(0,5)}…${wa.slice(-4)}`;
+    const em = privyUser.email?.address || privyUser.google?.email;
+    if (em) return em.split('@')[0];
+    return "YOU (Guest_7f4…a9c)";
+  })();
+
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const gridRef     = useRef<(PxData|null)[]>(Array(GRID*GRID).fill(null));
   const ownedRef    = useRef(0);
@@ -434,8 +455,7 @@ export default function Play() {
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const [log,       setLog]       = useState<string[]>([T('log_welcome')]);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [connecting, setConnecting] = useState(false);
+  // walletConnected + connecting are now handled by Privy
   const [topUpOpen,  setTopUpOpen]  = useState(false);
   const [topUpFlash, setTopUpFlash] = useState(false);
   const [usdt,      setUsdt]      = useState(USDT_START);
@@ -756,14 +776,7 @@ export default function Play() {
     setLog(l => [T('log_topup', {label}), ...l.slice(0,11)]);
   };
 
-  const handleConnect = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnecting(false);
-      setWalletConnected(true);
-      setLog(l => [T('log_wallet'), ...l.slice(0,11)]);
-    }, 1200);
-  };
+  // handleConnect removed — Privy manages auth
 
   // Wheel zoom
   useEffect(() => {
@@ -912,20 +925,7 @@ export default function Play() {
               </svg>
             </a>
           </div>
-          {walletConnected ? (
-            <div style={{fontSize:12.5,display:"flex",alignItems:"center",gap:6,background:"#0f1a0f",border:"1px solid #166534",borderRadius:6,padding:"5px 12px"}}>
-              <div style={{width:6,height:6,background:"#22c55e",borderRadius:"50%"}} />
-              <span style={{color:"#22c55e"}}>Guest_7f4…a9c</span>
-            </div>
-          ) : (
-            <button onClick={handleConnect} disabled={connecting} style={{
-              fontSize:12.5,padding:"6px 14px",borderRadius:6,fontFamily:"inherit",cursor:"pointer",
-              background:connecting?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#a855f7)",
-              color:"#fff",border:"none",
-            }}>
-              {connecting ? T('play_connecting') : T('play_connect')}
-            </button>
-          )}
+          <AuthButton />
           {/* Rewards link */}
           <Link href="/rewards" style={{fontSize:11,padding:"5px 11px",borderRadius:6,background:"rgba(167,139,250,0.08)",border:"1px solid rgba(167,139,250,0.2)",color:"#a78bfa",textDecoration:"none",fontFamily:"'Share Tech Mono',monospace",letterSpacing:1,whiteSpace:"nowrap"}}>
             💰 REFERRAL
