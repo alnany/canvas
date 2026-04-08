@@ -34,7 +34,7 @@ export const MIN_RATE_FLOOR   = 10;  // 10% of your own rate is the minimum you 
 export interface Affiliate {
   id: string;           // wallet address
   referralCode: string; // short shareable code (fallback)
-  username: string | null; // custom @username for referral links (e.g. domain.com/@alice)
+  username?: string | null; // custom @username for referral links (e.g. domain.com/@alice)
   referrerId: string | null; // parent affiliate id (null = direct Canvas invite)
   maxRate: number;      // max % this affiliate can earn — set by their parent/Canvas
   downlineDefaultRate: number; // default % given to their invitees (0 to maxRate)
