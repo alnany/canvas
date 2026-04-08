@@ -214,6 +214,17 @@ export function validateUsername(username: string): string | null {
   return null;
 }
 
+/**
+ * Returns true if this affiliate has been granted more than the base platform rate.
+ * Only affiliates with maxRate > AFFILIATE_POOL (5%) have cascade settings —
+ * they can sub-allocate the surplus to their downline.
+ * Standard affiliates get a flat 5% and have no cascade controls.
+ */
+export function hasCascadeAccess(affiliate: Pick<Affiliate, 'maxRate'>): boolean {
+  return affiliate.maxRate > AFFILIATE_POOL;
+}
+
+
 /** Build the affiliate referral link for a given affiliate. */
 export function getReferralLink(affiliate: Pick<Affiliate, 'referralCode' | 'username'>, origin: string): string {
   return affiliate.username
