@@ -152,14 +152,13 @@ export default function Home() {
   const STEPS = [
     { emoji:"🎨", label: T('step1_label'), desc: T('step1_desc') },
     { emoji:"💰", label: T('step2_label'), desc: T('step2_desc') },
-    { emoji:"🛡️", label: T('step3_label'), desc: T('step3_desc') },
+    { emoji:"⚡", label: T('step3_label'), desc: T('step3_desc') },
     { emoji:"🔗", label: T('step4_label'), desc: T('step4_desc') },
   ];
 
   const TOKENOMICS = [
-    { label: T('tok_gameplay'), pct:75, color:"#a855f7", sub: T('tok_gameplay_sub') },
-    { label: T('tok_lp'),       pct:15, color:"#22d3ee", sub: T('tok_lp_sub') },
-    { label: T('tok_dao'),      pct:10, color:"#f59e0b", sub: T('tok_dao_sub') },
+    { label: T('tok_gameplay'), pct:90, color:"#a855f7", sub: T('tok_gameplay_sub') },
+    { label: T('tok_lp'),       pct:10, color:"#22d3ee", sub: T('tok_lp_sub') },
   ];
 
   return (
@@ -318,7 +317,7 @@ export default function Home() {
 
         {/* FOOTER */}
         <footer className="lp-footer" style={{ borderTop:"1px solid #1e1e3f", textAlign:"center", fontSize:17, color:"#475569" }}>
-          <CanvasLogo size="sm" />
+          <span style={{display:"inline-block", position:"relative", top:3}}><CanvasLogo size="sm" /></span>
           {" · "}{T('footer_built')}
         </footer>
       </div>
