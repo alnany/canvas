@@ -19,6 +19,7 @@ CREATE TABLE affiliates (
 );
 
 CREATE INDEX idx_affiliates_referrer ON affiliates(referrer_id);
+CREATE UNIQUE INDEX idx_affiliates_username ON affiliates(username) WHERE username IS NOT NULL;
 CREATE INDEX idx_affiliates_code     ON affiliates(referral_code);
 
 -- ─── Per-Downline Custom Rate Overrides ──────────────────────────────────────
