@@ -29,10 +29,10 @@ export const translations = {
     nav_tokenomics:     'Tokenomics',
     nav_play_demo:      '▶ Play Now',
 
-    hero_tag:           'Fair Launch · USDT · 10B $CANVAS',
+    hero_tag:           'USDT · 10B $CANVAS',
     hero_sub1:          'A real-time pixel war game.',
     hero_sub2:          'Claim territory. Earn tokens. Survive the chaos.',
-    hero_desc:          '1,000 × 1,000 grid. Real-time PVP. USDT top-ups. Fair launch — 0% team, 0% VC.',
+    hero_desc:          '1,000 × 1,000 grid. Real-time PVP. USDT top-ups.',
     hero_cta_play:      '▶ Play Now',
     hero_cta_how:       'How it works →',
     hero_pixels_placed: 'pixels placed',
@@ -43,10 +43,10 @@ export const translations = {
     step1_desc:         'Click any cell on the 1,000×1,000 grid. Top up USDT to place. API rate-limited — no cooldowns, pure strategy.',
     step2_label:        'Earn $CANVAS',
     step2_desc:         '+4.5 per placement + 0.45/hr per pixel you hold + strike bonuses up to 200×.',
-    step3_label:        'Shield to dominate',
-    step3_desc:         'Burn $CANVAS to shield your pixels for 8 hours. Unshielded pixels are open to anyone.',
+    step3_label:        'Strike for big wins',
+    step3_desc:         'Every placement is a provably-fair RNG roll. Hit Legendary and win up to 100\u00d7 your bet — paid out instantly in USDT.',
     step4_label:        'Invite to earn',
-    step4_desc:         'Refer a player who places 10+ pixels and earn bonus $CANVAS. Your network is your edge.',
+    step4_desc:         'Refer a player who places 10+ pixels and earn a USDT bonus. Your network is your edge.',
 
     section_strikes:    'Bonus Strikes',
     strikes_desc:       'Every pixel placement is a provably-fair roll — backend RNG, fully auditable.',
@@ -64,7 +64,7 @@ export const translations = {
     tok_lp_sub:         '1B — Raydium LP, tokens burned',
     tok_dao:            'Fair Launch',
     tok_dao_sub:        '0 tokens for team, advisors, or VCs — ever.',
-    tok_footer:         'Fair launch · 0% team · 0% VC · LP tokens burned · Raydium DEX',
+    tok_footer:         'LP tokens burned · Raydium DEX',
 
     holdr_title:        'Holdr Class',
     holdr_desc:         'Hold ≥10,000 $CANVAS in your in-game balance to qualify. Every time anyone withdraws, 10% is redistributed to Holdrs — weighted by how much above 10K you hold.',
@@ -79,7 +79,7 @@ export const translations = {
     cta_desc:           'The game runs in your browser — no wallet needed.',
     cta_btn:            '▶ PLAY NOW',
 
-    footer_built:       'Fair launch · Play in browser — not financial advice',
+    footer_built:       'Play in browser — not financial advice',
 
     play_demo_note:     '1,000×1,000 grid · no wallet needed',
     play_connect:       '🔗 Connect Wallet',
@@ -163,10 +163,10 @@ export const translations = {
     nav_tokenomics:     '代币经济',
     nav_play_demo:      '▶ 立即开战',
 
-    hero_tag:           '公平发行 · USDT · 总量 100 亿 $CANVAS',
+    hero_tag:           'USDT · 总量 100 亿 $CANVAS',
     hero_sub1:          '像素战场，寸土必争。',
     hero_sub2:          '攻占格子，赚取 $CANVAS，乱局称王。',
-    hero_desc:          '1000×1000 超大战场。实时 PVP 对抗。USDT 充值。公平发行 — 无团队持仓，无 VC 分配。',
+    hero_desc:          '1000×1000 超大战场。实时 PVP 对抗。USDT 充值。',
     hero_cta_play:      '▶ 立即开战',
     hero_cta_how:       '游戏玩法 →',
     hero_pixels_placed: '战场累计落子数',
@@ -177,10 +177,10 @@ export const translations = {
     step1_desc:         '在 1000×1000 战场上任意格子落子，消耗 USDT 占格。无冷却限制 — API 速率保障公平竞技。',
     step2_label:        '赚取 $CANVAS',
     step2_desc:         '每次落子 +4.5 $CANVAS；持仓每格每小时 +0.45；随机爆击最高可得 200 倍大奖。',
-    step3_label:        '烧币称霸',
-    step3_desc:         '花费 $CANVAS 为你的领土开启 8 小时护盾。无护盾的格子随时可被对手吞并。',
+    step3_label:        '爆击赢大奖',
+    step3_desc:         '每次落子都是一次公平随机抽奖。命中传奇爆击，即可获得高达 100 倍押注的 USDT 奖励，即时到账。',
     step4_label:        '邀请赚更多',
-    step4_desc:         '推荐玩家完成 10 次落子，你立即获得 $CANVAS 奖励。拉人越多，收益越丰。',
+    step4_desc:         '推荐玩家完成 10 次落子，你立即获得 USDT 奖励。拉人越多，收益越丰。',
 
     section_strikes:    '爆击大奖',
     strikes_desc:       '每次落子均有机会触发爆击，后端随机数保障绝对公平，结果实时可验证。',
@@ -198,7 +198,7 @@ export const translations = {
     tok_lp_sub:         '10 亿 — Raydium LP，代币已销毁',
     tok_dao:            '公平发行保障',
     tok_dao_sub:        '团队、顾问及 VC 永久零分配。',
-    tok_footer:         '公平发行 · 无团队持仓 · 无 VC 分配 · LP 已销毁 · Raydium DEX',
+    tok_footer:         'LP 已销毁 · Raydium DEX',
 
     holdr_title:        'Holdr 阶层',
     holdr_desc:         '游戏余额达到 ≥10,000 $CANVAS 即晋升为 Holdr。其他玩家每次提取，系统自动将 10% 按比例分配给全体 Holdr，坐享生态分红。',
@@ -213,7 +213,7 @@ export const translations = {
     cta_desc:           '直接在浏览器运行 — 无需钱包。',
     cta_btn:            '▶ 立即开战',
 
-    footer_built:       '公平发行 · 浏览器直玩 — 非投资建议',
+    footer_built:       '浏览器直玩 — 非投资建议',
 
     play_demo_note:     '1000×1000 战场 · 无需钱包',
     play_connect:       '🔗 连接钱包',
@@ -297,10 +297,10 @@ export const translations = {
     nav_tokenomics:     '토크노믹스',
     nav_play_demo:      '▶ 지금 참전',
 
-    hero_tag:           '공정 발행 · USDT · 총 100억 $CANVAS',
+    hero_tag:           'USDT · 총 100억 $CANVAS',
     hero_sub1:          '픽셀 하나하나가 전장이다.',
     hero_sub2:          '영역을 점령하고, $CANVAS를 쓸어담고, 끝까지 살아남아라.',
-    hero_desc:          '1,000×1,000 전장. 실시간 PVP. USDT 충전. 공정 발행 — 팀·VC 배정 0%.',
+    hero_desc:          '1,000×1,000 전장. 실시간 PVP. USDT 충전.',
     hero_cta_play:      '▶ 지금 체험',
     hero_cta_how:       '게임 방법 →',
     hero_pixels_placed: '전장 누적 배치',
@@ -311,10 +311,10 @@ export const translations = {
     step1_desc:         '1000×1000 전장에서 아무 칸이나 클릭하고 USDT로 영역을 선점하세요. 쿨다운 없음 — API 속도 제한만.',
     step2_label:        '$CANVAS 획득',
     step2_desc:         '배치 시 +4.5 $CANVAS, 보유 칸마다 시간당 +0.45, 잭팟 크리티컬 최대 200배.',
-    step3_label:        '소각해서 지배',
-    step3_desc:         '$CANVAS를 소각해 영역에 8시간 보호막을 씌우세요. 보호막 없는 픽셀은 누구든 빼앗아 갑니다.',
+    step3_label:        '스트라이크로 대박',
+    step3_desc:         '모든 픽셀 배치는 공정한 RNG 추첨입니다. 레전더리 스트라이크 적중 시 베팅액의 최대 100배를 USDT로 즉시 수령.',
     step4_label:        '초대로 더 벌기',
-    step4_desc:         '10칸 이상 배치한 친구를 데려오면 $CANVAS 보너스 획득. 네트워크가 클수록 수익이 커진다.',
+    step4_desc:         '10칸 이상 배치한 친구를 데려오면 USDT 보너스 획득. 네트워크가 클수록 수익이 커진다.',
 
     section_strikes:    '크리티컬 대박',
     strikes_desc:       '픽셀을 꽂을 때마다 잭팟 찬스. 후단 난수로 완전 공정하게 검증됩니다.',
@@ -332,7 +332,7 @@ export const translations = {
     tok_lp_sub:         '10억 — Raydium LP 토큰 소각',
     tok_dao:            '공정 발행 보장',
     tok_dao_sub:        '팀·어드바이저·VC 배정 0 — 영구적으로.',
-    tok_footer:         '공정 발행 · 팀 0% · VC 0% · LP 소각 · Raydium DEX',
+    tok_footer:         'LP 소각 · Raydium DEX',
 
     holdr_title:        'Holdr 등급',
     holdr_desc:         '인게임 잔액 ≥10,000 $CANVAS를 유지하면 Holdr로 승급. 다른 플레이어가 출금할 때마다 10%가 자동으로 전체 Holdr에게 분배되어 에코시스템 배당을 받습니다.',
@@ -347,7 +347,7 @@ export const translations = {
     cta_desc:           '브라우저에서 바로 실행 — 지갑 없이도 OK.',
     cta_btn:            '▶ 지금 참전',
 
-    footer_built:       '공정 발행 · 브라우저 플레이 — 투자 조언 아님',
+    footer_built:       '브라우저 플레이 — 투자 조언 아님',
 
     play_demo_note:     '1000×1000 전장 · 지갑 불필요',
     play_connect:       '🔗 지갑 연결',
@@ -431,10 +431,10 @@ export const translations = {
     nav_tokenomics:     'トークノミクス',
     nav_play_demo:      '▶ 今すぐプレイ',
 
-    hero_tag:           'フェアローンチ · USDT · 100億 $CANVAS',
+    hero_tag:           'USDT · 100億 $CANVAS',
     hero_sub1:          '1マス1マスが、戦場だ。',
     hero_sub2:          '領土を刻め。$CANVASを奪え。混沌を制圧しろ。',
-    hero_desc:          '1,000×1,000グリッド。リアルタイムPVP。USDT決済。フェアローンチ — チーム・VC配分0%。',
+    hero_desc:          '1,000×1,000グリッド。リアルタイムPVP。USDT決済。',
     hero_cta_play:      '▶ 今すぐプレイ',
     hero_cta_how:       '遊び方 →',
     hero_pixels_placed: '累計着手数',
@@ -445,10 +445,10 @@ export const translations = {
     step1_desc:         '1,000×1,000グリッドの任意のマスをクリック。USDTで着手。クールダウンなし — APIレート制限のみ。',
     step2_label:        '$CANVASを稼ぐ',
     step2_desc:         '着手ごとに+4.5、保有マスごとに毎時+0.45、最大200倍のジャックポットチャンスあり。',
-    step3_label:        '焼いて制圧',
-    step3_desc:         '$CANVASを消費してマスに8時間の防御シールドを張る。シールドなしのピクセルは誰でも奪える。',
+    step3_label:        'ストライクで大当たり',
+    step3_desc:         '着手のたびに公正なRNG抽選。レジェンダリーヒットで賭け額最大100倍のUSDTを即時獲得。',
     step4_label:        '仲間を呼んで稼ぐ',
-    step4_desc:         '10マス以上着手した友人を紹介するとボーナス$CANVASを獲得。ネットワークを広げて報酬を積み上げろ。',
+    step4_desc:         '10マス以上着手した友人を紹介するとUSDTボーナスを獲得。ネットワークを広げて報酬を積み上げろ。',
 
     section_strikes:    'クリティカル大当たり',
     strikes_desc:       '着手のたびにジャックポットのチャンス。バックエンドRNGが公正さを保証。',
@@ -466,7 +466,7 @@ export const translations = {
     tok_lp_sub:         '10億 — Raydium LP、LPトークン焼却済み',
     tok_dao:            'フェアローンチ保証',
     tok_dao_sub:        'チーム・アドバイザー・VCへの配分は永久にゼロ。',
-    tok_footer:         'フェアローンチ · チーム0% · VC0% · LPトークン焼却 · Raydium DEX',
+    tok_footer:         'LPトークン焼却 · Raydium DEX',
 
     holdr_title:        'Holdrクラス',
     holdr_desc:         'ゲーム内残高に≥10,000 $CANVASを保有するとHoldr資格取得。誰かが出金するたびに10%が自動でHoldrへ按分分配されます。',
@@ -481,7 +481,7 @@ export const translations = {
     cta_desc:           'ゲームはブラウザで動作 — ウォレット不要。',
     cta_btn:            '▶ 今すぐプレイ',
 
-    footer_built:       'フェアローンチ · ブラウザでプレイ — 投資アドバイスではありません',
+    footer_built:       'ブラウザでプレイ — 投資アドバイスではありません',
 
     play_demo_note:     '1,000×1,000グリッド · ウォレット不要',
     play_connect:       '🔗 ウォレット接続',
@@ -565,10 +565,10 @@ export const translations = {
     nav_tokenomics:     'Токеномика',
     nav_play_demo:      '▶ Играть',
 
-    hero_tag:           'Честный запуск · USDT · 10 млрд $CANVAS',
+    hero_tag:           'USDT · 10 млрд $CANVAS',
     hero_sub1:          'Каждый пиксель — это территория.',
     hero_sub2:          'Захватывай. Зарабатывай. Доминируй.',
-    hero_desc:          'Сетка 1000×1000. PVP в реальном времени. Пополнение через USDT. Честный запуск — 0% команде, 0% VC.',
+    hero_desc:          'Сетка 1000×1000. PVP в реальном времени. Пополнение через USDT.',
     hero_cta_play:      '▶ Играть',
     hero_cta_how:       'Как играть →',
     hero_pixels_placed: 'пикселей размещено',
@@ -579,10 +579,10 @@ export const translations = {
     step1_desc:         'Кликни на любую клетку сетки 1000×1000. Пополни USDT для размещения. Без кулдаунов — только API-лимиты.',
     step2_label:        'Зарабатывай $CANVAS',
     step2_desc:         '+4.5 за размещение, +0.45/час за каждый удержанный пиксель, страйки до 200×.',
-    step3_label:        'Сжигай и властвуй',
-    step3_desc:         'Сожги $CANVAS, чтобы защитить пиксели на 8 часов. Незащищённые пиксели может перезаписать любой.',
+    step3_label:        'Страйк — выигрывай по-крупному',
+    step3_desc:         'Каждое размещение — честный RNG-ролл. Попади в «Легендарный» страйк и получи до 100× ставки в USDT моментально.',
     step4_label:        'Зови — зарабатывай',
-    step4_desc:         'Пригласи игрока, который разместит 10+ пикселей, и получи бонусный $CANVAS. Расширяй сеть — умножай доход.',
+    step4_desc:         'Пригласи игрока, который разместит 10+ пикселей, и получи USDT-бонус. Расширяй сеть — умножай доход.',
 
     section_strikes:    'Бонусные страйки',
     strikes_desc:       'Каждый клик — шанс выбить джекпот. Рандом от бэкенд-RNG, полностью верифицируемый.',
@@ -600,7 +600,7 @@ export const translations = {
     tok_lp_sub:         '1 млрд — Raydium LP, токены сожжены',
     tok_dao:            'Честный запуск',
     tok_dao_sub:        '0 токенов для команды, советников и VC — навсегда.',
-    tok_footer:         'Честный запуск · 0% команде · 0% VC · LP-токены сожжены · Raydium DEX',
+    tok_footer:         'LP-токены сожжены · Raydium DEX',
 
     holdr_title:        'Класс Holdr',
     holdr_desc:         'Держи ≥10,000 $CANVAS в игровом балансе для получения статуса Holdr. При каждом выводе система автоматически отчисляет 10% Holdr\'ам пропорционально удержанию сверх 10K.',
@@ -615,7 +615,7 @@ export const translations = {
     cta_desc:           'Игра работает в браузере — кошелёк не нужен.',
     cta_btn:            '▶ ИГРАТЬ СЕЙЧАС',
 
-    footer_built:       'Честный запуск · Играй в браузере — не является финансовым советом',
+    footer_built:       'Играй в браузере — не является финансовым советом',
 
     play_demo_note:     '1000×1000 · кошелёк не нужен',
     play_connect:       '🔗 Подключить кошелёк',
@@ -699,10 +699,10 @@ export const translations = {
     nav_tokenomics:     'Tokenomik',
     nav_play_demo:      '▶ Main Sekarang',
 
-    hero_tag:           'Fair Launch · USDT · 10 Miliar $CANVAS',
+    hero_tag:           'USDT · 10 Miliar $CANVAS',
     hero_sub1:          'Setiap piksel adalah pertempuran.',
     hero_sub2:          'Klaim wilayah. Kumpulkan token. Bertahan dalam kekacauan.',
-    hero_desc:          'Grid 1.000×1.000. PVP real-time. Isi saldo USDT. Fair launch — 0% tim, 0% VC.',
+    hero_desc:          'Grid 1.000×1.000. PVP real-time. Isi saldo USDT.',
     hero_cta_play:      '▶ Main Sekarang',
     hero_cta_how:       'Cara bermain →',
     hero_pixels_placed: 'piksel sudah ditempatkan',
@@ -713,10 +713,10 @@ export const translations = {
     step1_desc:         'Klik sel mana saja di grid 1000×1000. Isi USDT untuk bermain. Tanpa cooldown — dibatasi API saja.',
     step2_label:        'Dapatkan $CANVAS',
     step2_desc:         '+4.5 per penempatan, +0,45/jam per piksel yang dimiliki, bonus strike hingga 200×.',
-    step3_label:        'Bakar untuk mendominasi',
-    step3_desc:         'Bakar $CANVAS untuk melindungi pikselmu selama 8 jam. Piksel tak terlindungi bisa ditimpa siapa saja.',
+    step3_label:        'Strike untuk kemenangan besar',
+    step3_desc:         'Setiap penempatan adalah undian RNG yang adil. Raih Strike Legendary dan menangkan hingga 100× taruhan dalam USDT secara instan.',
     step4_label:        'Ajak teman, raih lebih',
-    step4_desc:         'Referral yang menempatkan 10+ piksel menghasilkan bonus $CANVAS untukmu. Jaringan lebih besar, keuntungan lebih besar.',
+    step4_desc:         'Referral yang menempatkan 10+ piksel menghasilkan bonus USDT untukmu. Jaringan lebih besar, keuntungan lebih besar.',
 
     section_strikes:    'Bonus Strike',
     strikes_desc:       'Tiap klik ada kesempatan jackpot. Keacakan terverifikasi oleh backend RNG — adil dan transparan.',
@@ -734,7 +734,7 @@ export const translations = {
     tok_lp_sub:         '1 Miliar — Raydium LP, token LP dibakar',
     tok_dao:            'Fair Launch',
     tok_dao_sub:        '0 token untuk tim, advisor, atau VC — selamanya.',
-    tok_footer:         'Fair launch · 0% tim · 0% VC · Token LP dibakar · Raydium DEX',
+    tok_footer:         'Token LP dibakar · Raydium DEX',
 
     holdr_title:        'Kelas Holdr',
     holdr_desc:         'Tahan ≥10.000 $CANVAS di saldo dalam game untuk kualifikasi Holdr. Setiap kali ada yang menarik dana, 10% otomatis dibagikan ke seluruh Holdr secara proporsional.',
@@ -749,7 +749,7 @@ export const translations = {
     cta_desc:           'Game berjalan di browser — tidak perlu dompet.',
     cta_btn:            '▶ MAIN SEKARANG',
 
-    footer_built:       'Fair launch · Main di browser — bukan saran keuangan',
+    footer_built:       'Main di browser — bukan saran keuangan',
 
     play_demo_note:     'Grid 1.000×1.000 · tanpa dompet',
     play_connect:       '🔗 Hubungkan Dompet',
