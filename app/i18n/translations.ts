@@ -31,10 +31,10 @@ export const translations = {
     nav_play_demo:      'Play Now',
 
     // Hero
-    hero_tag:           'Fair Launch · Solana · 10B $CANVAS',
-    hero_sub1:          'A pixel war game on Solana.',
-    hero_sub2:          'Claim territory. Earn tokens. Survive the chaos.',
-    hero_desc:          '1,000 × 1,000 grid. Real-time PVP. Fair launch — 0% team, 0% VC. Inspired by r/place. Built for crypto.',
+    hero_tag:           'Place Pixels. Win 100×. · 10B $CANVAS · 0% Team / 0% VC',
+    hero_sub1:          'Every pixel you place could crack the Vault for a 100× payout.',
+    hero_sub2:          'Own the grid. Earn $CANVAS. Wipe out your rivals.',
+    hero_desc:          '1,000 × 1,000 grid of real-time PVP. Place pixels, earn $CANVAS, and trigger strikes for massive payouts — up to 100× from the Vault. Fair launch — 0% team, 0% VC.',
     hero_cta_play:      'Play Now',
     hero_cta_how:       'How it works →',
     hero_pixels_placed: 'pixels placed in demo',
@@ -87,7 +87,7 @@ export const translations = {
     cta_btn:            'PLAY NOW',
 
     // Footer
-    footer_built:       'Built on Solana · Fair launch · Demo only — not financial advice',
+    footer_built:       'Fair launch · 0% team / 0% VC · Demo only — not financial advice',
 
     // Play — top bar
     play_demo_note:     '1000×1000 demo · 10s cooldown (real: 5 min) · no wallet needed',
@@ -184,10 +184,10 @@ export const translations = {
     nav_tokenomics:     '代币经济',
     nav_play_demo:      'Play Now',
 
-    hero_tag:           '公平发射 · Solana · 100亿 $CANVAS',
-    hero_sub1:          '一款基于 Solana 的像素战争游戏。',
-    hero_sub2:          '占领领土，赚取代币，在混战中生存。',
-    hero_desc:          '1000×1000 网格。实时 PVP。公平发射 — 零团队/零 VC 份额。灵感来自 r/place，为加密玩家打造。',
+    hero_tag:           '放置像素，赢取百倍 · 100亿 $CANVAS · 零团队/零VC',
+    hero_sub1:          '每次放置像素，都有机会击穿金库，赢取百倍奖励。',
+    hero_sub2:          '占领领地，赚取 $CANVAS，消灭对手。',
+    hero_desc:          '1000×1000 实时 PVP 网格。放置像素赚取 $CANVAS，触发连击可赢取金库百倍奖励。公平发射 — 零团队/零 VC 份额。',
     hero_cta_play:      'Play Now',
     hero_cta_how:       '如何玩 →',
     hero_pixels_placed: '演示中已放置的像素',
@@ -234,7 +234,7 @@ export const translations = {
     cta_desc:           '演示在浏览器中运行 — 无需钱包。',
     cta_btn:            '立即游戏',
 
-    footer_built:       '基于 Solana 构建 · 公平发射 · 仅供演示 — 非投资建议',
+    footer_built:       '公平发射 · 零团队/零VC · 仅供演示 — 非投资建议',
 
     play_demo_note:     '1000×1000 演示 · 10秒冷却（实际：5分钟）· 无需钱包',
     play_connect:       '🔗 连接钱包',
@@ -323,10 +323,10 @@ export const translations = {
     nav_tokenomics:     '토크노믹스',
     nav_play_demo:      'Play Now',
 
-    hero_tag:           '공정 출시 · Solana · 100억 $CANVAS',
-    hero_sub1:          'Solana 기반 픽셀 전쟁 게임.',
-    hero_sub2:          '영역을 점령하고, 토큰을 획득하고, 혼란 속에서 살아남으세요.',
-    hero_desc:          '1,000×1,000 그리드. 실시간 PVP. 공정 출시 — 팀/VC 배정 0%. r/place에서 영감받아 크립토를 위해 제작.',
+    hero_tag:           '픽셀을 놓고, 100배를 잡아라 · 100억 $CANVAS · 팀/VC 0%',
+    hero_sub1:          '픽셀을 놓을 때마다 금고를 터뜨릴 100배 기회가 열립니다.',
+    hero_sub2:          '영역을 점령하고, $CANVAS를 획득하고, 경쟁자를 몰아내세요.',
+    hero_desc:          '1,000×1,000 실시간 PVP 그리드. 픽셀을 놓아 $CANVAS를 획득하고, 금고를 터뜨려 최대 100배 보상을 노리세요. 공정 출시 — 팀/VC 배정 0%.',
     hero_cta_play:      'Play Now',
     hero_cta_how:       '게임 방법 →',
     hero_pixels_placed: '데모에서 배치된 픽셀',
@@ -373,7 +373,7 @@ export const translations = {
     cta_desc:           '데모는 브라우저에서 실행됩니다 — 지갑 불필요.',
     cta_btn:            '지금 플레이',
 
-    footer_built:       'Solana 기반 · 공정 출시 · 데모 전용 — 투자 조언 아님',
+    footer_built:       '공정 출시 · 팀/VC 0% · 데모 전용 — 투자 조언 아님',
 
     play_demo_note:     '1000×1000 데모 · 10초 쿨다운 (실제: 5분) · 지갑 불필요',
     play_connect:       '🔗 지갑 연결',
@@ -462,10 +462,10 @@ export const translations = {
     nav_tokenomics:     'トークノミクス',
     nav_play_demo:      'Play Now',
 
-    hero_tag:           'フェアローンチ · Solana · 100億 $CANVAS',
-    hero_sub1:          'Solana上のピクセル戦争ゲーム。',
-    hero_sub2:          '領土を占領し、トークンを獲得し、混沌の中で生き残れ。',
-    hero_desc:          '1,000×1,000グリッド。リアルタイムPVP。フェアローンチ — チーム/VC配分0%。r/placeにインスパイアされ、クリプト向けに構築。',
+    hero_tag:           'ピクセルで勝負、100倍を狙え · 100億 $CANVAS · チーム/VC 0%',
+    hero_sub1:          'ピクセルを置くたびに、Vaultを割って100倍の報酬を狙えるチャンスが生まれる。',
+    hero_sub2:          '領土を支配し、$CANVASを稼ぎ、ライバルを叩き潰せ。',
+    hero_desc:          '1,000×1,000のリアルタイムPVPグリッド。ピクセルを置いて$CANVASを稼ぎ、ストライクを発動してVaultから最大100倍の報酬を狙え。フェアローンチ — チーム/VC配分0%。',
     hero_cta_play:      'Play Now',
     hero_cta_how:       '遊び方 →',
     hero_pixels_placed: 'デモで配置されたピクセル数',
@@ -512,7 +512,7 @@ export const translations = {
     cta_desc:           'デモはブラウザで動作 — ウォレット不要。',
     cta_btn:            '今すぐプレイ',
 
-    footer_built:       'Solana上に構築 · フェアローンチ · デモのみ — 投資アドバイスではありません',
+    footer_built:       'フェアローンチ · チーム/VC 0% · デモのみ — 投資アドバイスではありません',
 
     play_demo_note:     '1000×1000デモ · 10秒クールダウン（実際: 5分）· ウォレット不要',
     play_connect:       '🔗 ウォレット接続',
@@ -601,10 +601,10 @@ export const translations = {
     nav_tokenomics:     'Токеномика',
     nav_play_demo:      'Play Now',
 
-    hero_tag:           'Честный запуск · Solana · 10 млрд $CANVAS',
-    hero_sub1:          'Пиксельная война на Solana.',
-    hero_sub2:          'Захватывай территории. Зарабатывай токены. Выживи в хаосе.',
-    hero_desc:          'Сетка 1000×1000. PVP в реальном времени. Честный запуск — 0% команде, 0% VC. Вдохновлено r/place. Создано для крипты.',
+    hero_tag:           'Ставь пиксели. Бей 100×. · 10 млрд $CANVAS · 0% команде/VC',
+    hero_sub1:          'Каждый пиксель — шанс взломать Хранилище и сорвать куш 100×.',
+    hero_sub2:          'Захватывай территории. Зарабатывай $CANVAS. Уничтожай соперников.',
+    hero_desc:          'Сетка 1000×1000, PVP в реальном времени. Ставь пиксели, зарабатывай $CANVAS и взламывай Хранилище ради выигрыша до 100×. Честный запуск — 0% команде, 0% VC.',
     hero_cta_play:      'Play Now',
     hero_cta_how:       'Как играть →',
     hero_pixels_placed: 'пикселей размещено в демо',
@@ -651,7 +651,7 @@ export const translations = {
     cta_desc:           'Демо работает в браузере — кошелёк не нужен.',
     cta_btn:            'ИГРАТЬ СЕЙЧАС',
 
-    footer_built:       'Построено на Solana · Честный запуск · Только демо — не является финансовым советом',
+    footer_built:       'Честный запуск · 0% команде/VC · Только демо — не является финансовым советом',
 
     play_demo_note:     'Демо 1000×1000 · кулдаун 10с (реальный: 5 мин) · кошелёк не нужен',
     play_connect:       '🔗 Подключить кошелёк',
@@ -740,10 +740,10 @@ export const translations = {
     nav_tokenomics:     'Tokenomik',
     nav_play_demo:      'Play Now',
 
-    hero_tag:           'Fair Launch · Solana · 10 M $CANVAS',
-    hero_sub1:          'Game perang piksel di Solana.',
-    hero_sub2:          'Klaim wilayah. Kumpulkan token. Bertahan dalam kekacauan.',
-    hero_desc:          'Grid 1.000×1.000. PVP real-time. Fair launch — 0% tim, 0% VC. Terinspirasi r/place. Dibangun untuk kripto.',
+    hero_tag:           'Tempatkan Piksel. Menangkan 100×. · 10 M $CANVAS · 0% Tim / 0% VC',
+    hero_sub1:          'Setiap piksel yang kamu tempatkan bisa membobol Vault untuk hadiah 100×.',
+    hero_sub2:          'Kuasai wilayah. Kumpulkan $CANVAS. Hancurkan rival kamu.',
+    hero_desc:          'Grid 1.000×1.000 PVP real-time. Tempatkan piksel untuk mendapatkan $CANVAS dan picu strike untuk memenangkan hingga 100× dari Vault. Fair launch — 0% tim, 0% VC.',
     hero_cta_play:      'Play Now',
     hero_cta_how:       'Cara bermain →',
     hero_pixels_placed: 'piksel sudah ditempatkan di demo',
@@ -790,7 +790,7 @@ export const translations = {
     cta_desc:           'Demo berjalan di browser — tidak perlu dompet.',
     cta_btn:            'MAIN SEKARANG',
 
-    footer_built:       'Dibangun di Solana · Fair launch · Demo saja — bukan saran keuangan',
+    footer_built:       'Fair launch · 0% tim / 0% VC · Demo saja — bukan saran keuangan',
 
     play_demo_note:     'Demo 1000×1000 · cooldown 10d (nyata: 5 mnt) · tanpa dompet',
     play_connect:       '🔗 Hubungkan Dompet',
