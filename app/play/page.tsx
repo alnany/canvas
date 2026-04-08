@@ -928,7 +928,7 @@ export default function Play() {
           )}
           {/* Rewards link */}
           <Link href="/rewards" style={{fontSize:11,padding:"5px 11px",borderRadius:6,background:"rgba(167,139,250,0.08)",border:"1px solid rgba(167,139,250,0.2)",color:"#a78bfa",textDecoration:"none",fontFamily:"'Share Tech Mono',monospace",letterSpacing:1,whiteSpace:"nowrap"}}>
-            💰 REWARDS
+            💰 REFERRAL
           </Link>
           <LangSwitcher lang={lang} onChange={setLang_} />
         </div>
