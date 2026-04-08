@@ -481,8 +481,8 @@ export default function Play() {
       return;
     }
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
-    const gx = Math.floor((e.clientX-rect2.left)/PX);
-    const gy = Math.floor((e.clientY-rect2.top)/PX);
+    const gx = Math.floor((e.clientX-rect2.left)/PX/zoomRef.current);
+    const gy = Math.floor((e.clientY-rect2.top)/PX/zoomRef.current);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) return;
     const g = gridRef.current;
     const c = canvasRef.current; if(!c) return;
@@ -677,8 +677,8 @@ export default function Play() {
 
   const handleMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect2 = (e.target as HTMLCanvasElement).getBoundingClientRect();
-    const gx = Math.floor((e.clientX-rect2.left)/PX);
-    const gy = Math.floor((e.clientY-rect2.top)/PX);
+    const gx = Math.floor((e.clientX-rect2.left)/PX/zoomRef.current);
+    const gy = Math.floor((e.clientY-rect2.top)/PX/zoomRef.current);
     if (gx<0||gy<0||gx>=GRID||gy>=GRID) { setHovered(null); return; }
     const cell = gridRef.current[gy*GRID+gx];
     setHovered({x:gx, y:gy, d:cell});
@@ -712,8 +712,42 @@ export default function Play() {
     }, 1200);
   };
 
+  // Wheel zoom
+  useEffect(() => {
+    const wrapper = canvasWrapRef.current;
+    if (!wrapper) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = wrapper.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left + wrapper.scrollLeft;
+      const mouseY = e.clientY - rect.top  + wrapper.scrollTop;
+      const factor = e.deltaY < 0 ? 1.18 : (1 / 1.18);
+      const curZ = zoomRef.current;
+      const nz = Math.max(0.5, Math.min(20, curZ * factor));
+      zoomRef.current = nz;
+      setZoom(nz);
+      requestAnimationFrame(() => {
+        wrapper.scrollLeft = mouseX * (nz / curZ) - (e.clientX - rect.left);
+        wrapper.scrollTop  = mouseY * (nz / curZ) - (e.clientY - rect.top);
+      });
+    };
+    wrapper.addEventListener('wheel', onWheel, { passive: false });
+    return () => wrapper.removeEventListener('wheel', onWheel);
+  }, []);
+
+  // Center canvas on mount
+  useEffect(() => {
+    const wrapper = canvasWrapRef.current;
+    if (!wrapper) return;
+    const sz = GRID * PX * zoomRef.current;
+    wrapper.scrollLeft = (sz - wrapper.clientWidth)  / 2;
+    wrapper.scrollTop  = (sz - wrapper.clientHeight) / 2;
+  }, []);
+
   const isHoldr = owned * 12 >= 10000;
   const [isMobile, setIsMobile] = useState(false);
+  const [zoom, setZoom] = useState(2);
+  const zoomRef = useRef(2);
   const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'log'>('color');
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -786,7 +820,7 @@ export default function Play() {
                 <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
               </svg>
             </a>
-            <a href="https://github.com/alnany/canvas-demo" target="_blank" rel="noopener noreferrer" title="GitHub"
+            <a href="https://github.com/alnany/canvas" target="_blank" rel="noopener noreferrer" title="GitHub"
                style={{color:"#94a3b8",display:"flex",alignItems:"center",transition:"color 0.15s"}}
                onMouseEnter={e=>(e.currentTarget.style.color="#e2e8f0")}
                onMouseLeave={e=>(e.currentTarget.style.color="#94a3b8")}>
@@ -1024,6 +1058,12 @@ export default function Play() {
 
         {/* CANVAS CENTER */}
         <div ref={canvasWrapRef} style={{flex:1,display:"flex",alignItems:isMobile?"flex-start":"center",justifyContent:isMobile?"flex-start":"center",position:"relative",overflow:"auto",background:"radial-gradient(ellipse at center,#0d0d20,#070710)"}}>
+          {/* Zoom controls */}
+          <div style={{position:"sticky",top:8,left:8,zIndex:30,display:"flex",gap:4,pointerEvents:"auto",alignSelf:"flex-start",flexShrink:0}}>
+            <button onClick={()=>{const nz=Math.min(20,zoomRef.current*1.3);zoomRef.current=nz;setZoom(nz);}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#a78bfa",borderRadius:4,width:26,height:26,fontSize:16,cursor:"pointer",fontFamily:"inherit",lineHeight:1}}>+</button>
+            <button onClick={()=>{zoomRef.current=2;setZoom(2);const w=canvasWrapRef.current;if(w){const sz=GRID*PX*2;w.scrollLeft=(sz-w.clientWidth)/2;w.scrollTop=(sz-w.clientHeight)/2;}}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#64748b",borderRadius:4,height:26,padding:"0 6px",fontSize:9,cursor:"pointer",fontFamily:"inherit",letterSpacing:0.5}}>{Math.round(zoom*100)}%</button>
+            <button onClick={()=>{const nz=Math.max(0.5,zoomRef.current/1.3);zoomRef.current=nz;setZoom(nz);}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#a78bfa",borderRadius:4,width:26,height:26,fontSize:16,cursor:"pointer",fontFamily:"inherit",lineHeight:1}}>−</button>
+          </div>
 
           {/* Vault jackpot popup */}
           {bucketWin !== null && (() => {
@@ -1194,6 +1234,7 @@ export default function Play() {
                 position:"absolute",inset:0,
                 pointerEvents:"none",
                 imageRendering:"pixelated",
+                width:GRID*PX*zoom, height:GRID*PX*zoom,
                 zIndex:3,
               }}
             />
@@ -1215,6 +1256,7 @@ export default function Play() {
                 border:"1px solid #1e1e3f",
                 borderRadius:4,
                 boxShadow:"0 0 60px rgba(88,28,235,0.15)",
+                width:GRID*PX*zoom, height:GRID*PX*zoom,
               }}
             />
 
@@ -1222,8 +1264,8 @@ export default function Play() {
             {hovered && !profilePopup && (
               <div style={{
                 position:"absolute",
-                left: Math.min(hovered.x*PX+14, GRID*PX-170),
-                top:  Math.max(hovered.y*PX-38, 0),
+                left: Math.min(hovered.x*PX*zoom+14, GRID*PX*zoom-170),
+                top:  Math.max(hovered.y*PX*zoom-38, 0),
                 background:"#0d0d1a",border:"1px solid #2d1b69",
                 borderRadius:6,padding:"5px 10px",
                 fontSize:12.5,whiteSpace:"nowrap",pointerEvents:"none",zIndex:5,
