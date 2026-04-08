@@ -9,7 +9,7 @@ export function PrivyProviderWrapper({ children }: { children: React.ReactNode }
         appearance: {
           theme: 'dark',
           accentColor: '#7c3aed',
-          logo: 'https://canvas-demo.vercel.app/favicon.ico',
+          logo: 'https://canvas-demo-gamma.vercel.app/canvas-logo.svg',
         },
         loginMethods: ['email', 'google', 'wallet'],
         embeddedWallets: {
