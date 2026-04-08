@@ -773,7 +773,7 @@ export default function Play() {
       const rect = wrapper.getBoundingClientRect();
       const mouseX = e.clientX - rect.left + wrapper.scrollLeft;
       const mouseY = e.clientY - rect.top  + wrapper.scrollTop;
-      const factor = e.deltaY < 0 ? 1.18 : (1 / 1.18);
+      const factor = e.deltaY < 0 ? 1.06 : (1 / 1.06);
       const curZ = zoomRef.current;
       const nz = Math.max(0.5, Math.min(20, curZ * factor));
       zoomRef.current = nz;
@@ -828,8 +828,8 @@ export default function Play() {
 
   const isHoldr = owned * 12 >= 10000;
   const [isMobile, setIsMobile] = useState(false);
-  const [zoom, setZoom] = useState(2);
-  const zoomRef = useRef(2);
+  const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(1);
   const [mobileTab, setMobileTab] = useState<'color'|'game'|'stats'|'chat'|'board'>('color');
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -1143,7 +1143,7 @@ export default function Play() {
           {/* Zoom controls */}
           <div style={{position:"sticky",top:8,left:8,zIndex:30,display:"flex",gap:4,pointerEvents:"auto",alignSelf:"flex-start",flexShrink:0}}>
             <button onClick={()=>{const nz=Math.min(20,zoomRef.current*1.3);zoomRef.current=nz;setZoom(nz);}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#a78bfa",borderRadius:4,width:26,height:26,fontSize:16,cursor:"pointer",fontFamily:"inherit",lineHeight:1}}>+</button>
-            <button onClick={()=>{zoomRef.current=2;setZoom(2);const w=canvasWrapRef.current;if(w){const sz=GRID*PX*2;w.scrollLeft=(sz-w.clientWidth)/2;w.scrollTop=(sz-w.clientHeight)/2;}}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#64748b",borderRadius:4,height:26,padding:"0 6px",fontSize:9,cursor:"pointer",fontFamily:"inherit",letterSpacing:0.5}}>{Math.round(zoom*100)}%</button>
+            <button onClick={()=>{zoomRef.current=1;setZoom(1);const w=canvasWrapRef.current;if(w){const sz=GRID*PX*1;w.scrollLeft=(sz-w.clientWidth)/2;w.scrollTop=(sz-w.clientHeight)/2;}}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#64748b",borderRadius:4,height:26,padding:"0 6px",fontSize:9,cursor:"pointer",fontFamily:"inherit",letterSpacing:0.5}}>{Math.round(zoom*100)}%</button>
             <button onClick={()=>{const nz=Math.max(0.5,zoomRef.current/1.3);zoomRef.current=nz;setZoom(nz);}} style={{background:"#0d0d1acc",border:"1px solid #2d1b69",color:"#a78bfa",borderRadius:4,width:26,height:26,fontSize:16,cursor:"pointer",fontFamily:"inherit",lineHeight:1}}>−</button>
           </div>
 
@@ -1502,20 +1502,20 @@ export default function Play() {
           {/* Color picker */}
           <div>
             <div style={{fontSize:12.5,color:"#64748b",marginBottom:8,letterSpacing:1}}>{T('color_label')}</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:2}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:2}}>
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{
-                  width:16,height:16,borderRadius:2,background:c,border:"none",cursor:"pointer",padding:0,
+                  height:12,borderRadius:2,background:c,border:"none",cursor:"pointer",padding:0,
                   outline:color===c?"2px solid #ffffff":"2px solid transparent",
                   outlineOffset:1,transition:"outline 0.1s",
                 }}/>
               ))}
             </div>
             {/* Custom color picker */}
-            <div style={{marginTop:8,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{marginTop:6,display:"flex",alignItems:"center",gap:4}}>
               <label style={{position:"relative",cursor:"pointer",flexShrink:0}} title="Custom color">
                 <div style={{
-                  width:24,height:24,borderRadius:4,
+                  width:18,height:18,borderRadius:3,
                   background:`conic-gradient(red,yellow,lime,cyan,blue,magenta,red)`,
                   border: color && !PALETTE.includes(color) ? "2px solid #fff" : "2px solid #334155",
                   boxShadow: color && !PALETTE.includes(color) ? "0 0 8px rgba(255,255,255,0.5)" : "none",
@@ -1527,7 +1527,7 @@ export default function Play() {
                 />
               </label>
               <div style={{width:14,height:14,borderRadius:3,background:color,flexShrink:0,border:"1px solid #2d1b69"}}/>
-              <span style={{color:"#475569",fontSize:12.5}}>{color}</span>
+              <span style={{color:"#475569",fontSize:10,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:60}}>{color}</span>
             </div>
           </div>
 
@@ -1731,7 +1731,7 @@ export default function Play() {
                       style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}}/>
                   </label>
                   <div style={{width:16,height:16,borderRadius:3,background:color,border:"1px solid #2d1b69"}}/>
-                  <span style={{color:"#475569",fontSize:12.5}}>{color}</span>
+                  <span style={{color:"#475569",fontSize:10,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:60}}>{color}</span>
                 </div>
 
               </div>
