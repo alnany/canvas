@@ -105,11 +105,15 @@ export function calculateEarnings(
   chain: AncestorNode[], // [L1 → ... → immediateReferrer], max 15 entries
   immediateReferrerId: string
 ): Map<string, { cascade: number; directBonus: number; total: number }> {
+  // Commission base is platform fee (4% of gross spend), NOT gross spend
+  // RTP = 96% → untouched; affiliates earn % of Canvas's 4% only
+  const platformFee = (purchaseAmount * PLATFORM_FEE_RATE) / 100;
+
   const result = new Map<string, { cascade: number; directBonus: number; total: number }>();
 
   const capped = chain.slice(0, MAX_DEPTH);
 
-  // Cascade distribution: each node earns (their_rate - downline_rate)
+  // Cascade distribution: each node earns (their_rate - downline_rate) of platform fee
   for (let i = 0; i < capped.length; i++) {
     const node = capped[i];
     const downlineRate = i + 1 < capped.length ? capped[i + 1].rate : 0;
@@ -122,8 +126,8 @@ export function calculateEarnings(
     });
   }
 
-  // Direct bonus: always goes to the immediate referrer (5% of purchase)
-  const directBonusAmount = (purchaseAmount * DIRECT_BONUS) / 100;
+  // Direct bonus: always goes to the immediate referrer (5% of platform fee)
+  const directBonusAmount = (platformFee * DIRECT_BONUS) / 100;
   const existing = result.get(immediateReferrerId);
   if (existing) {
     existing.directBonus = directBonusAmount;
