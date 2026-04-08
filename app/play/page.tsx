@@ -1845,8 +1845,6 @@ export default function Play() {
                   })}
               </div>
             )}
-              </div>
-            )}
           </div>
         </div>
       )}
