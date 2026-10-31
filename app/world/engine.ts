@@ -46,6 +46,9 @@ export function biomeAt(x: number, y: number): Biome {
 }
 
 export function regionName(x: number, y: number): string {
+  const b = biomeAt(x, y);
+  if (b === "snow") return "Frostveil Reach";
+  if (b === "desert") return "Sunscar Dunes";
   const t = tempAt(x, y);
   if (t < 0.42) return "Frostveil Reach";
   if (t > 0.6) return "Sunscar Dunes";
@@ -131,5 +134,13 @@ export const LIBRARY: Record<string, string[]> = {
   market: ["market", "shop", "stall", "store", "food", "fruit"],
   cactus: ["cactus", "desert", "succulent"],
   snowman: ["snowman", "snow", "winter", "christmas"],
+  pagoda: ["pagoda", "temple tower"], ramen: ["ramen", "noodle", "restaurant", "izakaya"], balloon: ["balloon", "fly", "sky"],
+  mushroom: ["mushroom", "gnome", "fairy"], treehouse: ["treehouse", "clubhouse", "hideout"], tents: ["tent", "camp", "campfire"],
+  oasis: ["oasis", "palm", "pond in the desert"], camel: ["camel", "caravan"], sphinx: ["sphinx", "riddle"],
+  cabin: ["cabin", "log", "lodge"], icepalace: ["ice palace", "frozen", "crystal palace", "frost"], penguin: ["penguin"],
+  lanterns: ["lantern", "festival", "lights"], stones: ["stone circle", "stonehenge", "ritual"], ruins: ["ruin", "ancient", "lost city"],
+  observatory: ["observatory", "telescope", "stars", "astronomy"], clocktower: ["clock", "bell tower"], bakery: ["bakery", "bread", "cake", "pastry"],
+  catstatue: ["cat", "lucky", "maneki"], sword: ["sword", "blade", "excalibur", "hero"], koipond: ["koi", "fish", "pond", "lily"],
+  scarecrow: ["scarecrow", "pumpkin", "halloween"], airship: ["airship", "zeppelin", "steampunk"], totem: ["totem", "carving", "spirit"],
 };
 export const LIB_KEYS = Object.keys(LIBRARY);

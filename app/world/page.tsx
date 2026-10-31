@@ -1,15 +1,19 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  CHUNK, PLOT, REVEAL_R, TEX, LIB_KEYS,
-  biomeAt, findSpawn, isLand, key, plotOf, regionName, renderChunk,
+  CHUNK, PLOT, REVEAL_R, TEX,
+  biomeAt, isLand, key, plotOf, regionName, renderChunk,
 } from "./engine";
+import { pickSprite, zoneAt, PLOT_SUFFIX } from "./bots";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Obj = { id: string; x: number; y: number; prompt: string; src: string; owner: string; likes: number; visits: number; liked?: boolean; t: number };
-type Plot = { px: number; py: number; owner: string; name: string; last: number };
+type Plot = { px: number; py: number; owner: string; name: string; last: number; born?: number; public?: boolean };
+type SeedBot = { name: string; active: boolean; favs: string[]; plots: { px: number; py: number }[] };
+type Seed = { simDays: number; spawn: { x: number; y: number }; plots: { px: number; py: number; owner: string; name: string; bornAgo: number; lastAgo: number; public?: boolean }[]; objs: { id: string; x: number; y: number; prompt: string; lib: string; owner: string; ago: number; likes: number; visits: number }[]; bots: SeedBot[] };
+type Walker = { name: string; x: number; y: number; tx: number; ty: number; wait: number; hat: string; coat: string };
 type Mode = "explore" | "claim" | "create";
-type Save = { v: 1; revealed: string[]; plots: Plot[]; objs: Obj[]; credits: number; gens: number; gensDay: number; player: { x: number; y: number }; onboarded: boolean; name: string };
+type Save = { v: 2; spawn: { x: number; y: number }; bots: SeedBot[]; log: string[]; revealed: string[]; plots: Plot[]; objs: Obj[]; credits: number; gens: number; gensDay: number; player: { x: number; y: number }; onboarded: boolean; name: string };
 
 const ME = "you";
 const DAY = 86400000;
@@ -17,7 +21,10 @@ const FREE_GENS = 5;
 const GEN_COST = 10;
 const PLOT_COST = 25;
 const RECLAIM_COST = 10;
-const STORE = "canvas-world-v1";
+const STORE = "canvas-world-v2";
+const HATS = ["#d9453b", "#3aa655", "#e0a526", "#7b4fd1", "#2b9ad6", "#e0609a", "#444", "#f2f2f2"];
+const COATS = ["#2f4fb3", "#8a3b2a", "#2e7d5b", "#6b4a9e", "#b8862b", "#355c7d", "#a33b5c", "#3d3d3d"];
+function hashStr(s: string) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); }
 
 const DAILY = [
   "Build something you'd find at the edge of the world",
@@ -30,34 +37,16 @@ const DAILY = [
 ];
 const IDEAS = ["a lighthouse on the cliffs", "a sleepy red dragon", "a wizard tower with a crystal", "a cherry blossom tree", "a tiny market stall", "a moss-covered robot"];
 
-const NPCS = [
-  { name: "Mochi", off: [2, 0] }, { name: "Ren", off: [-2, 1] }, { name: "Aiko", off: [1, -3] },
-  { name: "Kenji", off: [4, 2] }, { name: "Yuna", off: [-3, -2] }, { name: "Taro", off: [0, 4] },
-  { name: "Hana", off: [-5, 3] }, { name: "Sora", off: [6, -1] },
-];
-
-function rand(seed: number) { let s = seed; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
-
-function seedWorld(spawn: { x: number; y: number }): Save {
-  const sp = plotOf(spawn.x, spawn.y);
-  const r = rand(42);
-  const plots: Plot[] = [];
-  const objs: Obj[] = [];
-  NPCS.forEach((n, i) => {
-    const px = sp.px + n.off[0], py = sp.py + n.off[1];
-    const cx = px * PLOT + 4, cy = py * PLOT + 4;
-    if (!isLand(biomeAt(cx + 0.5, cy + 0.5))) return;
-    const abandoned = i === 3;
-    plots.push({ px, py, owner: n.name, name: `${n.name}'s ${abandoned ? "Ruins" : "Village"}`, last: Date.now() - (abandoned ? 40 : r() * 5) * DAY });
-    const count = 2 + Math.floor(r() * 2);
-    for (let k = 0; k < count; k++) {
-      const sx = px * PLOT + 1 + Math.floor(r() * 6), sy = py * PLOT + 2 + Math.floor(r() * 5);
-      if (!isLand(biomeAt(sx + 0.5, sy + 0.5)) || objs.some(o => o.x === sx && o.y === sy)) continue;
-      const lib = LIB_KEYS[Math.floor(r() * LIB_KEYS.length)];
-      objs.push({ id: `npc${i}-${k}`, x: sx, y: sy, prompt: `a ${lib} for my village`, src: `/world/sprites/${lib}.png`, owner: n.name, likes: Math.floor(r() * 60), visits: Math.floor(r() * 400), t: Date.now() - r() * 9 * DAY });
-    }
-  });
-  return { v: 1, revealed: [], plots, objs, credits: 60, gens: FREE_GENS, gensDay: Math.floor(Date.now() / DAY), player: spawn, onboarded: false, name: "Traveler" };
+function fromSeed(seed: Seed): Save {
+  const now = Date.now();
+  return {
+    v: 2, spawn: seed.spawn, bots: seed.bots, log: [`The world is ${seed.simDays} days old. ${seed.bots.length} settlers have built ${seed.objs.length} things.`],
+    revealed: [],
+    plots: seed.plots.map(p => ({ px: p.px, py: p.py, owner: p.owner, name: p.name, born: now - p.bornAgo, last: now - p.lastAgo, public: p.public })),
+    objs: seed.objs.map(o => ({ id: o.id, x: o.x, y: o.y, prompt: o.prompt, src: `/world/sprites/${o.lib}.png`, owner: o.owner, likes: o.likes, visits: o.visits, t: now - o.ago })),
+    credits: 60, gens: FREE_GENS, gensDay: Math.floor(now / DAY),
+    player: { x: seed.spawn.x, y: seed.spawn.y + 6 }, onboarded: false, name: "Traveler",
+  };
 }
 
 function score(o: Obj) { return o.likes * 3 + o.visits; }
@@ -81,6 +70,9 @@ export default function World() {
   const keys = useRef<Set<string>>(new Set());
   const hover = useRef<{ x: number; y: number } | null>(null);
   const modeRef = useRef<Mode>("explore");
+  const walkers = useRef<Walker[]>([]);
+  const replay = useRef<{ start: number; from: number; z: number; x: number; y: number; follow: boolean } | null>(null);
+  const REPLAY_MS = 16000;
 
   const [, force] = useState(0);
   const rerender = useCallback(() => force(n => n + 1), []);
@@ -125,10 +117,15 @@ export default function World() {
   };
 
   // ── Init ───────────────────────────────────────────────────────────────────
-  useEffect(() => {
+  useEffect(() => { (async () => {
     let s: Save | null = null;
     try { const raw = localStorage.getItem(STORE); if (raw) s = JSON.parse(raw) as Save; } catch { s = null; }
-    if (!s || s.v !== 1) s = seedWorld(findSpawn());
+    if (!s || s.v !== 2) {
+      const seed = (await (await fetch("/world/seed.json")).json()) as Seed;
+      s = fromSeed(seed);
+      // the plaza and its surroundings are already charted for newcomers
+      for (let y = -22; y <= 22; y++) for (let x = -22; x <= 22; x++) if (x * x + y * y <= 22 * 22) s.revealed.push(key(s.spawn.x + x, s.spawn.y + y));
+    }
     const today = Math.floor(Date.now() / DAY);
     if (s.gensDay !== today) { s.gens = FREE_GENS; s.gensDay = today; }
     S.current = s;
@@ -145,8 +142,15 @@ export default function World() {
     }
     if (innerWidth < 760) setShowBoard(false);
     if (!s.onboarded) setOnboardStep(0);
+    walkers.current = s.bots.filter(b => b.active && b.plots.length).map(b => {
+      const p = b.plots[0]; const h = hashStr(b.name);
+      const x = p.px * PLOT + 1 + (h % 6), y = p.py * PLOT + 1 + ((h >> 3) % 6);
+      // settlers start out around the plaza and wander home, so newcomers see a busy square
+      const sx = s!.spawn.x + ((h % 25) - 12), sy = s!.spawn.y + (((h >> 5) % 21) - 10);
+      return { name: b.name, x: sx + 0.5, y: sy + 0.5, tx: x + 0.5, ty: y + 0.5, wait: (h % 30) / 10, hat: HATS[h % HATS.length], coat: COATS[(h >> 4) % COATS.length] };
+    });
     persist(); rerender();
-  }, [persist, reveal, rerender, toast]);
+  })(); }, [persist, reveal, rerender, toast]);
 
   // ── Render loop ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -184,7 +188,28 @@ export default function World() {
           }
           saveT += dt; if (saveT > 2) { saveT = 0; persist(); }
         }
-        if (cam.current.follow) {
+        // bot settlers wander between their plots and visit neighbours' builds
+        for (const w of walkers.current) {
+          if (w.wait > 0) { w.wait -= dt; continue; }
+          const dx = w.tx - w.x, dy = w.ty - w.y, dd = Math.hypot(dx, dy);
+          if (dd > 0.08) { const st = Math.min(dd, 2.6 * dt); w.x += dx / dd * st; w.y += dy / dd * st; continue; }
+          w.wait = 1 + Math.random() * 5;
+          const mine = s.plots.filter(p => p.owner === w.name);
+          if (Math.random() < 0.3) {
+            const near = s.objs.filter(o => o.owner !== w.name && Math.abs(o.x - w.x) < 30 && Math.abs(o.y - w.y) < 30);
+            if (near.length) { const o = near[Math.floor(Math.random() * near.length)]; o.visits++; w.tx = o.x + 0.5; w.ty = o.y + 1.6; continue; }
+          }
+          if (mine.length) { const p = mine[Math.floor(Math.random() * mine.length)]; w.tx = p.px * PLOT + 1 + Math.random() * 6; w.ty = p.py * PLOT + 1 + Math.random() * 6; }
+        }
+        const rp = replay.current;
+        if (rp) {
+          const prog = (now - rp.start) / REPLAY_MS;
+          const zt = Math.max(9, Math.min(14, innerWidth / 110));
+          cam.current.z += (zt - cam.current.z) * Math.min(1, dt * 2);
+          cam.current.x += (s.spawn.x - cam.current.x) * Math.min(1, dt * 2);
+          cam.current.y += (s.spawn.y - cam.current.y) * Math.min(1, dt * 2);
+          if (prog >= 1.15) { replay.current = null; cam.current.z = rp.z; cam.current.x = rp.x; cam.current.y = rp.y; cam.current.follow = rp.follow; rerender(); }
+        } else if (cam.current.follow) {
           cam.current.x += (pos.current.x - cam.current.x) * Math.min(1, dt * 6);
           cam.current.y += (pos.current.y - cam.current.y) * Math.min(1, dt * 6);
         }
@@ -216,24 +241,30 @@ export default function World() {
       }
 
     // plots
-    const nowMs = Date.now();
+    const rp = replay.current;
+    const realNow = Date.now();
+    const span = (s.plots.reduce((m, p) => Math.min(m, p.born ?? realNow), realNow));
+    const prog = rp ? Math.min(1, (now - rp.start) / REPLAY_MS) : 1;
+    const nowMs = rp ? span + (realNow - span) * prog : realNow;
+    const seen = (x: number, y: number) => !!rp || revealed.current.has(key(x, y));
     ctx.font = `${Math.max(7, Math.min(11, z / 4))}px "Press Start 2P", monospace`;
     for (const p of s.plots) {
       const x = ox + p.px * PLOT * z, y = oy + p.py * PLOT * z, w = PLOT * z;
       if (x > W || y > H || x + w < 0 || y + w < 0) continue;
-      if (!revealed.current.has(key(p.px * PLOT + 4, p.py * PLOT + 4))) continue;
+      if (!seen(p.px * PLOT + 4, p.py * PLOT + 4) || (p.born ?? 0) > nowMs) continue;
       const abandoned = p.owner !== ME && nowMs - p.last > 30 * DAY;
       if (abandoned) {
         ctx.fillStyle = "rgba(40,90,30,0.35)"; ctx.fillRect(x, y, w, w);
         ctx.strokeStyle = "rgba(120,80,40,0.9)"; ctx.setLineDash([4, 4]);
       } else if (p.owner === ME) { ctx.strokeStyle = "#ffd447"; ctx.setLineDash([6, 3]); ctx.fillStyle = "rgba(255,212,71,0.08)"; ctx.fillRect(x, y, w, w); }
+      else if (p.public) { ctx.strokeStyle = "#7fe3ff"; ctx.setLineDash([]); ctx.fillStyle = "rgba(127,227,255,0.10)"; ctx.fillRect(x, y, w, w); }
       else { ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.setLineDash([2, 4]); }
       ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, w - 2); ctx.setLineDash([]);
       if (z >= 20) {
         const label = abandoned ? `${p.name} · overgrown` : p.name;
         const tw = ctx.measureText(label).width + 10;
         ctx.fillStyle = "rgba(14,20,64,0.85)"; ctx.fillRect(x + 4, y - 16, tw, 15);
-        ctx.fillStyle = abandoned ? "#c9a46a" : p.owner === ME ? "#ffd447" : "#fff"; ctx.fillText(label, x + 9, y - 5);
+        ctx.fillStyle = abandoned ? "#c9a46a" : p.owner === ME ? "#ffd447" : p.public ? "#7fe3ff" : "#fff"; ctx.fillText(label, x + 9, y - 5);
       }
     }
 
@@ -255,9 +286,10 @@ export default function World() {
     const items: { y: number; fn: () => void }[] = [];
     for (const o of s.objs) {
       if (o.x < tx0 - 3 || o.x > tx1 + 3 || o.y < ty0 - 3 || o.y > ty1 + 3) continue;
-      if (!revealed.current.has(key(o.x, o.y))) continue;
+      if (!seen(o.x, o.y) || o.t > nowMs) continue;
+      const pop = rp ? Math.min(1, (nowMs - o.t) / ((realNow - span) / 30)) : Math.min(1, (realNow - o.t) / 600);
       items.push({ y: o.y + 1, fn: () => {
-        const im = loadImg(o.src); const sz = z * 2.3;
+        const im = loadImg(o.src); const sz = z * 2.3 * (pop < 1 ? 0.3 + 0.7 * pop + Math.sin(pop * Math.PI) * 0.25 : 1);
         const x = ox + (o.x + 0.5) * z - sz / 2, y = oy + (o.y + 1) * z - sz + z * 0.15;
         ctx.fillStyle = "rgba(0,0,0,0.22)"; ctx.beginPath(); ctx.ellipse(ox + (o.x + 0.5) * z, oy + (o.y + 0.95) * z, z * 0.75, z * 0.22, 0, 0, Math.PI * 2); ctx.fill();
         if (im.complete && im.naturalWidth) ctx.drawImage(im, x, y, sz, sz);
@@ -268,13 +300,36 @@ export default function World() {
         }
       } });
     }
-    items.push({ y: pos.current.y + 0.5, fn: () => {
+    if (!rp) for (const w of walkers.current) {
+      if (w.x < tx0 || w.x > tx1 || w.y < ty0 || w.y > ty1 || !revealed.current.has(key(Math.floor(w.x), Math.floor(w.y)))) continue;
+      items.push({ y: w.y + 0.4, fn: () => {
+        const px = Math.max(1.5, z / 14), ax = ox + w.x * z - 4 * px, ay = oy + w.y * z - 9 * px;
+        const moving = w.wait <= 0 && Math.hypot(w.tx - w.x, w.ty - w.y) > 0.08;
+        const bob = moving ? Math.round(Math.sin(now / 110 + w.x)) * px * 0.5 : 0;
+        const col: Record<string, string> = { ...AV_COL, R: w.hat, B: w.coat };
+        AVATAR.forEach((row, ry) => [...row].forEach((ch, rx) => { if (ch !== ".") { ctx.fillStyle = col[ch]; ctx.fillRect(ax + rx * px, ay + ry * px + bob, px + 0.5, px + 0.5); } }));
+        if (z >= 26) { ctx.font = '7px "Press Start 2P", monospace'; ctx.fillStyle = "rgba(0,0,0,0.55)"; const tw = ctx.measureText(w.name).width; ctx.fillRect(ox + w.x * z - tw / 2 - 3, ay - 12, tw + 6, 10); ctx.fillStyle = "#fff"; ctx.fillText(w.name, ox + w.x * z - tw / 2, ay - 4); }
+      } });
+    }
+    if (!rp) items.push({ y: pos.current.y + 0.5, fn: () => {
       const px = Math.max(2, z / 12), ax = ox + pos.current.x * z - 4 * px, ay = oy + pos.current.y * z - 9 * px;
       const bob = (target.current || keys.current.size) ? Math.round(Math.sin(now / 90)) * px * 0.5 : 0;
       AVATAR.forEach((row, ry) => [...row].forEach((ch, rx) => { if (ch !== ".") { ctx.fillStyle = AV_COL[ch]; ctx.fillRect(ax + rx * px, ay + ry * px + bob, px + 0.5, px + 0.5); } }));
     } });
     items.sort((a, b) => a.y - b.y).forEach(i => i.fn());
 
+    if (rp) {
+      const day = Math.floor((nowMs - span) / DAY) + 1;
+      const total = Math.round((realNow - span) / DAY);
+      const shownObjs = s.objs.filter(o => o.t <= nowMs).length, shownPlots = s.plots.filter(p => (p.born ?? 0) <= nowMs).length;
+      ctx.fillStyle = "rgba(11,10,40,0.78)"; ctx.fillRect(W / 2 - 170, H - 190, 340, 70);
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.strokeRect(W / 2 - 170, H - 190, 340, 70);
+      ctx.textAlign = "center"; ctx.fillStyle = "#ffd447"; ctx.font = '16px "Press Start 2P", monospace';
+      ctx.fillText(`DAY ${Math.min(day, total)} / ${total}`, W / 2, H - 160);
+      ctx.fillStyle = "#c9d3ff"; ctx.font = '9px "Press Start 2P", monospace';
+      ctx.fillText(`${shownPlots} plots · ${shownObjs} creations`, W / 2, H - 135); ctx.textAlign = "left";
+      return;
+    }
     // fog of war
     for (let y = ty0; y <= ty1; y++) for (let x = tx0; x <= tx1; x++) {
       if (revealed.current.has(key(x, y))) continue;
@@ -310,6 +365,7 @@ export default function World() {
     }
     if (rev < PLOT * PLOT * 0.6) return { ok: false, why: "Explore this land first", cost: 0 };
     if (ex) {
+      if (ex.public) return { ok: false, why: "Public land belongs to everyone", cost: 0 };
       if (ex.owner === ME) return { ok: false, why: "Already yours", cost: 0 };
       if (Date.now() - ex.last > 30 * DAY) return { ok: true, cost: RECLAIM_COST, reclaim: true };
       return { ok: false, why: `Owned by ${ex.owner}`, cost: 0 };
@@ -400,18 +456,63 @@ export default function World() {
     return () => { removeEventListener("keydown", dn); removeEventListener("keyup", up); };
   }, []);
 
-  // simulated world activity (prototype: stands in for real multiplayer traffic)
+  // live bot settlers (prototype: stands in for real multiplayer players)
+  const logEvent = useCallback((text: string) => { const s = S.current; if (!s) return; s.log = [text, ...s.log].slice(0, 30); }, []);
   useEffect(() => {
     const t = setInterval(() => {
       const s = S.current; if (!s || !s.objs.length) return;
-      const o = s.objs[Math.floor(Math.random() * s.objs.length)];
-      o.visits++;
-      if (Math.random() < 0.25) o.likes++;
-      if (o.owner === ME) { s.credits += 1; toast(`A traveler visited your “${o.prompt.slice(0, 24)}” (+1 credit)`); persist(); }
-      rerender();
+      // ambient traffic
+      for (let i = 0; i < 4; i++) { const o = s.objs[Math.floor(Math.random() * s.objs.length)]; o.visits++; if (Math.random() < 0.2) o.likes++; }
+      const mineObjs = s.objs.filter(o => o.owner === ME);
+      if (mineObjs.length && Math.random() < 0.35) {
+        const o = mineObjs[Math.floor(Math.random() * mineObjs.length)]; const w = walkers.current[Math.floor(Math.random() * walkers.current.length)];
+        o.visits++; s.credits += 1;
+        if (Math.random() < 0.4) { o.likes++; toast(`${w?.name ?? "A traveler"} liked your “${o.prompt.slice(0, 22)}” (+1 credit)`); logEvent(`${w?.name ?? "Someone"} liked your ${o.prompt}`); }
+      }
+      // a settler acts
+      const w = walkers.current[Math.floor(Math.random() * walkers.current.length)];
+      if (w) {
+        const mine = s.plots.filter(p => p.owner === w.name);
+        const roll = Math.random();
+        let built = false;
+        if (roll < 0.75 && mine.length) {
+          for (const p of [...mine].sort(() => Math.random() - 0.5)) {
+            const inPlot = s.objs.filter(o => plotOf(o.x, o.y).px === p.px && plotOf(o.x, o.y).py === p.py).length;
+            if (inPlot >= 6) continue;
+            for (let tries = 0; tries < 10 && !built; tries++) {
+              const x = p.px * PLOT + 1 + Math.floor(Math.random() * 6), y = p.py * PLOT + 2 + Math.floor(Math.random() * 5);
+              if (!isLand(biomeAt(x + 0.5, y + 0.5)) || s.objs.some(o => Math.abs(o.x - x) < 2 && Math.abs(o.y - y) < 2)) continue;
+              const bot = s.bots.find(b => b.name === w.name);
+              const { key: lib, prompt } = pickSprite(zoneAt(x, y), Math.random, bot?.favs ?? []);
+              s.objs.push({ id: `live-${Date.now()}`, x, y, prompt, src: `/world/sprites/${lib}.png`, owner: w.name, likes: 0, visits: 0, t: Date.now() });
+              p.last = Date.now(); w.tx = x + 0.5; w.ty = y + 1.6; w.wait = 0;
+              const msg = `${w.name} built “${prompt}” in ${regionName(x, y)}`;
+              logEvent(msg);
+              if (revealed.current.has(key(x, y))) toast(msg);
+              built = true;
+            }
+            if (built) break;
+          }
+        }
+        if (!built && mine.length && roll < 0.95) {
+          const base = mine[Math.floor(Math.random() * mine.length)];
+          const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]].sort(() => Math.random() - 0.5);
+          for (const [dx, dy] of dirs) {
+            const px = base.px + dx, py = base.py + dy;
+            if (s.plots.some(q => q.px === px && q.py === py)) continue;
+            let land = 0; for (let yy = 0; yy < PLOT; yy += 2) for (let xx = 0; xx < PLOT; xx += 2) if (isLand(biomeAt(px * PLOT + xx + 0.5, py * PLOT + yy + 0.5))) land++;
+            if (land < 10) continue;
+            const name = `${w.name}'s ${PLOT_SUFFIX[(hashStr(w.name) + mine.length) % PLOT_SUFFIX.length]}`;
+            s.plots.push({ px, py, owner: w.name, name, last: Date.now(), born: Date.now() });
+            logEvent(`${w.name} claimed ${name} in ${regionName(px * PLOT + 4, py * PLOT + 4)}`);
+            break;
+          }
+        }
+      }
+      persist(); rerender();
     }, 6000);
     return () => clearInterval(t);
-  }, [persist, rerender, toast]);
+  }, [persist, rerender, toast, logEvent]);
 
   // ── Generation ─────────────────────────────────────────────────────────────
   async function generate() {
@@ -525,6 +626,8 @@ export default function World() {
             );
           })}
           <div className="cw-note">Top 3 become permanent landmarks.</div>
+          <div className="cw-h" style={{ marginTop: 12 }}><span>WORLD LOG</span><span className="live">● LIVE</span></div>
+          <div className="cw-log">{(s?.log ?? []).slice(0, 7).map((l, i) => <div key={i + l}>{l}</div>)}</div>
         </div>
       )}
       {!showBoard && <button className="win cw-boardbtn" onClick={() => setShowBoard(true)}><i className="sym">★</i></button>}
@@ -536,13 +639,16 @@ export default function World() {
             <span className="ic">{m === "explore" ? "➶" : m === "claim" ? "⚑" : "✎"}</span>{m.toUpperCase()}
           </button>
         ))}
+        <button onClick={() => { if (!replay.current) { replay.current = { start: performance.now(), from: 0, z: cam.current.z, x: cam.current.x, y: cam.current.y, follow: cam.current.follow }; cam.current.follow = false; setSelected(null); rerender(); } }}>
+          <span className="ic">⟲</span>HISTORY
+        </button>
         <span className="sep" />
         <button className="sm" onClick={() => (cam.current.z = Math.min(110, cam.current.z * 1.25))}>+</button>
         <button className="sm" onClick={() => (cam.current.z = Math.max(14, cam.current.z / 1.25))}>−</button>
         <button className="sm" onClick={() => (cam.current.follow = true)}>◎</button>
       </div>
       <div className="cw-hint">
-        {mode === "explore" && "Tap to walk · WASD · drag to look around"}
+        {mode === "explore" && "Tap to walk · drag to look around · pinch to zoom"}
         {mode === "claim" && (myPlots === 0 ? "Tap any explored land to claim your FREE first plot" : `Tap explored land to claim (${PLOT_COST} credits) · overgrown plots ${RECLAIM_COST}`)}
         {mode === "create" && "Tap a tile on your land, then describe what to build"}
       </div>
@@ -658,6 +764,9 @@ const CSS = `
 .nm{font-size:7px;line-height:1.5;flex:1;overflow:hidden}
 .nm small{display:block;color:#9fb4ff;font-size:6px}
 .cw-note{font-size:6px;color:#9fb4ff;line-height:1.6;margin-top:6px}
+.cw-log{display:flex;flex-direction:column;gap:6px;font-size:6px;line-height:1.6;color:#dfe5ff}
+.cw-log div{background:rgba(0,0,0,.18);padding:5px 6px;border-radius:3px}
+.live{font-size:6px;color:#7dffb0;animation:bl 1.2s infinite alternate}
 .cw-boardbtn{position:absolute;right:12px;top:84px;width:40px;height:40px;color:#ffd447;font-size:14px;cursor:pointer}
 .cw-dock{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:7px;align-items:center}
 .cw-dock button{background:rgba(0,0,0,.2);border:2px solid transparent;color:#fff;font-family:inherit;font-size:9px;padding:10px 12px;border-radius:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -695,6 +804,7 @@ const CSS = `
  .cw-tr{top:8px;right:8px;gap:7px;font-size:9px;padding:7px 8px}.cw-tr small{font-size:5px}
  .cw-daily{top:62px;max-width:92vw;padding:7px 10px}.cw-daily span{font-size:7px}
  .cw-board{top:auto;bottom:150px;left:8px;right:8px;width:auto;max-height:45vh}.cw-boardbtn{top:auto;bottom:100px;right:8px;width:36px;height:36px}
+ .cw-dock .sm,.cw-dock .sep{display:none}
  .cw-dock{bottom:10px;gap:4px;padding:5px}.cw-dock button{padding:7px 8px;font-size:7px}.cw-dock button.sm{padding:7px 8px}
  .cw-hint{bottom:84px;font-size:6px;white-space:normal;width:80vw;text-align:center}
  .cw-card{left:8px;right:8px;width:auto;bottom:100px}
